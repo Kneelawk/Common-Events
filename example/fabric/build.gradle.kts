@@ -4,7 +4,7 @@ plugins {
     id("maven-publish")
 }
 
-evaluationDependsOn(":xplat")
+evaluationDependsOn(":example-xplat")
 
 val releaseTag = System.getenv("RELEASE_TAG")
 val modVersion = if (releaseTag != null) {
@@ -25,8 +25,20 @@ base {
     archivesName = "$archives_base_name-${project.name}"
 }
 
+loom {
+    runs {
+        named("client").configure {
+            ideConfigGenerated(true)
+            programArgs("--width", "1280", "--height", "720")
+        }
+        named("server").configure {
+            ideConfigGenerated(true)
+        }
+    }
+}
+
 repositories {
-    maven("https://maven.neoforged.net/releases/") { name = "NeoForged" }
+    maven("https://maven.terraformersmc.com/releases/") { name = "TerraformersMC" }
 }
 
 dependencies {
@@ -34,10 +46,26 @@ dependencies {
     minecraft("com.mojang:minecraft:$minecraft_version")
     mappings(loom.officialMojangMappings())
 
-    val neoforge_version: String by project
-    neoForge("net.neoforged:neoforge:$neoforge_version")
+    val fabric_loader_version: String by project
+    modCompileOnly("net.fabricmc:fabric-loader:$fabric_loader_version")
+    modLocalRuntime("net.fabricmc:fabric-loader:$fabric_loader_version")
 
-    compileOnly(project(":xplat"))
+    // Fabric Api
+    val fapi_version: String by project
+    modCompileOnly("net.fabricmc.fabric-api:fabric-api:$fapi_version")
+    modLocalRuntime("net.fabricmc.fabric-api:fabric-api:$fapi_version")
+
+    compileOnly(project(":example-xplat"))
+
+    // Common Events
+    modImplementation(project(":fabric", configuration = "namedElements"))
+
+    // Mod Menu
+    val mod_menu_version: String by project
+    modLocalRuntime("com.terraformersmc:modmenu:$mod_menu_version") {
+        exclude(group = "net.fabricmc")
+        exclude(group = "net.fabricmc.fabric-api")
+    }
 }
 
 java {
@@ -50,28 +78,20 @@ java {
 
 tasks {
     processResources {
-        from(project(":xplat").sourceSets.main.get().resources)
+        from(project(":example-xplat").sourceSets.main.get().resources)
 
         inputs.property("modVersion", modVersion)
 
-        filesMatching("META-INF/mods.toml") {
+        filesMatching("fabric.mod.json") {
             expand("version" to modVersion)
         }
     }
 
     withType<JavaCompile>().configureEach {
-        source(project(":xplat").sourceSets.main.get().allSource)
+        source(project(":example-xplat").sourceSets.main.get().allSource)
         options.encoding = "UTF-8"
         val java_version: String by project
         options.release.set(java_version.toInt())
-    }
-
-    withType<Javadoc>().configureEach {
-        source(project(":xplat").sourceSets.main.get().java)
-
-        exclude("com/kneelawk/commonevents/impl")
-
-        options.optionFiles(rootProject.file("javadoc-options.txt"))
     }
 
     jar.configure {
@@ -81,27 +101,9 @@ tasks {
     }
 
     named("sourcesJar", Jar::class).configure {
-        from(project(":xplat").sourceSets.main.get().allSource)
+        from(project(":example-xplat").sourceSets.main.get().allSource)
         from(rootProject.file("LICENSE")) {
             rename { "${it}_${rootProject.name}" }
-        }
-    }
-}
-
-publishing {
-    publications {
-        create<MavenPublication>("mavenJava") {
-            artifactId = "${rootProject.name}-${project.name}"
-            from(components["java"])
-        }
-    }
-
-    repositories {
-        if (System.getenv("PUBLISH_REPO") != null) {
-            maven {
-                name = "publishRepo"
-                url = uri(rootProject.file(System.getenv("PUBLISH_REPO")))
-            }
         }
     }
 }

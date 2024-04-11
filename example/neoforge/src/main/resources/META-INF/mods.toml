@@ -1,0 +1,25 @@
+modLoader = "javafml"
+loaderVersion = "[1,)"
+license = "MIT"
+
+[[mods]]
+modId = "common_events_example"
+version = "${version}"
+displayName = "Common Events Example"
+authors = "Kneelawk"
+description = "Common Events Example."
+logoFile = "assets/common_events_example/icon.png"
+
+[[dependencies.common_events_example]]
+modId = "neoforge"
+type = "REQUIRED"
+versionRange = "[20.4.148-beta,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.common_events_example]]
+modId = "common_events"
+type = "REQUIRED"
+versionRange = "[0,)"
+ordering = "NONE"
+side = "BOTH"

@@ -25,18 +25,6 @@ base {
     archivesName = "$archives_base_name-${project.name}"
 }
 
-loom {
-    runs {
-        named("client").configure {
-            ideConfigGenerated(true)
-            programArgs("--width", "1280", "--height", "720")
-        }
-        named("server").configure {
-            ideConfigGenerated(true)
-        }
-    }
-}
-
 repositories {
     maven("https://maven.terraformersmc.com/releases/") { name = "TerraformersMC" }
 }
@@ -56,13 +44,6 @@ dependencies {
     modLocalRuntime("net.fabricmc.fabric-api:fabric-api:$fapi_version")
 
     compileOnly(project(":xplat"))
-
-    // Mod Menu
-    val mod_menu_version: String by project
-    modLocalRuntime("com.terraformersmc:modmenu:$mod_menu_version") {
-        exclude(group = "net.fabricmc")
-        exclude(group = "net.fabricmc.fabric-api")
-    }
 }
 
 java {
