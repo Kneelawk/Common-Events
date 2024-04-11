@@ -1,0 +1,31 @@
+{
+  "schemaVersion": 1,
+  "id": "common_events",
+  "version": "${version}",
+  "name": "Common Events",
+  "description": "Cross-platform Event Library.",
+  "authors": [
+    "Kneelawk"
+  ],
+  "contact": {
+    "homepage": "https://github.com/Kneelawk/Common-Events",
+    "issues": "https://github.com/Kneelawk/Common-Events/issues",
+    "sources": "https://github.com/Kneelawk/Common-Events"
+  },
+  "license": "MIT",
+  "icon": "assets/common_events/icon.png",
+  "environment": "*",
+  "entrypoints": { },
+  "mixins": [ ],
+  "depends": {
+    "fabricloader": ">=0.15.0",
+    "fabric-api": "*",
+    "minecraft": ">=1.20.4 <1.21-",
+    "java": ">=17"
+  },
+  "custom": {
+    "modmenu": {
+      "badges": [ "library" ]
+    }
+  }
+}

@@ -1,0 +1,18 @@
+modLoader = "javafml"
+loaderVersion = "[1,)"
+license = "MIT"
+
+[[mods]]
+modId = "common_events"
+version = "${version}"
+displayName = "Common Events"
+authors = "Kneelawk"
+description = "Cross-platform Event Library."
+logoFile = "assets/common_events/icon.png"
+
+[[dependencies.common_events]]
+modId = "neoforge"
+type = "REQUIRED"
+versionRange = "[20.4.148-beta,)"
+ordering = "NONE"
+side = "BOTH"
