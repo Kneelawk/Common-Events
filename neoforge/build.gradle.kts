@@ -79,7 +79,11 @@ tasks {
     }
 
     withType<Javadoc>().configureEach {
-        source(project(":xplat").sourceSets.main.get().allSource)
+        source(project(":xplat").sourceSets.main.get().java)
+
+        exclude("com/kneelawk/commonevents/impl")
+
+        options.optionFiles(rootProject.file("javadoc-options.txt"))
     }
 
     jar.configure {

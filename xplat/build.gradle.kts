@@ -50,6 +50,12 @@ tasks {
         options.release.set(java_version.toInt())
     }
 
+    javadoc.configure {
+        exclude("com/kneelawk/commonevents/impl")
+
+        options.optionFiles(rootProject.file("javadoc-options.txt"))
+    }
+
     jar.configure {
         from(rootProject.file("LICENSE")) {
             rename { "${it}_${rootProject.name}" }
