@@ -52,7 +52,7 @@ dependencies {
     compileOnly(project(":example-xplat"))
     
     // Common Events
-    modImplementation(project(":neoforge", configuration = "namedElements"))
+    implementation(project(":neoforge", configuration = "namedElements"))
 }
 
 java {

@@ -58,7 +58,7 @@ dependencies {
     compileOnly(project(":example-xplat"))
 
     // Common Events
-    modImplementation(project(":fabric", configuration = "namedElements"))
+    implementation(project(":fabric", configuration = "namedElements"))
 
     // Mod Menu
     val mod_menu_version: String by project
