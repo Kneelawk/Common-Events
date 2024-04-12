@@ -27,14 +27,14 @@ import com.kneelawk.commonevents.api.phase.PhaseData;
 
 @ApiStatus.Internal
 public final class EventPhaseData<T> extends PhaseData<T[], EventPhaseData<T>> {
-	@SuppressWarnings("unchecked")
-	public EventPhaseData(ResourceLocation id, Class<?> listenerClass) {
-		super(id, (T[]) Array.newInstance(listenerClass, 0));
-	}
+    @SuppressWarnings("unchecked")
+    public EventPhaseData(ResourceLocation id, Class<?> listenerClass) {
+        super(id, (T[]) Array.newInstance(listenerClass, 0));
+    }
 
-	public void addListener(T listener) {
-		int oldLength = this.data.length;
-		this.data = Arrays.copyOf(data, oldLength + 1);
-		this.data[oldLength] = listener;
-	}
+    public void addListener(T listener) {
+        int oldLength = this.data.length;
+        this.data = Arrays.copyOf(data, oldLength + 1);
+        this.data[oldLength] = listener;
+    }
 }

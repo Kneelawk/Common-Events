@@ -34,11 +34,26 @@ import net.minecraft.resources.ResourceLocation;
  */
 public class PhaseData<T, P extends PhaseData<T, P>> {
     final ResourceLocation name;
+    /**
+     * The data held within this phase.
+     */
     protected T data;
+    /**
+     * A list of phases that must come after this one.
+     */
     protected final List<P> subsequentPhases = new ArrayList<>();
+    /**
+     * A list of phases that must come before this one.
+     */
     protected final List<P> previousPhases = new ArrayList<>();
     VisitStatus visitStatus = VisitStatus.NOT_VISITED;
 
+    /**
+     * Constructs a new phase.
+     *
+     * @param name the name of this phase.
+     * @param data the data held within this phase.
+     */
     public PhaseData(@NotNull ResourceLocation name, T data) {
         Objects.requireNonNull(name);
 
@@ -62,10 +77,20 @@ public class PhaseData<T, P extends PhaseData<T, P>> {
         return this.data;
     }
 
+    /**
+     * Adds a phase that must come after this one.
+     *
+     * @param phase the phase that must come after this one.
+     */
     protected void addSubsequentPhase(P phase) {
         this.subsequentPhases.add(phase);
     }
 
+    /**
+     * Adds a phase that must come before this one.
+     *
+     * @param phase the phase that must come before this one.
+     */
     protected void addPreviousPhase(P phase) {
         this.previousPhases.add(phase);
     }
@@ -76,6 +101,7 @@ public class PhaseData<T, P extends PhaseData<T, P>> {
      * @param first  the phase that should be ordered first
      * @param second the phase that should be ordered second
      * @param <T>    the type of data held by the phases
+     * @param <P>    this phase-data subclass
      */
     public static <T, P extends PhaseData<T, P>> void link(@NotNull P first, @NotNull P second) {
         first.addSubsequentPhase(second);

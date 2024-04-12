@@ -100,7 +100,7 @@ import com.kneelawk.commonevents.impl.EventPhaseData;
  *         // Do something else again
  *     }
  * }
- * 
+ *
  * // When using the scanning method, the class must be annotated with @Listener and have public, static methods
  * // annotated with @Listen. The class must also be publicly accessible.
  * @Listener
@@ -111,7 +111,7 @@ import com.kneelawk.commonevents.impl.EventPhaseData;
  *     }
  * }
  * }</pre>
- * 
+ *
  * <b>Note:</b> Use of annotation-based registration requires that the registering mod has a
  * {@code common-events.json} file in its root directory, containing:
  * <pre>{@code
