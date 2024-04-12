@@ -31,7 +31,7 @@ public class PlatformImpl extends Platform {
 
     @Override
     public String getModVersion() {
-        return FMLLoader.getLoadingModList().getModFileById(CommonEventsImpl.MOD_ID).versionString();
+        return FMLLoader.getLoadingModList().getModFileById(CEConstants.MOD_ID).versionString();
     }
 
     @Override

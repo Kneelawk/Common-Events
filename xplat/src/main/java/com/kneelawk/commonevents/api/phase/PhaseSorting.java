@@ -26,7 +26,7 @@ import java.util.PriorityQueue;
 
 import com.google.common.annotations.VisibleForTesting;
 
-import com.kneelawk.commonevents.impl.CommonEventsImpl;
+import com.kneelawk.commonevents.impl.CELog;
 
 /**
  * Provides the phase-sorting logic of {@link PhaseData}.
@@ -138,7 +138,7 @@ public final class PhaseSorting {
             phase.visitStatus = PhaseData.VisitStatus.VISITED;
         } else if (phase.visitStatus == PhaseData.VisitStatus.VISITING && ENABLE_CYCLE_WARNING) {
             // Already visiting, so we have found a cycle.
-            CommonEventsImpl.LOGGER.warn(String.format(
+            CELog.LOGGER.warn(String.format(
                 "Phase ordering conflict detected.%nPhase %s is ordered both before and after phase %s.",
                 phase.name,
                 parent.name

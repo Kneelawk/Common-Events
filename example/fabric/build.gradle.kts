@@ -59,6 +59,7 @@ dependencies {
 
     // Common Events
     implementation(project(":fabric", configuration = "namedElements"))
+    include(project(":fabric"))
 
     // Mod Menu
     val mod_menu_version: String by project

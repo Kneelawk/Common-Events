@@ -16,23 +16,34 @@
 
 package com.kneelawk.commonevents.impl.scan;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.time.Duration;
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import com.google.gson.JsonElement;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonParser;
+
 import com.kneelawk.commonevents.api.Event;
-import com.kneelawk.commonevents.impl.CommonEventsImpl;
+import com.kneelawk.commonevents.impl.CELog;
 import com.kneelawk.commonevents.impl.Platform;
 import com.kneelawk.commonevents.impl.mod.ModFileHolder;
 
 public class ListenerScanner {
+    private static final String EVENTS_JSON_PATH = "common-events.json";
+
     private static boolean initialized = false;
     private static final Lock initLock = new ReentrantLock();
-    private static final Map<ListenerKey, List<ListenerHandle>> handles = new HashMap<>();
+    private static final Map<ListenerKey, List<ListenerHandle>> scanned = new HashMap<>();
 
     public static void ensureInitialized() {
         initLock.lock();
@@ -49,24 +60,71 @@ public class ListenerScanner {
     public static <T> void addScannedListeners(Class<T> callbackClass, Event<T> event) {
         ensureInitialized();
 
-        List<ListenerHandle> listeners = handles.get(ListenerKey.fromClass(callbackClass));
+        List<ListenerHandle> listeners = scanned.get(ListenerKey.fromClass(callbackClass));
         if (listeners != null) {
             for (ListenerHandle handle : listeners) {
-                event.register(handle.getPhase(), handle.createCallback(callbackClass));
+                try {
+                    T callback = handle.createCallback(callbackClass);
+                    event.register(handle.getPhase(), callback);
+                } catch (ClassNotFoundException e) {
+                    CELog.LOGGER.error("[Common Events] Error creating callback instance", e);
+                }
             }
         }
     }
 
     private static void initialize() {
-        CommonEventsImpl.LOGGER.info("[Common Events] Scanning mods...");
+        CELog.LOGGER.info("[Common Events] Finding mods to scan...");
         Instant start = Instant.now();
+
+        // TODO: collect adapters and supply them to scan function
+        List<ModScanner> toScan = new ArrayList<>();
+
         for (ModFileHolder mod : Platform.getInstance().getModFiles()) {
-            CommonEventsImpl.LOGGER.info("[Common Events] Scanning mod {}...", mod.getModIds());
-            CommonEventsImpl.LOGGER.info("[Common Events] Root paths: {}", mod.getRootPaths());
+            Path eventsJson = mod.getResource(EVENTS_JSON_PATH);
+            if (eventsJson != null && Files.exists(eventsJson)) {
+                try (BufferedReader reader = Files.newBufferedReader(eventsJson)) {
+                    JsonElement element = JsonParser.parseReader(reader);
+                    if (!element.isJsonObject()) {
+                        CELog.LOGGER.warn(
+                            "[Common Events] Mod {} common-events.json root is not a JSON object",
+                            mod.getModIds());
+                        continue;
+                    }
+
+                    JsonObject obj = element.getAsJsonObject();
+
+                    ModScanner scanner = ModScanner.fromJson(mod, obj);
+                    if (scanner != null) toScan.add(scanner);
+                } catch (IOException e) {
+                    CELog.LOGGER.warn(
+                        "[Common Events] Encountered invalid common-events.json in {}. Skipping...",
+                        mod.getModIds(), e);
+                }
+            }
         }
+
+        CELog.LOGGER.info("[Common Events] Scanning {} mods...", toScan.size());
+
+        for (ModScanner modScanner : toScan) {
+            // TODO: consider making this parallel
+            var result = modScanner.scan();
+
+            merge(result);
+        }
+
         Instant end = Instant.now();
         Duration loadDuration = Duration.between(start, end);
-        CommonEventsImpl.LOGGER.info("[Common Events] Scanning finished in {}s, {}ms.", loadDuration.toSeconds(),
-            loadDuration.toMillisPart());
+        CELog.LOGGER.info("[Common Events] Scanned {} mods in {}s, {}ms.", toScan.size(),
+            loadDuration.toSeconds(), loadDuration.toMillisPart());
+    }
+
+    private static void merge(Map<ListenerKey, List<ListenerHandle>> result) {
+        for (Map.Entry<ListenerKey, List<ListenerHandle>> entry : result.entrySet()) {
+            List<ListenerHandle> handles = entry.getValue();
+            if (!handles.isEmpty()) {
+                scanned.computeIfAbsent(entry.getKey(), k -> new ArrayList<>()).addAll(handles);
+            }
+        }
     }
 }

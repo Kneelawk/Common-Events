@@ -18,25 +18,15 @@ package com.kneelawk.commonevents.impl;
 
 import java.util.function.Function;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
 import net.minecraft.resources.ResourceLocation;
 
 import com.kneelawk.commonevents.api.Event;
 import com.kneelawk.commonevents.impl.scan.ListenerScanner;
 
 public class CommonEventsImpl {
-    public static final String MOD_ID = "common_events";
-
-    public static final Logger LOGGER = LoggerFactory.getLogger(MOD_ID);
-
-    public static ResourceLocation rl(String path) {
-        return new ResourceLocation(MOD_ID, path);
-    }
 
     public static void init() {
-        LOGGER.info("Initializing Common Events {}...", Platform.getInstance().getModVersion());
+        CELog.LOGGER.info("Initializing Common Events {}...", Platform.getInstance().getModVersion());
         ListenerScanner.ensureInitialized();
     }
 

@@ -14,14 +14,8 @@
  * limitations under the License.
  */
 
-package com.kneelawk.commonevents.impl;
+package com.kneelawk.commonevents.impl.scan;
 
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.common.Mod;
-
-@Mod(CEConstants.MOD_ID)
-public class CommonEventsMod {
-    public CommonEventsMod(IEventBus modBus) {
-        CommonEventsImpl.init();
-    }
+public class ScannerUtils {
+    private ScannerUtils() {}
 }

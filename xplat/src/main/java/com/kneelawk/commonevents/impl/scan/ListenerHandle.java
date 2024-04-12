@@ -16,14 +16,39 @@
 
 package com.kneelawk.commonevents.impl.scan;
 
+import java.lang.invoke.MethodHandles;
+
 import net.minecraft.resources.ResourceLocation;
 
 public class ListenerHandle {
-    public ResourceLocation getPhase() {
-        throw new UnsupportedOperationException("Not implemented yet");
+    private static final MethodHandles.Lookup lookup = MethodHandles.publicLookup();
+
+    private final ListenerKey key;
+    private final ResourceLocation phase;
+    private final String listenerClass;
+    private final String methodName;
+    private final String methodDescriptor;
+
+    public ListenerHandle(ListenerKey key, ResourceLocation phase, String listenerClass, String methodName,
+                          String methodDescriptor) {
+        this.key = key;
+        this.phase = phase;
+        this.listenerClass = listenerClass;
+        this.methodName = methodName;
+        this.methodDescriptor = methodDescriptor;
     }
-    
-    public <T> T createCallback(Class<T> callbackClass) {
-        throw new UnsupportedOperationException("Not implemented yet");
+
+    public ListenerKey getKey() {
+        return key;
+    }
+
+    public ResourceLocation getPhase() {
+        return phase;
+    }
+
+    public <T> T createCallback(Class<T> callbackClass) throws ClassNotFoundException {
+        Class<?> listenerClazz = Class.forName(listenerClass);
+
+        throw new UnsupportedOperationException("Not yet implemented");
     }
 }

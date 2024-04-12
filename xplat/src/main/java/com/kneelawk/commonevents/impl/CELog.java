@@ -16,12 +16,9 @@
 
 package com.kneelawk.commonevents.impl;
 
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.common.Mod;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
-@Mod(CEConstants.MOD_ID)
-public class CommonEventsMod {
-    public CommonEventsMod(IEventBus modBus) {
-        CommonEventsImpl.init();
-    }
+public class CELog {
+    public static final Logger LOGGER = LoggerFactory.getLogger(CEConstants.MOD_ID);
 }

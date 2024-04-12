@@ -25,8 +25,16 @@ import net.fabricmc.loader.api.ModContainer;
 
 public class ModFileHolderImpl implements ModFileHolder {
     private final ModContainer mod;
+    private final List<Path> alternateRoots;
 
-    public ModFileHolderImpl(ModContainer mod) {this.mod = mod;}
+    public ModFileHolderImpl(ModContainer mod) {
+        this(mod, List.of());
+    }
+
+    public ModFileHolderImpl(ModContainer mod, List<Path> alternateRoots) {
+        this.mod = mod;
+        this.alternateRoots = alternateRoots;
+    }
 
     @Override
     public List<String> getModIds() {
@@ -40,6 +48,10 @@ public class ModFileHolderImpl implements ModFileHolder {
 
     @Override
     public List<Path> getRootPaths() {
-        return mod.getRootPaths();
+        if (alternateRoots.isEmpty()) {
+            return mod.getRootPaths();
+        } else {
+            return alternateRoots;
+        }
     }
 }

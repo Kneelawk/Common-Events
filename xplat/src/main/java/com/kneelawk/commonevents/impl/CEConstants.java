@@ -16,12 +16,12 @@
 
 package com.kneelawk.commonevents.impl;
 
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.common.Mod;
+import net.minecraft.resources.ResourceLocation;
 
-@Mod(CEConstants.MOD_ID)
-public class CommonEventsMod {
-    public CommonEventsMod(IEventBus modBus) {
-        CommonEventsImpl.init();
+public class CEConstants {
+    public static final String MOD_ID = "common_events";
+
+    public static ResourceLocation rl(String path) {
+        return new ResourceLocation(MOD_ID, path);
     }
 }

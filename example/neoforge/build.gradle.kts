@@ -55,6 +55,7 @@ dependencies {
     compileOnly(project(":neoforge", configuration = "namedElements"))
     // Specifically use artifact produced by a custom jar task so NeoForge will actually pick up the dependency
     runtimeOnly(project(":neoforge", configuration = "dev"))
+    include(project(":neoforge"))
 }
 
 java {
