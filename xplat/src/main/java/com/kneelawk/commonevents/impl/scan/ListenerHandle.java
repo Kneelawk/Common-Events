@@ -16,39 +16,35 @@
 
 package com.kneelawk.commonevents.impl.scan;
 
-import java.lang.invoke.MethodHandles;
-
 import net.minecraft.resources.ResourceLocation;
 
-public class ListenerHandle {
-    private static final MethodHandles.Lookup lookup = MethodHandles.publicLookup();
+/**
+ * Holds a reference to a callback handler that can be converted into a callback interface when needed.
+ */
+public interface ListenerHandle {
+    /**
+     * Gets the listener key this handle is associated with.
+     * <p>
+     * This translates into the event type this listener is listening for.
+     *
+     * @return the listener key this handle is associated with.
+     */
+    ListenerKey getKey();
 
-    private final ListenerKey key;
-    private final ResourceLocation phase;
-    private final String listenerClass;
-    private final String methodName;
-    private final String methodDescriptor;
+    /**
+     * Gets the event phase during which this handle's listener should be notified.
+     *
+     * @return the phase of this handle's listener.
+     */
+    ResourceLocation getPhase();
 
-    public ListenerHandle(ListenerKey key, ResourceLocation phase, String listenerClass, String methodName,
-                          String methodDescriptor) {
-        this.key = key;
-        this.phase = phase;
-        this.listenerClass = listenerClass;
-        this.methodName = methodName;
-        this.methodDescriptor = methodDescriptor;
-    }
-
-    public ListenerKey getKey() {
-        return key;
-    }
-
-    public ResourceLocation getPhase() {
-        return phase;
-    }
-
-    public <T> T createCallback(Class<T> callbackClass) throws ClassNotFoundException {
-        Class<?> listenerClazz = Class.forName(listenerClass);
-
-        throw new UnsupportedOperationException("Not yet implemented");
-    }
+    /**
+     * Creates a callback instance that can actually be registered with the event.
+     *
+     * @param callbackClass the class of the callback interface that the handle should be converted into.
+     * @param <T>           the type of the callback interface.
+     * @return an instance of the specified callback interface.
+     * @throws ClassNotFoundException if the class this handle references does not exist.
+     */
+    <T> T createCallback(Class<T> callbackClass) throws ClassNotFoundException;
 }
