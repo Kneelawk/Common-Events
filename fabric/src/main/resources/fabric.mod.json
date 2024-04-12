@@ -12,7 +12,7 @@
     "issues": "https://github.com/Kneelawk/Common-Events/issues",
     "sources": "https://github.com/Kneelawk/Common-Events"
   },
-  "license": "MIT",
+  "license": "Apache-2.0",
   "icon": "assets/common_events/icon.png",
   "environment": "*",
   "entrypoints": { },
