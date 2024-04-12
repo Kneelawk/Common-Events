@@ -25,6 +25,13 @@ base {
     archivesName = "$archives_base_name-${project.name}"
 }
 
+configurations {
+    create("dev") {
+        isCanBeConsumed = true
+        isCanBeResolved = false
+    }
+}
+
 repositories {
     maven("https://maven.neoforged.net/releases/") { name = "NeoForged" }
 }
@@ -86,6 +93,24 @@ tasks {
             rename { "${it}_${rootProject.name}" }
         }
     }
+
+    // Brute force prevent gradle from just putting project build dirs on classpath
+    create("jarExt", Jar::class) {
+        from(compileJava)
+        from(processResources)
+        from(rootProject.file("LICENSE")) {
+            rename { "${it}_${rootProject.name}" }
+        }
+        archiveClassifier = "jarExt"
+    }
+    
+    assemble.configure { 
+        dependsOn("jarExt")
+    }
+}
+
+artifacts {
+    add("dev", tasks.getByName("jarExt"))
 }
 
 publishing {

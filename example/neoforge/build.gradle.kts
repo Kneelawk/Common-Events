@@ -50,9 +50,11 @@ dependencies {
     neoForge("net.neoforged:neoforge:$neoforge_version")
 
     compileOnly(project(":example-xplat"))
-    
+
     // Common Events
-    implementation(project(":neoforge", configuration = "namedElements"))
+    compileOnly(project(":neoforge", configuration = "namedElements"))
+    // Specifically use artifact produced by a custom jar task so NeoForge will actually pick up the dependency
+    runtimeOnly(project(":neoforge", configuration = "dev"))
 }
 
 java {
