@@ -16,12 +16,18 @@
 
 package com.kneelawk.commonevents.impl;
 
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.common.Mod;
+import net.fabricmc.api.EnvType;
+import net.fabricmc.loader.api.FabricLoader;
 
-@Mod(CommonEventsImpl.MOD_ID)
-public class CommonEventsMod {
-    public CommonEventsMod(IEventBus modBus) {
-        CommonEventsImpl.init();
+public class PlatformImpl extends Platform {
+    @Override
+    boolean isPhysicalClient() {
+        return FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT;
+    }
+
+    @Override
+    String getModVersion() {
+        return FabricLoader.getInstance().getModContainer(CommonEventsImpl.MOD_ID).get().getMetadata().getVersion()
+            .getFriendlyString();
     }
 }

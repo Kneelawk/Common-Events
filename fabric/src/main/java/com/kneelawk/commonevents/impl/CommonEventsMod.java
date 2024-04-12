@@ -16,12 +16,11 @@
 
 package com.kneelawk.commonevents.impl;
 
-import net.neoforged.bus.api.IEventBus;
-import net.neoforged.fml.common.Mod;
+import net.fabricmc.api.ModInitializer;
 
-@Mod(CommonEventsImpl.MOD_ID)
-public class CommonEventsMod {
-    public CommonEventsMod(IEventBus modBus) {
+public class CommonEventsMod implements ModInitializer {
+    @Override
+    public void onInitialize() {
         CommonEventsImpl.init();
     }
 }

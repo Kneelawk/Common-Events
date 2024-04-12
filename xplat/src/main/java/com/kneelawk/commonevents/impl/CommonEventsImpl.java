@@ -34,6 +34,10 @@ public class CommonEventsImpl {
         return new ResourceLocation(MOD_ID, path);
     }
 
+    public static void init() {
+        LOGGER.info("Initializing Common Events {}...", Platform.getInstance().getModVersion());
+    }
+
     /// Following code copied from QSL ///
 
     /*

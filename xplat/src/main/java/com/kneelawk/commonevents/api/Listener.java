@@ -16,9 +16,16 @@
 
 package com.kneelawk.commonevents.api;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 /**
  * Annotate classes containing methods marked with {@link Listen} annotation to allow those classes to be scanned.
  */
+@Retention(RetentionPolicy.RUNTIME)
+@Target(ElementType.TYPE)
 public @interface Listener {
 
     /**

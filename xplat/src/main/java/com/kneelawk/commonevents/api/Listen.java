@@ -16,12 +16,19 @@
 
 package com.kneelawk.commonevents.api;
 
+import java.lang.annotation.ElementType;
+import java.lang.annotation.Retention;
+import java.lang.annotation.RetentionPolicy;
+import java.lang.annotation.Target;
+
 /**
  * Used to annotate methods that listen for events.
  * <p>
  * Annotated methods should be {@code public static} and have exactly the same argument types and return type as the
  * {@link Event}'s callback interface's single abstract method.
  */
+@Retention(RetentionPolicy.RUNTIME)
+@Target({ElementType.METHOD})
 public @interface Listen {
     /**
      * Gets the class of the callback interface that this listener implements.
