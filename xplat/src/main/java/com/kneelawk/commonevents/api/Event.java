@@ -54,6 +54,10 @@ import com.kneelawk.commonevents.impl.EventPhaseData;
  * of implementing an invoker and only allows callback implementations to be done by implementing an interface onto a
  * class or extending a class. This will also prevent the callback from being fired in scanned classes.
  * <p>
+ * You are strongly encouraged to use a {@code T} type which is unique for each event, because this type's class is the
+ * key that allows listeners to register using annotations. Using the same type for multiple events will cause all events
+ * created with that type to call the same annotation-based callbacks.
+ * <p>
  * An Event can have phases, each callback is attributed to a phase ({@link Event#DEFAULT_PHASE} if unspecified),
  * and each phase can have a defined ordering. Each event phase is identified by a {@link ResourceLocation}, ordering is done
  * by explicitly stating that event phase A will run before event phase B, for example.

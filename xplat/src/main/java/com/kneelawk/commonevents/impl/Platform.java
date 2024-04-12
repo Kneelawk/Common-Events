@@ -17,6 +17,9 @@
 package com.kneelawk.commonevents.impl;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.List;
+
+import com.kneelawk.commonevents.impl.mod.ModFileHolder;
 
 public abstract class Platform {
     private static final Platform INSTANCE;
@@ -35,7 +38,9 @@ public abstract class Platform {
         return INSTANCE;
     }
     
-    abstract boolean isPhysicalClient();
+    public abstract boolean isPhysicalClient();
     
-    abstract String getModVersion();
+    public abstract String getModVersion();
+    
+    public abstract List<? extends ModFileHolder> getModFiles();
 }

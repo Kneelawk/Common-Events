@@ -16,18 +16,28 @@
 
 package com.kneelawk.commonevents.impl;
 
+import java.util.List;
+
 import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
 
+import com.kneelawk.commonevents.impl.mod.ModFileHolder;
+import com.kneelawk.commonevents.impl.mod.ModFileHolderImpl;
+
 public class PlatformImpl extends Platform {
     @Override
-    boolean isPhysicalClient() {
+    public boolean isPhysicalClient() {
         return FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT;
     }
 
     @Override
-    String getModVersion() {
+    public String getModVersion() {
         return FabricLoader.getInstance().getModContainer(CommonEventsImpl.MOD_ID).get().getMetadata().getVersion()
             .getFriendlyString();
+    }
+
+    @Override
+    public List<? extends ModFileHolder> getModFiles() {
+        return FabricLoader.getInstance().getAllMods().stream().map(ModFileHolderImpl::new).toList();
     }
 }

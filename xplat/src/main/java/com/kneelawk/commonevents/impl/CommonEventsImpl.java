@@ -24,6 +24,7 @@ import org.slf4j.LoggerFactory;
 import net.minecraft.resources.ResourceLocation;
 
 import com.kneelawk.commonevents.api.Event;
+import com.kneelawk.commonevents.impl.scan.ListenerScanner;
 
 public class CommonEventsImpl {
     public static final String MOD_ID = "common_events";
@@ -36,6 +37,7 @@ public class CommonEventsImpl {
 
     public static void init() {
         LOGGER.info("Initializing Common Events {}...", Platform.getInstance().getModVersion());
+        ListenerScanner.ensureInitialized();
     }
 
     /// Following code copied from QSL ///

@@ -14,28 +14,33 @@
  * limitations under the License.
  */
 
-package com.kneelawk.commonevents.impl;
+package com.kneelawk.commonevents.impl.mod;
 
+import java.nio.file.Path;
 import java.util.List;
 
-import net.neoforged.fml.loading.FMLLoader;
+import net.neoforged.fml.loading.moddiscovery.ModFile;
+import net.neoforged.neoforgespi.language.IModInfo;
 
-import com.kneelawk.commonevents.impl.mod.ModFileHolder;
-import com.kneelawk.commonevents.impl.mod.ModFileHolderImpl;
+import org.jetbrains.annotations.Nullable;
 
-public class PlatformImpl extends Platform {
+public class ModFileHolderImpl implements ModFileHolder {
+    private final ModFile mod;
+
+    public ModFileHolderImpl(ModFile mod) {this.mod = mod;}
+
     @Override
-    public boolean isPhysicalClient() {
-        return FMLLoader.getDist().isClient();
+    public List<String> getModIds() {
+        return mod.getModInfos().stream().map(IModInfo::getModId).toList();
     }
 
     @Override
-    public String getModVersion() {
-        return FMLLoader.getLoadingModList().getModFileById(CommonEventsImpl.MOD_ID).versionString();
+    public @Nullable Path getResource(String path) {
+        return mod.findResource(path);
     }
 
     @Override
-    public List<? extends ModFileHolder> getModFiles() {
-        return FMLLoader.getLoadingModList().getModFiles().stream().map(file -> new ModFileHolderImpl(file.getFile())).toList();
+    public List<Path> getRootPaths() {
+        return List.of(mod.getSecureJar().getRootPath());
     }
 }
