@@ -23,6 +23,8 @@ base {
     archivesName = "$archives_base_name-${project.name}-intermediary"
 }
 
+java.docsDir.set(rootProject.layout.buildDirectory.map { it.dir("docs").dir(project.name) })
+
 repositories {
 }
 

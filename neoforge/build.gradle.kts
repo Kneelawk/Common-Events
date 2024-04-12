@@ -25,6 +25,9 @@ base {
     archivesName = "$archives_base_name-${project.name}"
 }
 
+base.libsDirectory.set(rootProject.layout.buildDirectory.map { it.dir("libs") })
+java.docsDir.set(rootProject.layout.buildDirectory.map { it.dir("docs").dir(project.name) })
+
 configurations {
     create("dev") {
         isCanBeConsumed = true
@@ -102,9 +105,10 @@ tasks {
             rename { "${it}_${rootProject.name}" }
         }
         archiveClassifier = "jarExt"
+        destinationDirectory.set(project.layout.buildDirectory.dir("devlibs"))
     }
-    
-    assemble.configure { 
+
+    assemble.configure {
         dependsOn("jarExt")
     }
 }

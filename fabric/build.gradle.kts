@@ -25,6 +25,9 @@ base {
     archivesName = "$archives_base_name-${project.name}"
 }
 
+base.libsDirectory.set(rootProject.layout.buildDirectory.map { it.dir("libs") })
+java.docsDir.set(rootProject.layout.buildDirectory.map { it.dir("docs").dir(project.name) })
+
 repositories {
     maven("https://maven.terraformersmc.com/releases/") { name = "TerraformersMC" }
 }
