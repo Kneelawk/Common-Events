@@ -37,7 +37,7 @@ jobs:
       - name: Build
         run: ./gradlew build javadoc --no-daemon
       - name: Capture Build Artifacts
-        if: ${{ runner.os == 'Linux' && matrix.java == '17' }}
+        if: ${{ runner.os == 'Linux' && matrix.java == '21' }}
         uses: actions/upload-artifact@v2
         with:
           name: Artifacts
