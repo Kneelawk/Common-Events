@@ -24,6 +24,8 @@ import org.objectweb.asm.Type;
 
 import net.minecraft.resources.ResourceLocation;
 
+import com.kneelawk.commonevents.impl.CELog;
+
 public class SimpleListenerHandle implements ListenerHandle {
     private final ListenerKey key;
     private final ResourceLocation phase;
@@ -56,6 +58,15 @@ public class SimpleListenerHandle implements ListenerHandle {
         Class<?> listenerClazz = Class.forName(listenerClass.getClassName());
         MethodType methodType = ScannerUtils.getMethodType(methodDescriptor);
 
+        if (!singularMethodType.returnType().isAssignableFrom(methodType.returnType())) {
+            Type singularType = ScannerUtils.getMethodType(singularMethodType);
+            CELog.LOGGER.warn(
+                "[Common Events] Callback listener {}.{}{} has return type that is incompatible with callback interface {}.{}{}. " +
+                    "The associated event may throw a ClassCastException when called.",
+                listenerClass.getInternalName(), methodName, methodDescriptor,
+                callbackClass.getName().replace('.', '/'), singularMethodName, singularType);
+        }
+
         MethodHandle handle = ListenerScanner.lookup.findStatic(listenerClazz, methodName, methodType);
 
         return callbackClass.cast(LambdaMetafactory.metafactory(ListenerScanner.lookup, singularMethodName,
@@ -65,11 +76,7 @@ public class SimpleListenerHandle implements ListenerHandle {
 
     @Override
     public String toString() {
-        return "SimpleListenerHandle{" +
-            "key=" + key +
-            ", phase=" + phase +
-            ", class='" + listenerClass + '\'' +
-            ", method='" + methodName + methodDescriptor + '\'' +
-            '}';
+        return "SimpleListenerHandle{" + key.type().getInternalName() + "(" + phase + ") -> " +
+            listenerClass.getInternalName() + "." + methodName + methodDescriptor + '}';
     }
 }

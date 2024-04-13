@@ -19,6 +19,7 @@ package com.kneelawk.commonevents.impl.scan;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.Arrays;
 
 import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.Type;
@@ -36,6 +37,11 @@ public class ScannerUtils {
         }
 
         return MethodType.methodType(returnClass, argClasses);
+    }
+
+    public static Type getMethodType(MethodType methodType) {
+        return Type.getMethodType(Type.getType(methodType.returnType()),
+            Arrays.stream(methodType.parameterArray()).map(Type::getType).toArray(Type[]::new));
     }
 
     public static Class<?> getClass(Type type) throws ClassNotFoundException {
