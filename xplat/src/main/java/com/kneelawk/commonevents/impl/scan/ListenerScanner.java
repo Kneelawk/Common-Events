@@ -67,7 +67,7 @@ public class ListenerScanner {
                     T callback = handle.createCallback(callbackClass);
                     event.register(handle.getPhase(), callback);
                 } catch (ClassNotFoundException e) {
-                    CELog.LOGGER.error("[Common Events] Error creating callback instance", e);
+                    CELog.LOGGER.error("[Common Events] Error creating callback instance for {}", handle, e);
                 }
             }
         }
@@ -77,7 +77,9 @@ public class ListenerScanner {
         CELog.LOGGER.info("[Common Events] Finding mods to scan...");
         Instant start = Instant.now();
 
-        // TODO: collect adapters and supply them to scan function
+        boolean isClientSide = Platform.getInstance().isPhysicalClient();
+
+        // TODO: collect adapters and supply them to fromJson
         List<ModScanner> toScan = new ArrayList<>();
 
         for (ModFileHolder mod : Platform.getInstance().getModFiles()) {
@@ -108,7 +110,7 @@ public class ListenerScanner {
 
         for (ModScanner modScanner : toScan) {
             // TODO: consider making this parallel
-            var result = modScanner.scan();
+            var result = modScanner.scan(isClientSide);
 
             merge(result);
         }

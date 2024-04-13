@@ -20,6 +20,8 @@ import net.minecraft.resources.ResourceLocation;
 
 public class CEConstants {
     public static final String MOD_ID = "common_events";
+    
+    public static final ResourceLocation DEFAULT_PHASE = rl("default");
 
     public static ResourceLocation rl(String path) {
         return new ResourceLocation(MOD_ID, path);

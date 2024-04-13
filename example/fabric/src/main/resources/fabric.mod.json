@@ -15,7 +15,13 @@
   "license": "Apache-2.0",
   "icon": "assets/common_events_example/icon.png",
   "environment": "*",
-  "entrypoints": { },
+  "entrypoints": {
+    "main": [
+      {
+        "value": "com.kneelawk.commonevents.example.CommonEventsExampleMod"
+      }
+    ]
+  },
   "mixins": [ ],
   "depends": {
     "common_events": "*",

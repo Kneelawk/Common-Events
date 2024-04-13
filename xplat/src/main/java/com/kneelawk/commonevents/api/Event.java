@@ -35,6 +35,7 @@ import net.minecraft.resources.ResourceLocation;
 
 import com.kneelawk.commonevents.api.phase.PhaseData;
 import com.kneelawk.commonevents.api.phase.PhaseSorting;
+import com.kneelawk.commonevents.impl.CEConstants;
 import com.kneelawk.commonevents.impl.CommonEventsImpl;
 import com.kneelawk.commonevents.impl.EventPhaseData;
 
@@ -140,7 +141,7 @@ public final class Event<T> {
      * The name of the default phase.
      * Have a look at {@link Event#createWithPhases} for an explanation of event phases.
      */
-    public static final ResourceLocation DEFAULT_PHASE = new ResourceLocation("quilt", "default");
+    public static final ResourceLocation DEFAULT_PHASE = CEConstants.DEFAULT_PHASE;
 
     /**
      * Creates a new instance of {@link Event}.

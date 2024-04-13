@@ -16,8 +16,12 @@
 
 package com.kneelawk.commonevents.example;
 
+import net.neoforged.bus.api.IEventBus;
 import net.neoforged.fml.common.Mod;
 
 @Mod(CommonEventsExample.MOD_ID)
 public class CommonEventsExampleMod {
+    public CommonEventsExampleMod(IEventBus modBus) {
+        CommonEventsExample.init();
+    }
 }

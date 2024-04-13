@@ -18,6 +18,8 @@ package com.kneelawk.commonevents.impl.scan;
 
 import java.lang.invoke.MethodHandles;
 
+import org.objectweb.asm.Type;
+
 import net.minecraft.resources.ResourceLocation;
 
 public class SimpleListenerHandle implements ListenerHandle {
@@ -25,12 +27,12 @@ public class SimpleListenerHandle implements ListenerHandle {
 
     private final ListenerKey key;
     private final ResourceLocation phase;
-    private final String listenerClass;
+    private final Type listenerClass;
     private final String methodName;
-    private final String methodDescriptor;
+    private final Type methodDescriptor;
 
-    public SimpleListenerHandle(ListenerKey key, ResourceLocation phase, String listenerClass, String methodName,
-                                String methodDescriptor) {
+    public SimpleListenerHandle(ListenerKey key, ResourceLocation phase, Type listenerClass, String methodName,
+                                Type methodDescriptor) {
         this.key = key;
         this.phase = phase;
         this.listenerClass = listenerClass;
@@ -50,8 +52,18 @@ public class SimpleListenerHandle implements ListenerHandle {
 
     @Override
     public <T> T createCallback(Class<T> callbackClass) throws ClassNotFoundException {
-        Class<?> listenerClazz = Class.forName(listenerClass);
+        Class<?> listenerClazz = Class.forName(listenerClass.getClassName());
 
         throw new UnsupportedOperationException("Not yet implemented");
+    }
+
+    @Override
+    public String toString() {
+        return "SimpleListenerHandle{" +
+            "key=" + key +
+            ", phase=" + phase +
+            ", class='" + listenerClass + '\'' +
+            ", method='" + methodName + methodDescriptor + '\'' +
+            '}';
     }
 }

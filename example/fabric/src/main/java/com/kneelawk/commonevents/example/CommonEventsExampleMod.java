@@ -14,12 +14,13 @@
  * limitations under the License.
  */
 
-package com.kneelawk.commonevents.impl.scan;
+package com.kneelawk.commonevents.example;
 
-import org.objectweb.asm.Type;
+import net.fabricmc.api.ModInitializer;
 
-public record ListenerKey(Type type) {
-    public static ListenerKey fromClass(Class<?> clazz) {
-        return new ListenerKey(Type.getType(clazz));
+public class CommonEventsExampleMod implements ModInitializer {
+    @Override
+    public void onInitialize() {
+        CommonEventsExample.init();
     }
 }

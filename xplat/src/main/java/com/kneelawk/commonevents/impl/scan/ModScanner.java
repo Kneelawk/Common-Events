@@ -76,7 +76,7 @@ public class ModScanner {
         this.rootPaths = rootPaths;
     }
 
-    public Map<ListenerKey, List<ListenerHandle>> scan() {
+    public Map<ListenerKey, List<ListenerHandle>> scan(boolean isClientSide) {
         CELog.LOGGER.debug("[Common Events] Scanning {}...", modIds);
         Map<ListenerKey, List<ListenerHandle>> scanned = new HashMap<>();
 
@@ -87,7 +87,8 @@ public class ModScanner {
                         Path classPath = iter.next();
                         Path fileName = classPath.getFileName();
                         if (fileName != null && fileName.toString().endsWith(".class")) {
-                            ClassScanner.scan(classPath, modIds);
+                            ClassScanner.scan(classPath, modIds, isClientSide,
+                                handle -> scanned.computeIfAbsent(handle.getKey(), k -> new ArrayList<>()).add(handle));
                         }
                     }
                 } catch (IOException e) {
@@ -96,17 +97,20 @@ public class ModScanner {
             }
         } else if (!scanOnly.isEmpty()) {
             ClassLoader loader = getClass().getClassLoader();
-            
+
             for (String classStr : scanOnly) {
                 URL classPath = loader.getResource(classStr.replace('.', '/') + ".class");
                 if (classPath != null) {
-                    ClassScanner.scan(classPath, modIds);
+                    ClassScanner.scan(classPath, modIds, isClientSide,
+                        handle -> scanned.computeIfAbsent(handle.getKey(), k -> new ArrayList<>()).add(handle));
                 } else {
                     CELog.LOGGER.warn("[Common Events] Scan class {} not found in mod {}. Skipping...",
                         classStr, modIds);
                 }
             }
         }
+        
+        System.out.println("Found: " + scanned);
 
         CELog.LOGGER.debug("[Common Events] Scanning {} complete.", modIds);
 
