@@ -16,15 +16,15 @@
 
 package com.kneelawk.commonevents.impl.scan;
 
-import java.lang.invoke.MethodHandles;
+import java.lang.invoke.LambdaMetafactory;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodType;
 
 import org.objectweb.asm.Type;
 
 import net.minecraft.resources.ResourceLocation;
 
 public class SimpleListenerHandle implements ListenerHandle {
-    private static final MethodHandles.Lookup lookup = MethodHandles.publicLookup();
-
     private final ListenerKey key;
     private final ResourceLocation phase;
     private final Type listenerClass;
@@ -51,10 +51,16 @@ public class SimpleListenerHandle implements ListenerHandle {
     }
 
     @Override
-    public <T> T createCallback(Class<T> callbackClass) throws ClassNotFoundException {
+    public <T> T createCallback(Class<T> callbackClass, String singularMethodName, MethodType singularMethodType)
+        throws Throwable {
         Class<?> listenerClazz = Class.forName(listenerClass.getClassName());
+        MethodType methodType = ScannerUtils.getMethodType(methodDescriptor);
 
-        throw new UnsupportedOperationException("Not yet implemented");
+        MethodHandle handle = ListenerScanner.lookup.findStatic(listenerClazz, methodName, methodType);
+
+        return callbackClass.cast(LambdaMetafactory.metafactory(ListenerScanner.lookup, singularMethodName,
+                MethodType.methodType(callbackClass), singularMethodType, handle, singularMethodType).getTarget()
+            .invoke());
     }
 
     @Override

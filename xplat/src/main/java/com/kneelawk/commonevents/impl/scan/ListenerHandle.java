@@ -16,6 +16,9 @@
 
 package com.kneelawk.commonevents.impl.scan;
 
+import java.lang.invoke.LambdaConversionException;
+import java.lang.invoke.MethodType;
+
 import net.minecraft.resources.ResourceLocation;
 
 /**
@@ -41,10 +44,13 @@ public interface ListenerHandle {
     /**
      * Creates a callback instance that can actually be registered with the event.
      *
-     * @param callbackClass the class of the callback interface that the handle should be converted into.
-     * @param <T>           the type of the callback interface.
+     * @param <T>                the type of the callback interface.
+     * @param callbackClass      the class of the callback interface that the handle should be converted into.
+     * @param singularMethodName the name of the callback interface's singular method.
+     * @param singularMethodType the type of the callback interface's singular method.
      * @return an instance of the specified callback interface.
      * @throws ClassNotFoundException if the class this handle references does not exist.
      */
-    <T> T createCallback(Class<T> callbackClass) throws ClassNotFoundException;
+    <T> T createCallback(Class<T> callbackClass, String singularMethodName, MethodType singularMethodType)
+        throws Throwable;
 }

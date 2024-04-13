@@ -18,6 +18,9 @@ package com.kneelawk.commonevents.impl.scan;
 
 import java.io.BufferedReader;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
+import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -39,6 +42,7 @@ import com.kneelawk.commonevents.impl.Platform;
 import com.kneelawk.commonevents.impl.mod.ModFileHolder;
 
 public class ListenerScanner {
+    public static final MethodHandles.Lookup lookup = MethodHandles.lookup();
     private static final String EVENTS_JSON_PATH = "common-events.json";
 
     private static boolean initialized = false;
@@ -57,17 +61,35 @@ public class ListenerScanner {
         }
     }
 
-    public static <T> void addScannedListeners(Class<T> callbackClass, Event<T> event) {
+    @SuppressWarnings("unchecked")
+    public static <T> void addScannedListeners(Event<T> event) {
         ensureInitialized();
 
-        List<ListenerHandle> listeners = scanned.get(ListenerKey.fromClass(callbackClass));
+        Class<? super T> type = event.getType();
+
+        // We can only instantiate interfaces
+        if (!type.isInterface()) return;
+        // We can't specify event's based on type parameters
+        if (type.getTypeParameters().length > 0) return;
+
+        Method singularMethod = ScannerUtils.getSingularMethod(type);
+        // The type does not have a singular method
+        if (singularMethod == null) return;
+
+        String singularMethodName = singularMethod.getName();
+        MethodType singularMethodType =
+            MethodType.methodType(singularMethod.getReturnType(), singularMethod.getParameterTypes());
+
+        List<ListenerHandle> listeners = scanned.get(ListenerKey.fromClass(type));
         if (listeners != null) {
             for (ListenerHandle handle : listeners) {
                 try {
-                    T callback = handle.createCallback(callbackClass);
-                    event.register(handle.getPhase(), callback);
-                } catch (ClassNotFoundException e) {
+                    Object callback = handle.createCallback(type, singularMethodName, singularMethodType);
+                    ((Event<Object>) event).register(handle.getPhase(), callback);
+                } catch (Exception e) {
                     CELog.LOGGER.error("[Common Events] Error creating callback instance for {}", handle, e);
+                } catch (Throwable e) {
+                    throw new RuntimeException(e);
                 }
             }
         }

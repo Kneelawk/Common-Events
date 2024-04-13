@@ -44,7 +44,9 @@ public class CommonEventsExample {
     }
 
     public static void init() {
+        LOGGER.info("  Firing MY_EVENT...");
         MY_EVENT.invoker().onEvent();
+        LOGGER.info("  MY_EVENT fired.");
     }
 
     @Listener
