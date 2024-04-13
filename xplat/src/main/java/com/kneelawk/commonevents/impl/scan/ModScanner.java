@@ -109,8 +109,6 @@ public class ModScanner {
                 }
             }
         }
-        
-        System.out.println("Found: " + scanned);
 
         CELog.LOGGER.debug("[Common Events] Scanning {} complete.", modIds);
 

@@ -83,12 +83,10 @@ public class ClassScanner extends ClassVisitor {
     @Override
     public void visit(int version, int access, String name, String signature, String superName, String[] interfaces) {
         visitingClass = Type.getObjectType(name);
-        System.out.println("Visiting class: " + name);
     }
 
     @Override
     public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
-        System.out.println("Visiting annotation: " + descriptor);
         if (LISTENER_ANNOTATION_NAME.equals(descriptor)) {
             CELog.LOGGER.debug("[Common Events] Found annotated class: {}", descriptor);
             return new ClassAnnotationScanner();
@@ -105,14 +103,7 @@ public class ClassScanner extends ClassVisitor {
         }
 
         @Override
-        public void visit(String name, Object value) {
-            System.out.println("Visiting component: " + name + " : " + value);
-        }
-
-        @Override
         public void visitEnum(String name, String descriptor, String value) {
-            System.out.println("Visiting enum: " + name + " : " + descriptor + " : " + value);
-
             if ("side".equals(name)) {
                 isValidSide = "BOTH".equals(value) || ("CLIENT".equals(value) == isClientSide);
             }
@@ -133,8 +124,6 @@ public class ClassScanner extends ClassVisitor {
                                      String[] exceptions) {
         if (!shouldScan) return null;
 
-        System.out.println("Visiting method: " + name + " : " + descriptor);
-
         if ((access & Opcodes.ACC_PUBLIC) != 0 && ((access & Opcodes.ACC_STATIC) != 0)) {
             return new MethodScanner(name, Type.getMethodType(descriptor));
         } else {
@@ -154,8 +143,6 @@ public class ClassScanner extends ClassVisitor {
 
         @Override
         public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
-            System.out.println("Visiting method annotation: " + descriptor);
-
             if (LISTEN_ANNOTATION_NAME.equals(descriptor)) {
                 return new MethodAnnotationScanner();
             } else {
@@ -173,8 +160,6 @@ public class ClassScanner extends ClassVisitor {
 
             @Override
             public void visit(String name, Object value) {
-                System.out.println("Visiting component: " + name + " : " + value + " (" + value.getClass() + ")");
-
                 if ("value".equals(name) && value instanceof Type type) {
                     key = new ListenerKey(type);
                 } else if ("phase".equals(name) && value instanceof String str) {
