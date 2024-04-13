@@ -40,7 +40,9 @@ dependencies {
 
 java {
     val java_version: String by project
-    toolchain.languageVersion.set(JavaLanguageVersion.of(java_version))
+    val javaVersion = JavaVersion.toVersion(java_version)
+    sourceCompatibility = javaVersion
+    targetCompatibility = javaVersion
 
     withSourcesJar()
 }
