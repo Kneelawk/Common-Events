@@ -5,6 +5,7 @@ plugins {
 }
 
 evaluationDependsOn(":example-xplat")
+evaluationDependsOn(":fabric")
 
 val releaseTag = System.getenv("RELEASE_TAG")
 val modVersion = if (releaseTag != null) {

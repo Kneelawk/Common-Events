@@ -37,6 +37,7 @@ configurations {
 
 repositories {
     maven("https://maven.neoforged.net/releases/") { name = "NeoForged" }
+    maven("https://maven.firstdark.dev/snapshots") { name = "FirstDark" }
 }
 
 dependencies {
@@ -64,7 +65,7 @@ tasks {
 
         inputs.property("modVersion", modVersion)
 
-        filesMatching("META-INF/mods.toml") {
+        filesMatching("META-INF/neoforge.mods.toml") {
             expand("version" to modVersion)
         }
     }

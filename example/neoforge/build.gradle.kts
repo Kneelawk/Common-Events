@@ -5,6 +5,7 @@ plugins {
 }
 
 evaluationDependsOn(":example-xplat")
+evaluationDependsOn(":neoforge")
 
 val releaseTag = System.getenv("RELEASE_TAG")
 val modVersion = if (releaseTag != null) {
@@ -39,6 +40,7 @@ loom {
 
 repositories {
     maven("https://maven.neoforged.net/releases/") { name = "NeoForged" }
+    maven("https://maven.firstdark.dev/snapshots") { name = "FirstDark" }
 }
 
 dependencies {
@@ -56,6 +58,9 @@ dependencies {
     // Specifically use artifact produced by a custom jar task so NeoForge will actually pick up the dependency
     runtimeOnly(project(":neoforge", configuration = "dev"))
     include(project(":neoforge"))
+    
+    testCompileOnly(project(":neoforge", configuration = "namedElements"))
+    testRuntimeOnly(project(":neoforge", configuration = "dev"))
 }
 
 java {
@@ -72,7 +77,7 @@ tasks {
 
         inputs.property("modVersion", modVersion)
 
-        filesMatching("META-INF/mods.toml") {
+        filesMatching("META-INF/neoforge.mods.toml") {
             expand("version" to modVersion)
         }
     }
