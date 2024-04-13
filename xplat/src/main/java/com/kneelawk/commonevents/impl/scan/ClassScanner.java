@@ -43,41 +43,43 @@ public class ClassScanner extends ClassVisitor {
     public static final String LISTENER_ANNOTATION_NAME = "Lcom/kneelawk/commonevents/api/Listener;";
     public static final String LISTEN_ANNOTATION_NAME = "Lcom/kneelawk/commonevents/api/Listen;";
 
-    public static void scan(URL classUrl, List<String> modIds, boolean isClientSide,
+    public static void scan(URL classUrl, List<String> modIds, boolean isClientSide, boolean forceScan,
                             Consumer<ListenerHandle> listenerFound) {
         try (InputStream is = classUrl.openStream(); BufferedInputStream buffered = new BufferedInputStream(is)) {
-            scan(buffered, isClientSide, listenerFound);
+            scan(buffered, isClientSide, forceScan, listenerFound);
         } catch (IOException e) {
             CELog.LOGGER.warn("[Common Events] Error scanning class {} in mod {}", classUrl, modIds, e);
         }
     }
 
-    public static void scan(Path classPath, List<String> modIds, boolean isClientSide,
+    public static void scan(Path classPath, List<String> modIds, boolean isClientSide, boolean forceScan,
                             Consumer<ListenerHandle> listenerFound) {
         try (InputStream is = Files.newInputStream(classPath);
              BufferedInputStream buffered = new BufferedInputStream(is)) {
-            scan(buffered, isClientSide, listenerFound);
+            scan(buffered, isClientSide, forceScan, listenerFound);
         } catch (IOException e) {
             CELog.LOGGER.warn("[Common Events] Error scanning class {} in mod {}", classPath, modIds, e);
         }
     }
 
-    private static void scan(BufferedInputStream buffered, boolean isClientSide, Consumer<ListenerHandle> listenerFound)
+    private static void scan(BufferedInputStream buffered, boolean isClientSide, boolean forceScan,
+                             Consumer<ListenerHandle> listenerFound)
         throws IOException {
         ClassReader cr = new ClassReader(buffered);
-        cr.accept(new ClassScanner(isClientSide, listenerFound),
+        cr.accept(new ClassScanner(isClientSide, forceScan, listenerFound),
             ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
     }
 
     private final boolean isClientSide;
     private final Consumer<ListenerHandle> listenerFound;
     private Type visitingClass = null;
-    private boolean shouldScan = false;
+    private boolean shouldScan;
 
-    protected ClassScanner(boolean isClientSide, Consumer<ListenerHandle> listenerFound) {
+    protected ClassScanner(boolean isClientSide, boolean forceScan, Consumer<ListenerHandle> listenerFound) {
         super(API);
         this.isClientSide = isClientSide;
         this.listenerFound = listenerFound;
+        shouldScan = forceScan;
     }
 
     @Override
@@ -114,7 +116,9 @@ public class ClassScanner extends ClassVisitor {
             if (isValidSide) {
                 shouldScan = true;
             } else {
-                CELog.LOGGER.debug("[Common Events] Skipping {} because it is on the wrong side.", visitingClass);
+                shouldScan = false;
+                CELog.LOGGER.debug("[Common Events] Skipping {} because it is on the wrong side.",
+                    visitingClass.getInternalName());
             }
         }
     }
@@ -167,7 +171,7 @@ public class ClassScanner extends ClassVisitor {
                         phase = new ResourceLocation(str);
                     } catch (ResourceLocationException e) {
                         CELog.LOGGER.warn("[Common Events] Encountered invalid phase '{}' in {}.{}{}", str,
-                            visitingClass, name, descriptor, e);
+                            visitingClass.getInternalName(), name, descriptor, e);
                     }
                 }
             }

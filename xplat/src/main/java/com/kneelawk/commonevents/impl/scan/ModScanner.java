@@ -87,7 +87,7 @@ public class ModScanner {
                         Path classPath = iter.next();
                         Path fileName = classPath.getFileName();
                         if (fileName != null && fileName.toString().endsWith(".class")) {
-                            ClassScanner.scan(classPath, modIds, isClientSide,
+                            ClassScanner.scan(classPath, modIds, isClientSide, false,
                                 handle -> scanned.computeIfAbsent(handle.getKey(), k -> new ArrayList<>()).add(handle));
                         }
                     }
@@ -101,7 +101,7 @@ public class ModScanner {
             for (String classStr : scanOnly) {
                 URL classPath = loader.getResource(classStr.replace('.', '/') + ".class");
                 if (classPath != null) {
-                    ClassScanner.scan(classPath, modIds, isClientSide,
+                    ClassScanner.scan(classPath, modIds, isClientSide, true,
                         handle -> scanned.computeIfAbsent(handle.getKey(), k -> new ArrayList<>()).add(handle));
                 } else {
                     CELog.LOGGER.warn("[Common Events] Scan class {} not found in mod {}. Skipping...",
