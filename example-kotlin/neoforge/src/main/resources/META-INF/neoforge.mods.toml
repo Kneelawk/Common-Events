@@ -1,0 +1,33 @@
+modLoader = "javafml"
+loaderVersion = "[1,)"
+license = "Apache-2.0"
+
+[[mods]]
+modId = "common_events_example_kotlin"
+version = "${version}"
+displayName = "Common Events Example Kotlin"
+authors = "Kneelawk"
+description = "Common Events Kotlin Example."
+logoFile = "assets/common_events_example_kotlin/icon.png"
+
+[[dependencies.common_events_example_kotlin]]
+modId = "neoforge"
+type = "REQUIRED"
+versionRange = "[20.4.148-beta,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.common_events_example_kotlin]]
+modId = "common_events"
+type = "REQUIRED"
+versionRange = "[0,)"
+ordering = "NONE"
+side = "BOTH"
+
+# Kotlin for does not have a neoforge.mods.toml file yet
+#[[dependencies.common_events_example_kotlin]]
+#modId = "kotlinforforge"
+#type = "REQUIRED"
+#versionRange = "[4,)"
+#ordering = "NONE"
+#side = "BOTH"

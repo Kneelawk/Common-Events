@@ -1,11 +1,12 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
-    id("java")
+    kotlin("jvm")
     id("dev.architectury.loom")
     id("maven-publish")
 }
 
-evaluationDependsOn(":example-xplat")
-evaluationDependsOn(":fabric")
+evaluationDependsOn(":example-kotlin-xplat")
 
 val releaseTag = System.getenv("RELEASE_TAG")
 val modVersion = if (releaseTag != null) {
@@ -39,7 +40,9 @@ loom {
 }
 
 repositories {
-    maven("https://maven.terraformersmc.com/releases/") { name = "TerraformersMC" }
+    maven("https://maven.neoforged.net/releases/") { name = "NeoForged" }
+    maven("https://maven.firstdark.dev/snapshots") { name = "FirstDark" }
+    maven("https://thedarkcolour.github.io/KotlinForForge/") { name = "Kotlin" }
 }
 
 dependencies {
@@ -47,27 +50,24 @@ dependencies {
     minecraft("com.mojang:minecraft:$minecraft_version")
     mappings(loom.officialMojangMappings())
 
-    val fabric_loader_version: String by project
-    modCompileOnly("net.fabricmc:fabric-loader:$fabric_loader_version")
-    modLocalRuntime("net.fabricmc:fabric-loader:$fabric_loader_version")
+    val neoforge_version: String by project
+    neoForge("net.neoforged:neoforge:$neoforge_version")
+    
+    // Kotlin
+    val neoforge_kotlin_version: String by project
+    modCompileOnly("thedarkcolour:kotlinforforge-neoforge:$neoforge_kotlin_version")
+    modLocalRuntime("thedarkcolour:kotlinforforge-neoforge:$neoforge_kotlin_version")
 
-    // Fabric Api
-    val fapi_version: String by project
-    modCompileOnly("net.fabricmc.fabric-api:fabric-api:$fapi_version")
-    modLocalRuntime("net.fabricmc.fabric-api:fabric-api:$fapi_version")
-
-    compileOnly(project(":example-xplat"))
+    compileOnly(project(":example-kotlin-xplat"))
 
     // Common Events
-    implementation(project(":fabric", configuration = "namedElements"))
-    include(project(":fabric"))
-
-    // Mod Menu
-    val mod_menu_version: String by project
-    modLocalRuntime("com.terraformersmc:modmenu:$mod_menu_version") {
-        exclude(group = "net.fabricmc")
-        exclude(group = "net.fabricmc.fabric-api")
-    }
+    compileOnly(project(":neoforge", configuration = "namedElements"))
+    // Specifically use artifact produced by a custom jar task so NeoForge will actually pick up the dependency
+    runtimeOnly(project(":neoforge", configuration = "dev"))
+    include(project(":neoforge"))
+    
+    testCompileOnly(project(":neoforge", configuration = "namedElements"))
+    testRuntimeOnly(project(":neoforge", configuration = "dev"))
 }
 
 java {
@@ -81,20 +81,26 @@ java {
 
 tasks {
     processResources {
-        from(project(":example-xplat").sourceSets.main.get().resources)
+        from(project(":example-kotlin-xplat").sourceSets.main.get().resources)
 
         inputs.property("modVersion", modVersion)
 
-        filesMatching("fabric.mod.json") {
+        filesMatching("META-INF/neoforge.mods.toml") {
             expand("version" to modVersion)
         }
     }
 
     withType<JavaCompile>().configureEach {
-        source(project(":example-xplat").sourceSets.main.get().allSource)
+        source(project(":example-kotlin-xplat").sourceSets.main.get().allJava)
         options.encoding = "UTF-8"
         val java_version: String by project
         options.release.set(java_version.toInt())
+    }
+
+    withType(KotlinCompile::class.java) {
+        source(project(":example-kotlin-xplat").sourceSets.main.get().kotlin)
+        val java_version: String by project
+        kotlinOptions.jvmTarget = java_version
     }
 
     jar.configure {
@@ -104,7 +110,7 @@ tasks {
     }
 
     named("sourcesJar", Jar::class).configure {
-        from(project(":example-xplat").sourceSets.main.get().allSource)
+        from(project(":example-kotlin-xplat").sourceSets.main.get().allSource)
         from(rootProject.file("LICENSE")) {
             rename { "${it}_${rootProject.name}" }
         }

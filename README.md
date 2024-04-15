@@ -52,3 +52,5 @@ Classes referenced here also have the same kind of delayed initialization as cla
 
 Adapter support, as well as an official Kotlin adapter, are planned. However, I want to focus on getting the java
 portion of this library working first.
+
+For the time-being, annotating functions marked with `@Listen` with the `@JvmStatic` annotation works quite well.

@@ -15,6 +15,8 @@ pluginManagement {
         gradlePluginPortal()
     }
     plugins {
+        val kotlin_version: String by settings
+        kotlin("jvm") version kotlin_version
         val architectury_loom_version: String by settings
         id("dev.architectury.loom") version architectury_loom_version
     }
@@ -33,3 +35,10 @@ include(":example-fabric")
 project(":example-fabric").projectDir = file("example/fabric")
 include(":example-neoforge")
 project(":example-neoforge").projectDir = file("example/neoforge")
+
+include(":example-kotlin-xplat")
+project(":example-kotlin-xplat").projectDir = file("example-kotlin/xplat")
+include(":example-kotlin-fabric")
+project(":example-kotlin-fabric").projectDir = file("example-kotlin/fabric")
+include(":example-kotlin-neoforge")
+project(":example-kotlin-neoforge").projectDir = file("example-kotlin/neoforge")

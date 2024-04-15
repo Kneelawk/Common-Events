@@ -1,11 +1,12 @@
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+
 plugins {
-    id("java")
+    kotlin("jvm")
     id("dev.architectury.loom")
     id("maven-publish")
 }
 
-evaluationDependsOn(":example-xplat")
-evaluationDependsOn(":fabric")
+evaluationDependsOn(":example-kotlin-xplat")
 
 val releaseTag = System.getenv("RELEASE_TAG")
 val modVersion = if (releaseTag != null) {
@@ -56,7 +57,12 @@ dependencies {
     modCompileOnly("net.fabricmc.fabric-api:fabric-api:$fapi_version")
     modLocalRuntime("net.fabricmc.fabric-api:fabric-api:$fapi_version")
 
-    compileOnly(project(":example-xplat"))
+    // Kotlin
+    val fabric_kotlin_version: String by project
+    modCompileOnly("net.fabricmc:fabric-language-kotlin:$fabric_kotlin_version")
+    modLocalRuntime("net.fabricmc:fabric-language-kotlin:$fabric_kotlin_version")
+
+    compileOnly(project(":example-kotlin-xplat"))
 
     // Common Events
     implementation(project(":fabric", configuration = "namedElements"))
@@ -81,7 +87,7 @@ java {
 
 tasks {
     processResources {
-        from(project(":example-xplat").sourceSets.main.get().resources)
+        from(project(":example-kotlin-xplat").sourceSets.main.get().resources)
 
         inputs.property("modVersion", modVersion)
 
@@ -91,10 +97,16 @@ tasks {
     }
 
     withType<JavaCompile>().configureEach {
-        source(project(":example-xplat").sourceSets.main.get().allSource)
+        source(project(":example-kotlin-xplat").sourceSets.main.get().allJava)
         options.encoding = "UTF-8"
         val java_version: String by project
         options.release.set(java_version.toInt())
+    }
+    
+    withType(KotlinCompile::class.java) {
+        source(project(":example-kotlin-xplat").sourceSets.main.get().kotlin)
+        val java_version: String by project
+        kotlinOptions.jvmTarget = java_version
     }
 
     jar.configure {
@@ -104,7 +116,7 @@ tasks {
     }
 
     named("sourcesJar", Jar::class).configure {
-        from(project(":example-xplat").sourceSets.main.get().allSource)
+        from(project(":example-kotlin-xplat").sourceSets.main.get().allSource)
         from(rootProject.file("LICENSE")) {
             rename { "${it}_${rootProject.name}" }
         }
