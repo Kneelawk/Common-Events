@@ -154,7 +154,7 @@ public final class Event<T> {
      */
     public static <T> @NotNull Event<T> create(@NotNull Class<? super T> type,
                                                @NotNull Function<T[], T> implementation) {
-        return new Event<>(type, implementation);
+        return new Event<>(type, implementation, true);
     }
 
     /**
@@ -219,6 +219,23 @@ public final class Event<T> {
     }
 
     /**
+     * Creates a new instance of {@link Event} that does not invoke any {@link Listener}s.
+     * <p>
+     * This is best for when there may be multiple instances of the same event, when the event callback type is too
+     * vague to be useful to annotation-based listeners, or when registration should be limited to calls to
+     * {@link #register(Object)} for any other reason.
+     *
+     * @param type           the class representing the type of the invoker that is executed by the event
+     * @param implementation a function which generates an invoker implementation using an array of callbacks
+     * @param <T>            the type of invoker executed by the event
+     * @return a new event instance
+     */
+    public static <T> @NotNull Event<T> createUnscanned(@NotNull Class<? super T> type,
+                                                        @NotNull Function<T[], T> implementation) {
+        return new Event<>(type, implementation, false);
+    }
+
+    /**
      * Registers the given listener of the listed events.
      * <p>
      * The registration of the listener will be refused if one of the listed event involves generics in its callback type,
@@ -264,7 +281,7 @@ public final class Event<T> {
     private final List<EventPhaseData<T>> sortedPhases = new ArrayList<>();
 
     @SuppressWarnings("unchecked")
-    private Event(Class<? super T> type, Function<T[], T> implementation) {
+    private Event(Class<? super T> type, Function<T[], T> implementation, boolean addScanned) {
         Objects.requireNonNull(type, "Class specifying the type of T in the event cannot be null");
         Objects.requireNonNull(implementation, "Function to generate invoker implementation for T cannot be null");
 
@@ -273,7 +290,9 @@ public final class Event<T> {
         this.callbacks = (T[]) Array.newInstance(type, 0);
         this.update();
 
-        ListenerScanner.addScannedListeners(this);
+        if (addScanned) {
+            ListenerScanner.addScannedListeners(this);
+        }
     }
 
     /**
