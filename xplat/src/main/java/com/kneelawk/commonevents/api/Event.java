@@ -30,6 +30,7 @@ import java.util.function.Function;
 
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.resources.ResourceLocation;
 
@@ -145,6 +146,23 @@ public final class Event<T> {
     public static final ResourceLocation DEFAULT_PHASE = CEConstants.DEFAULT_PHASE;
 
     /**
+     * Creates a new instance {@link Event} with a type and qualifier.
+     * <p>
+     * The qualifier given is used to differentiate otherwise indistinguishable event types when scanning for
+     * annotation-based listeners.
+     *
+     * @param type           the class representing the type of the invoker that is executed by the event
+     * @param qualifier      extra identifier for differentiating otherwise indistinguishable event types
+     * @param implementation a function which generates an invoker implementation using an array of callbacks
+     * @param <T>            the type of the invoker executed by the event
+     * @return a new event instance
+     */
+    public static <T> @NotNull Event<T> create(@NotNull Class<? super T> type, @Nullable String qualifier,
+                                               @NotNull Function<T[], T> implementation) {
+        return new Event<>(type, qualifier, implementation, true);
+    }
+
+    /**
      * Creates a new instance of {@link Event}.
      *
      * @param type           the class representing the type of the invoker that is executed by the event
@@ -154,7 +172,7 @@ public final class Event<T> {
      */
     public static <T> @NotNull Event<T> create(@NotNull Class<? super T> type,
                                                @NotNull Function<T[], T> implementation) {
-        return new Event<>(type, implementation, true);
+        return create(type, (String) null, implementation);
     }
 
     /**
@@ -232,7 +250,7 @@ public final class Event<T> {
      */
     public static <T> @NotNull Event<T> createUnscanned(@NotNull Class<? super T> type,
                                                         @NotNull Function<T[], T> implementation) {
-        return new Event<>(type, implementation, false);
+        return new Event<>(type, null, implementation, false);
     }
 
     /**
@@ -261,6 +279,7 @@ public final class Event<T> {
      * The function used to generate the implementation of the invoker to execute events.
      */
     private final Class<? super T> type;
+    private final String qualifier;
     private final Function<T[], T> implementation;
     private final Lock lock = new ReentrantLock();
     /**
@@ -281,11 +300,12 @@ public final class Event<T> {
     private final List<EventPhaseData<T>> sortedPhases = new ArrayList<>();
 
     @SuppressWarnings("unchecked")
-    private Event(Class<? super T> type, Function<T[], T> implementation, boolean addScanned) {
+    private Event(Class<? super T> type, String qualifier, Function<T[], T> implementation, boolean addScanned) {
         Objects.requireNonNull(type, "Class specifying the type of T in the event cannot be null");
         Objects.requireNonNull(implementation, "Function to generate invoker implementation for T cannot be null");
 
         this.type = type;
+        this.qualifier = qualifier;
         this.implementation = implementation;
         this.callbacks = (T[]) Array.newInstance(type, 0);
         this.update();
