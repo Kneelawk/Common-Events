@@ -25,7 +25,6 @@ pluginManagement {
 rootProject.name = "common-events"
 
 include(":xplat")
-include(":xplat:mojmap")
 include(":fabric")
 include(":neoforge")
 

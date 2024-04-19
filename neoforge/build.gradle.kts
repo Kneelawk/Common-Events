@@ -114,6 +114,12 @@ tasks {
     assemble.configure {
         dependsOn("jarExt")
     }
+
+    afterEvaluate {
+        named("genSources").configure {
+            setDependsOn(listOf("genSourcesWithVineflower"))
+        }
+    }
 }
 
 artifacts {

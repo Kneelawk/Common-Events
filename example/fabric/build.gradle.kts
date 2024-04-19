@@ -109,4 +109,10 @@ tasks {
             rename { "${it}_${rootProject.name}" }
         }
     }
+
+    afterEvaluate {
+        named("genSources").configure {
+            setDependsOn(listOf("genSourcesWithVineflower"))
+        }
+    }
 }

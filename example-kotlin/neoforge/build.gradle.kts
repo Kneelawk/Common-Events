@@ -97,7 +97,7 @@ tasks {
         options.release.set(java_version.toInt())
     }
 
-    withType(KotlinCompile::class.java) {
+    withType<KotlinCompile>().configureEach {
         source(project(":example-kotlin-xplat").sourceSets.main.get().kotlin)
         val java_version: String by project
         kotlinOptions.jvmTarget = java_version
@@ -113,6 +113,12 @@ tasks {
         from(project(":example-kotlin-xplat").sourceSets.main.get().allSource)
         from(rootProject.file("LICENSE")) {
             rename { "${it}_${rootProject.name}" }
+        }
+    }
+
+    afterEvaluate {
+        named("genSources").configure {
+            setDependsOn(listOf("genSourcesWithVineflower"))
         }
     }
 }

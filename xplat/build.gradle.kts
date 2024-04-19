@@ -64,6 +64,8 @@ tasks {
         from(rootProject.file("LICENSE")) {
             rename { "${it}_${rootProject.name}" }
         }
+        
+        archiveClassifier.set("")
     }
 
     named("sourcesJar", Jar::class).configure {
@@ -71,13 +73,25 @@ tasks {
             rename { "${it}_${rootProject.name}" }
         }
     }
+
+    afterEvaluate {
+        named("genSources").configure {
+            setDependsOn(listOf("genSourcesWithVineflower"))
+        }
+    }
 }
 
 publishing {
     publications {
-        create<MavenPublication>("mavenJava") {
+        create<MavenPublication>("mavenIntermediary") {
             artifactId = "${rootProject.name}-${project.name}-intermediary"
             from(components["java"])
+        }
+        create<MavenPublication>("mavenMojmap") {
+            artifact(tasks.jar)
+            artifact(tasks.named("sourcesJar"))
+            artifact(tasks.named("javadocJar"))
+            artifactId = "${rootProject.name}-${project.name}-mojmap"
         }
     }
 
