@@ -16,10 +16,11 @@
 
 package com.kneelawk.commonevents.impl.scan;
 
+import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.Type;
 
-public record ListenerKey(Type type) {
-    public static ListenerKey fromClass(Class<?> clazz) {
-        return new ListenerKey(Type.getType(clazz));
+public record ListenerKey(Type type, @Nullable String qualifier) {
+    public static ListenerKey fromClass(Class<?> clazz, String qualifier) {
+        return new ListenerKey(Type.getType(clazz), qualifier);
     }
 }

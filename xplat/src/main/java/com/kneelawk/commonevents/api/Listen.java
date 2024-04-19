@@ -31,14 +31,23 @@ import java.lang.annotation.Target;
 @Target({ElementType.METHOD})
 public @interface Listen {
     /**
-     * Gets the class of the callback interface that this listener implements.
+     * The callback interface that this listener implements.
      *
      * @return the class of the callback interface that this listener implements.
      */
     Class<?> value();
 
     /**
-     * Gets this listener's phase.
+     * The specific optional qualifier for this listener.
+     * <p>
+     * This is used for differentiating events with otherwise indistinguishable type signatures.
+     *
+     * @return this listener's specific qualifier.
+     */
+    String qualifier() default Event.DEFAULT_QUALIFIER;
+
+    /**
+     * This listener's phase.
      *
      * @return this listener's phase.
      */

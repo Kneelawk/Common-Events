@@ -35,6 +35,7 @@ import org.objectweb.asm.Type;
 import net.minecraft.ResourceLocationException;
 import net.minecraft.resources.ResourceLocation;
 
+import com.kneelawk.commonevents.api.Event;
 import com.kneelawk.commonevents.impl.CEConstants;
 import com.kneelawk.commonevents.impl.CELog;
 
@@ -155,7 +156,8 @@ public class ClassScanner extends ClassVisitor {
         }
 
         private class MethodAnnotationScanner extends AnnotationVisitor {
-            private ListenerKey key = null;
+            private Type keyType = null;
+            private String qualifier = Event.DEFAULT_QUALIFIER;
             private ResourceLocation phase = CEConstants.DEFAULT_PHASE;
 
             protected MethodAnnotationScanner() {
@@ -165,7 +167,9 @@ public class ClassScanner extends ClassVisitor {
             @Override
             public void visit(String name, Object value) {
                 if ("value".equals(name) && value instanceof Type type) {
-                    key = new ListenerKey(type);
+                    keyType = type;
+                } else if ("qualifier".equals(name) && value instanceof String str) {
+                    qualifier = str;
                 } else if ("phase".equals(name) && value instanceof String str) {
                     try {
                         phase = new ResourceLocation(str);
@@ -178,8 +182,10 @@ public class ClassScanner extends ClassVisitor {
 
             @Override
             public void visitEnd() {
-                if (key != null) {
-                    listenerFound.accept(new SimpleListenerHandle(key, phase, visitingClass, name, descriptor));
+                if (keyType != null) {
+                    listenerFound.accept(
+                        new SimpleListenerHandle(new ListenerKey(keyType, qualifier), phase, visitingClass, name,
+                            descriptor));
                 }
             }
         }

@@ -80,7 +80,7 @@ public class ListenerScanner {
         MethodType singularMethodType =
             MethodType.methodType(singularMethod.getReturnType(), singularMethod.getParameterTypes());
 
-        List<ListenerHandle> listeners = scanned.get(ListenerKey.fromClass(type));
+        List<ListenerHandle> listeners = scanned.get(ListenerKey.fromClass(type, event.getQualifier()));
         if (listeners != null) {
             for (ListenerHandle handle : listeners) {
                 try {

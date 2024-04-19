@@ -28,7 +28,7 @@ object CommonEventsExampleKotlin {
     }
 
     val MY_EVENT =
-        Event.create(MyEvent::class.java) { listeners -> MyEvent { str -> listeners.forEach { it.doSomething(str) } } }
+        Event.create(MyEvent::class.java, "my_qualifier") { listeners -> MyEvent { str -> listeners.forEach { it.doSomething(str) } } }
     
     init {
         LOGGER.info("# MY_EVENT created")

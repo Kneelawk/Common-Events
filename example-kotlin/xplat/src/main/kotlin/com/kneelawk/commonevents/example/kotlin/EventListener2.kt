@@ -27,7 +27,7 @@ class EventListener2 {
         }
 
         @JvmStatic
-        @Listen(MyEvent::class)
+        @Listen(MyEvent::class, qualifier = "my_qualifier")
         fun onDoSomething(str: String) {
             CommonEventsExampleKotlin.LOGGER.info("> EventListener2 received event: $str")
         }

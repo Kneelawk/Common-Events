@@ -146,6 +146,13 @@ public final class Event<T> {
     public static final ResourceLocation DEFAULT_PHASE = CEConstants.DEFAULT_PHASE;
 
     /**
+     * The default qualifier used if no specific qualifier is specified.
+     *
+     * @see Listen#qualifier()
+     */
+    public static final String DEFAULT_QUALIFIER = "common_events_default";
+
+    /**
      * Creates a new instance {@link Event} with a type and qualifier.
      * <p>
      * The qualifier given is used to differentiate otherwise indistinguishable event types when scanning for
@@ -157,7 +164,7 @@ public final class Event<T> {
      * @param <T>            the type of the invoker executed by the event
      * @return a new event instance
      */
-    public static <T> @NotNull Event<T> create(@NotNull Class<? super T> type, @Nullable String qualifier,
+    public static <T> @NotNull Event<T> create(@NotNull Class<? super T> type, @NotNull String qualifier,
                                                @NotNull Function<T[], T> implementation) {
         return new Event<>(type, qualifier, implementation, true);
     }
@@ -172,7 +179,7 @@ public final class Event<T> {
      */
     public static <T> @NotNull Event<T> create(@NotNull Class<? super T> type,
                                                @NotNull Function<T[], T> implementation) {
-        return create(type, (String) null, implementation);
+        return create(type, DEFAULT_QUALIFIER, implementation);
     }
 
     /**
@@ -250,7 +257,7 @@ public final class Event<T> {
      */
     public static <T> @NotNull Event<T> createUnscanned(@NotNull Class<? super T> type,
                                                         @NotNull Function<T[], T> implementation) {
-        return new Event<>(type, null, implementation, false);
+        return new Event<>(type, DEFAULT_QUALIFIER, implementation, false);
     }
 
     /**
@@ -321,6 +328,13 @@ public final class Event<T> {
     @Contract(pure = true)
     public @NotNull Class<? super T> getType() {
         return this.type;
+    }
+
+    /**
+     * {@return the extra qualifier used to differentiate this event from other events with the same callback type class}
+     */
+    public @NotNull String getQualifier() {
+        return qualifier;
     }
 
     /**
