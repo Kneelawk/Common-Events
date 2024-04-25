@@ -37,7 +37,7 @@ configurations {
 
 repositories {
     maven("https://maven.neoforged.net/releases/") { name = "NeoForged" }
-    maven("https://maven.firstdark.dev/snapshots") { name = "FirstDark" }
+//    maven("https://maven.firstdark.dev/snapshots") { name = "FirstDark" }
 }
 
 dependencies {
