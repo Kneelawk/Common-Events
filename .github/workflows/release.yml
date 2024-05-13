@@ -6,6 +6,7 @@ env:
   JAVADOC_NAME: common-events
   SUB_JAVADOC: xplat
   MAVEN_IDENTIFIER: 'com.kneelawk:common-events-xplat-intermediary'
+  ROLE_ID: '1239439830979710988'
 
 # Variant: github, maven+javadoc, discord
 
@@ -121,7 +122,7 @@ jobs:
             let lines = process.env.CHANGELOG.split('\n');
             let changesStart = lines.findIndex(line => line.startsWith('*'));
             lines.splice(0, changesStart);
-            lines.unshift(`**${process.env.PROJECT_NAME} ${versions[0]} has been released for Minecraft ${versions[1]}!**`, '', '__Changes:__');
+            lines.unshift(`# ${process.env.PROJECT_NAME} Release`, `**<@&${process.env.ROLE_ID}> ${process.env.PROJECT_NAME} ${versions[0]} has been released for Minecraft ${versions[1]}!**`, '', '__Changes:__');
             lines.push("Available on Kneelawk's maven: https://kneelawk.com/maven/", `With the identifier: \`${process.env.MAVEN_IDENTIFIER}:${mavenVersion}\``);
             lines.push(`Javadoc available at: https://kneelawk.com/docs/${process.env.JAVADOC_NAME}/${mavenVersion}/${process.env.SUB_JAVADOC}/javadoc/index.html`);
             return lines.join('\n');
