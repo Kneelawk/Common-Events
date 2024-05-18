@@ -21,13 +21,14 @@ import java.util.List;
 
 import net.neoforged.fml.loading.moddiscovery.ModFile;
 import net.neoforged.neoforgespi.language.IModInfo;
+import net.neoforged.neoforgespi.locating.IModFile;
 
 import org.jetbrains.annotations.Nullable;
 
 public class ModFileHolderImpl implements ModFileHolder {
-    private final ModFile mod;
+    private final IModFile mod;
 
-    public ModFileHolderImpl(ModFile mod) {this.mod = mod;}
+    public ModFileHolderImpl(IModFile mod) {this.mod = mod;}
 
     @Override
     public List<String> getModIds() {
