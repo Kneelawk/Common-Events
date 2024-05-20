@@ -1,0 +1,25 @@
+modLoader = "javafml"
+loaderVersion = "[1,)"
+license = "Apache-2.0"
+
+[[mods]]
+modId = "common_events_kotlin"
+version = "${version}"
+displayName = "Common Events Kotlin"
+authors = "Kneelawk"
+description = "Cross-platform Event Library Kotlin adapter."
+logoFile = "assets/common_events_kotlin/icon.png"
+
+[[dependencies.common_events_kotlin]]
+modId = "neoforge"
+type = "REQUIRED"
+versionRange = "[20.4.148-beta,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.common_events_kotlin]]
+modId = "common_events"
+type = "REQUIRED"
+versionRange = "[0,)"
+ordering = "NONE"
+side = "BOTH"

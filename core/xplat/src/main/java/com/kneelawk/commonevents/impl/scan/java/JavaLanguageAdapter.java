@@ -27,6 +27,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
+import org.jetbrains.annotations.NotNull;
+
 import com.kneelawk.commonevents.api.adapter.LanguageAdapter;
 import com.kneelawk.commonevents.api.adapter.ListenerHandle;
 import com.kneelawk.commonevents.api.adapter.ListenerKey;
@@ -39,12 +41,12 @@ import com.kneelawk.commonevents.impl.CELog;
 
 public class JavaLanguageAdapter implements LanguageAdapter {
     @Override
-    public String getId() {
+    public @NotNull String getId() {
         return JAVA_ADAPTER_ID;
     }
 
     @Override
-    public ScanResult scan(ScanRequest request) {
+    public @NotNull ScanResult scan(@NotNull ScanRequest request) {
         ScannableMod mod = request.getMod();
         ModFileHolder modFile = mod.getModFile();
         List<String> modIds = modFile.getModIds();

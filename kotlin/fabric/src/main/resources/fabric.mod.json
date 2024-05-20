@@ -1,0 +1,33 @@
+{
+  "schemaVersion": 1,
+  "id": "common_events_kotlin",
+  "version": "${version}",
+  "name": "Common Events Kotlin",
+  "description": "Cross-platform Event Library Kotlin adapter.",
+  "authors": [
+    "Kneelawk"
+  ],
+  "contact": {
+    "homepage": "https://github.com/Kneelawk/Common-Events",
+    "issues": "https://github.com/Kneelawk/Common-Events/issues",
+    "sources": "https://github.com/Kneelawk/Common-Events"
+  },
+  "license": "Apache-2.0",
+  "icon": "assets/common_events_kotlin/icon.png",
+  "environment": "*",
+  "entrypoints": { },
+  "mixins": [ ],
+  "depends": {
+    "common_events": "*",
+    "fabricloader": ">=0.15.0",
+    "fabric-api": "*",
+    "minecraft": ">=1.20.4 <1.21-",
+    "java": ">=17"
+  },
+  "custom": {
+    "modmenu": {
+      "badges": [ "library" ],
+      "parent": "common_events"
+    }
+  }
+}

@@ -5,10 +5,12 @@ plugins {
 }
 
 submodule {
-    applyKotlin("xplat")
-    setRefmaps("common-events-example-kotlin")
+    applyKotlin("fabric")
     applyFabricLoaderDependency()
-    forceRemap()
-    xplatProjectDependency(":")
-    xplatProjectDependency(":kotlin")
+    applyFabricApiDependency()
+    applyXplatConnection(":kotlin-xplat", "fabric")
+}
+
+kpublish {
+    createPublication()
 }

@@ -37,6 +37,11 @@ add(":fabric", "core/fabric")
 add(":neoforge", "core/neoforge")
 add(":xplat-mojmap", "core/xplat-mojmap")
 
+add(":kotlin-xplat", "kotlin/xplat")
+add(":kotlin-fabric", "kotlin/fabric")
+add(":kotlin-neoforge", "kotlin/neoforge")
+add(":kotlin-xplat-mojmap", "kotlin/xplat-mojmap")
+
 add(":example-xplat", "example/xplat")
 add(":example-fabric", "example/fabric")
 add(":example-neoforge", "example/neoforge")
