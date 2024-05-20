@@ -25,7 +25,7 @@ import net.fabricmc.api.EnvType;
 import net.fabricmc.loader.api.FabricLoader;
 import net.fabricmc.loader.api.ModContainer;
 
-import com.kneelawk.commonevents.impl.mod.ModFileHolder;
+import com.kneelawk.commonevents.api.adapter.mod.ModFileHolder;
 import com.kneelawk.commonevents.impl.mod.ModFileHolderImpl;
 
 public class PlatformImpl extends Platform {

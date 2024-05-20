@@ -14,9 +14,8 @@
  * limitations under the License.
  */
 
-package com.kneelawk.commonevents.impl.scan;
+package com.kneelawk.commonevents.api.adapter;
 
-import java.lang.invoke.LambdaConversionException;
 import java.lang.invoke.MethodType;
 
 import net.minecraft.resources.ResourceLocation;

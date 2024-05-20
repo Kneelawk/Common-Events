@@ -20,7 +20,7 @@ import java.util.List;
 
 import net.neoforged.fml.loading.FMLLoader;
 
-import com.kneelawk.commonevents.impl.mod.ModFileHolder;
+import com.kneelawk.commonevents.api.adapter.mod.ModFileHolder;
 import com.kneelawk.commonevents.impl.mod.ModFileHolderImpl;
 
 public class PlatformImpl extends Platform {

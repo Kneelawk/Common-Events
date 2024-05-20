@@ -18,9 +18,9 @@ package com.kneelawk.commonevents.impl.scan;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -29,6 +29,12 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.SynchronousQueue;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -36,18 +42,27 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import org.jetbrains.annotations.Nullable;
+
 import com.kneelawk.commonevents.api.Event;
+import com.kneelawk.commonevents.api.adapter.ListenerHandle;
+import com.kneelawk.commonevents.api.adapter.ListenerKey;
+import com.kneelawk.commonevents.api.adapter.mod.ModFileHolder;
+import com.kneelawk.commonevents.api.adapter.scan.ScanResult;
 import com.kneelawk.commonevents.impl.CELog;
 import com.kneelawk.commonevents.impl.Platform;
-import com.kneelawk.commonevents.impl.mod.ModFileHolder;
 
 public class ListenerScanner {
-    public static final MethodHandles.Lookup lookup = MethodHandles.lookup();
     private static final String EVENTS_JSON_PATH = "common-events.json";
 
     private static boolean initialized = false;
     private static final Lock initLock = new ReentrantLock();
     private static final Map<ListenerKey, List<ListenerHandle>> scanned = new HashMap<>();
+
+    public static final ExecutorService SCAN_EXECUTOR =
+        new ThreadPoolExecutor(0, Runtime.getRuntime().availableProcessors(), 2, TimeUnit.SECONDS,
+            new SynchronousQueue<>());
+    public static final int THREAD_CUTOFF = 5;
 
     public static void ensureInitialized() {
         initLock.lock();
@@ -72,7 +87,7 @@ public class ListenerScanner {
         // We can't specify event's based on type parameters
         if (type.getTypeParameters().length > 0) return;
 
-        Method singularMethod = ScannerUtils.getSingularMethod(type);
+        Method singularMethod = getSingularMethod(type);
         // The type does not have a singular method
         if (singularMethod == null) return;
 
@@ -89,7 +104,7 @@ public class ListenerScanner {
                 } catch (Exception e) {
                     CELog.LOGGER.error("[Common Events] Error creating callback instance for {}", handle, e);
                 } catch (Throwable e) {
-                    throw new RuntimeException(e);
+                    throw new Error(e);
                 }
             }
         }
@@ -101,7 +116,6 @@ public class ListenerScanner {
 
         boolean isClientSide = Platform.getInstance().isPhysicalClient();
 
-        // TODO: collect adapters and supply them to fromJson
         List<ModScanner> toScan = new ArrayList<>();
 
         for (ModFileHolder mod : Platform.getInstance().getModFiles()) {
@@ -130,11 +144,29 @@ public class ListenerScanner {
 
         CELog.LOGGER.info("[Common Events] Scanning {} mods...", toScan.size());
 
-        for (ModScanner modScanner : toScan) {
-            // TODO: consider making this parallel
-            var result = modScanner.scan(isClientSide);
+        if (toScan.size() >= THREAD_CUTOFF) {
+            List<ModScan> resultFutures = new ArrayList<>();
+            for (ModScanner modScanner : toScan) {
+                resultFutures.add(new ModScan(modScanner,
+                    CompletableFuture.supplyAsync(() -> modScanner.scan(isClientSide), SCAN_EXECUTOR)));
+            }
 
-            merge(result);
+            for (ModScan scan : resultFutures) {
+                try {
+                    ScanResult result = scan.future().get();
+
+                    merge(result.listeners());
+                } catch (InterruptedException | ExecutionException e) {
+                    CELog.LOGGER.warn("[Common Events] Encountered error while scanning {}", scan.scanner().getModIds(),
+                        e);
+                }
+            }
+        } else {
+            for (ModScanner modScanner : toScan) {
+                ScanResult result = modScanner.scan(isClientSide);
+
+                merge(result.listeners());
+            }
         }
 
         Instant end = Instant.now();
@@ -151,4 +183,25 @@ public class ListenerScanner {
             }
         }
     }
+
+    /**
+     * Gets the singular abstract method in a functional interface.
+     *
+     * @param interfaceClass the interface to find the singular abstract method of.
+     * @return the interface's singular abstract method.
+     */
+    public static @Nullable Method getSingularMethod(Class<?> interfaceClass) {
+        Method singularMethod = null;
+
+        for (Method method : interfaceClass.getMethods()) {
+            if (Modifier.isAbstract(method.getModifiers()) && Modifier.isPublic(method.getModifiers())) {
+                if (singularMethod != null) return null;
+                singularMethod = method;
+            }
+        }
+
+        return singularMethod;
+    }
+
+    private record ModScan(ModScanner scanner, CompletableFuture<ScanResult> future) {}
 }

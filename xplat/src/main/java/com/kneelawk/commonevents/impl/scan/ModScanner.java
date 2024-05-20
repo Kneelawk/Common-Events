@@ -16,16 +16,8 @@
 
 package com.kneelawk.commonevents.impl.scan;
 
-import java.io.IOException;
-import java.net.URL;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
-import java.util.Map;
-import java.util.stream.Stream;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonElement;
@@ -33,18 +25,36 @@ import com.google.gson.JsonObject;
 
 import org.jetbrains.annotations.Nullable;
 
+import com.kneelawk.commonevents.api.adapter.LanguageAdapter;
+import com.kneelawk.commonevents.api.adapter.mod.ModFileHolder;
+import com.kneelawk.commonevents.api.adapter.scan.ScanRequest;
+import com.kneelawk.commonevents.api.adapter.scan.ScanResult;
+import com.kneelawk.commonevents.api.adapter.scan.ScannableInfo;
+import com.kneelawk.commonevents.api.adapter.scan.ScannableMod;
 import com.kneelawk.commonevents.impl.CELog;
-import com.kneelawk.commonevents.impl.mod.ModFileHolder;
 
 public class ModScanner {
     public static @Nullable ModScanner fromJson(ModFileHolder mod, JsonObject obj) {
+        LanguageAdapter adapter = LanguageAdapter.getDefault();
+        if (obj.has("adapter")) {
+            JsonElement adapterElem = obj.get("adapter");
+            if (adapterElem.isJsonPrimitive()) {
+                String adapterId = adapterElem.getAsString();
+                if (LanguageAdapter.ADAPTERS.containsKey(adapterId)) {
+                    adapter = LanguageAdapter.ADAPTERS.get(adapterId);
+                } else {
+                    CELog.LOGGER.warn("[Common Events] Unknown adapter: '{}'", adapterId);
+                }
+            }
+        }
+
         if (obj.has("scan")) {
-            boolean scanAll = false;
             List<String> scanOnly = new ArrayList<>();
 
+            ScannableInfo info = new ScannableInfo.Only(scanOnly);
             JsonElement scan = obj.get("scan");
             if (scan.isJsonPrimitive() && scan.getAsBoolean()) {
-                scanAll = true;
+                info = ScannableInfo.All.INSTANCE;
             } else if (scan.isJsonArray()) {
                 JsonArray array = scan.getAsJsonArray();
 
@@ -58,60 +68,55 @@ public class ModScanner {
                 }
             }
 
-            return new ModScanner(scanAll, scanOnly, mod.getModIds(), mod.getRootPaths());
+            return new ModScanner(new ScannableModImpl(mod, info), adapter);
         }
 
         return null;
     }
 
-    private final boolean scanAll;
-    private final List<String> scanOnly;
-    private final List<String> modIds;
-    private final List<Path> rootPaths;
+    private final ScannableMod mod;
+    private final LanguageAdapter adapter;
 
-    public ModScanner(boolean scanAll, List<String> scanOnly, List<String> modIds, List<Path> rootPaths) {
-        this.scanAll = scanAll;
-        this.scanOnly = scanOnly;
-        this.modIds = modIds;
-        this.rootPaths = rootPaths;
+    private ModScanner(ScannableMod mod, LanguageAdapter adapter) {
+        this.mod = mod;
+        this.adapter = adapter;
     }
 
-    public Map<ListenerKey, List<ListenerHandle>> scan(boolean isClientSide) {
-        CELog.LOGGER.debug("[Common Events] Scanning {}...", modIds);
-        Map<ListenerKey, List<ListenerHandle>> scanned = new HashMap<>();
+    public List<String> getModIds() {
+        return mod.getModFile().getModIds();
+    }
 
-        if (scanAll) {
-            for (Path root : rootPaths) {
-                try (Stream<Path> stream = Files.walk(root)) {
-                    for (Iterator<Path> iter = stream.iterator(); iter.hasNext(); ) {
-                        Path classPath = iter.next();
-                        Path fileName = classPath.getFileName();
-                        if (fileName != null && fileName.toString().endsWith(".class")) {
-                            ClassScanner.scan(classPath, modIds, isClientSide, false,
-                                handle -> scanned.computeIfAbsent(handle.getKey(), k -> new ArrayList<>()).add(handle));
-                        }
-                    }
-                } catch (IOException e) {
-                    CELog.LOGGER.warn("[Common Events] Error scanning classes in mod {}.", modIds, e);
-                }
-            }
-        } else if (!scanOnly.isEmpty()) {
-            ClassLoader loader = getClass().getClassLoader();
+    public ScanResult scan(boolean isClientSide) {
+        List<String> modIds = mod.getModFile().getModIds();
+        CELog.LOGGER.debug("[Common Events] Scanning {} with adapter '{}'...", modIds, adapter.getId());
 
-            for (String classStr : scanOnly) {
-                URL classPath = loader.getResource(classStr.replace('.', '/') + ".class");
-                if (classPath != null) {
-                    ClassScanner.scan(classPath, modIds, isClientSide, true,
-                        handle -> scanned.computeIfAbsent(handle.getKey(), k -> new ArrayList<>()).add(handle));
-                } else {
-                    CELog.LOGGER.warn("[Common Events] Scan class {} not found in mod {}. Skipping...",
-                        classStr, modIds);
-                }
-            }
+        ScanResult result = adapter.scan(new ScanRequestImpl(mod, isClientSide));
+
+        CELog.LOGGER.debug("[Common Events] Scanning {} with adapter '{}' complete.", modIds, adapter.getId());
+        return result;
+    }
+
+    private record ScannableModImpl(ModFileHolder modFile, ScannableInfo info) implements ScannableMod {
+        @Override
+        public ModFileHolder getModFile() {
+            return modFile;
         }
 
-        CELog.LOGGER.debug("[Common Events] Scanning {} complete.", modIds);
+        @Override
+        public ScannableInfo getInfo() {
+            return info;
+        }
+    }
 
-        return scanned;
+    private record ScanRequestImpl(ScannableMod mod, boolean clientSide) implements ScanRequest {
+        @Override
+        public ScannableMod getMod() {
+            return mod;
+        }
+
+        @Override
+        public boolean isClientSide() {
+            return clientSide;
+        }
     }
 }

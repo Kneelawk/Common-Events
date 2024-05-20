@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.kneelawk.commonevents.impl.scan;
+package com.kneelawk.commonevents.impl.scan.java;
 
 import java.io.BufferedInputStream;
 import java.io.IOException;
@@ -36,6 +36,8 @@ import net.minecraft.ResourceLocationException;
 import net.minecraft.resources.ResourceLocation;
 
 import com.kneelawk.commonevents.api.Event;
+import com.kneelawk.commonevents.api.adapter.ListenerHandle;
+import com.kneelawk.commonevents.api.adapter.ListenerKey;
 import com.kneelawk.commonevents.impl.CEConstants;
 import com.kneelawk.commonevents.impl.CELog;
 
@@ -184,7 +186,7 @@ public class ClassScanner extends ClassVisitor {
             public void visitEnd() {
                 if (keyType != null) {
                     listenerFound.accept(
-                        new SimpleListenerHandle(new ListenerKey(keyType, qualifier), phase, visitingClass, name,
+                        new JavaListenerHandle(new ListenerKey(keyType, qualifier), phase, visitingClass, name,
                             descriptor));
                 }
             }

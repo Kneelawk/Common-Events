@@ -23,6 +23,8 @@ import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.loader.api.ModContainer;
 
+import com.kneelawk.commonevents.api.adapter.mod.ModFileHolder;
+
 public class ModFileHolderImpl implements ModFileHolder {
     private final ModContainer mod;
     private final List<Path> alternateRoots;

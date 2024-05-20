@@ -14,19 +14,34 @@
  * limitations under the License.
  */
 
-package com.kneelawk.commonevents.impl.scan;
+package com.kneelawk.commonevents.api.adapter.util;
 
+import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.util.Arrays;
 
-import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.Type;
 
-public class ScannerUtils {
-    private ScannerUtils() {}
+/**
+ * Utilities for language adapters.
+ */
+public final class AdapterUtils {
+    /**
+     * The recommended method handle lookup for all adapters.
+     */
+    public static final MethodHandles.Lookup LOOKUP = MethodHandles.lookup();
 
+    private AdapterUtils() {}
+
+    /**
+     * Gets the {@link MethodType} described by a method {@link Type}.
+     * <p>
+     * Note: this does load all mentioned classes.
+     *
+     * @param descriptor the method type.
+     * @return the equivalent method type.
+     * @throws ClassNotFoundException if the given type mentions classes that do not exist.
+     */
     public static MethodType getMethodType(Type descriptor) throws ClassNotFoundException {
         Class<?> returnClass = getClass(descriptor.getReturnType());
         Type[] argTypes = descriptor.getArgumentTypes();
@@ -39,11 +54,26 @@ public class ScannerUtils {
         return MethodType.methodType(returnClass, argClasses);
     }
 
+    /**
+     * Converts a {@link MethodType} into a method {@link Type}.
+     *
+     * @param methodType the method type.
+     * @return the equivalent method type.
+     */
     public static Type getMethodType(MethodType methodType) {
         return Type.getMethodType(Type.getType(methodType.returnType()),
             Arrays.stream(methodType.parameterArray()).map(Type::getType).toArray(Type[]::new));
     }
 
+    /**
+     * Gets the class described by a {@link Type}.
+     * <p>
+     * Note: this does load the associated class.
+     *
+     * @param type the type to get the class of.
+     * @return the loaded class of the given type.
+     * @throws ClassNotFoundException if the given type describes a class that does not exist.
+     */
     public static Class<?> getClass(Type type) throws ClassNotFoundException {
         return switch (type.getSort()) {
             case Type.VOID -> Void.TYPE;
@@ -64,18 +94,5 @@ public class ScannerUtils {
             case Type.OBJECT -> Class.forName(type.getClassName());
             default -> throw new AssertionError("Unexpected value: " + type.getSort());
         };
-    }
-
-    public static @Nullable Method getSingularMethod(Class<?> interfaceClass) {
-        Method singularMethod = null;
-
-        for (Method method : interfaceClass.getMethods()) {
-            if (Modifier.isAbstract(method.getModifiers()) && Modifier.isPublic(method.getModifiers())) {
-                if (singularMethod != null) return null;
-                singularMethod = method;
-            }
-        }
-
-        return singularMethod;
     }
 }

@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package com.kneelawk.commonevents.impl.scan;
+package com.kneelawk.commonevents.impl.scan.java;
 
 import java.lang.invoke.LambdaMetafactory;
 import java.lang.invoke.MethodHandle;
@@ -24,17 +24,20 @@ import org.objectweb.asm.Type;
 
 import net.minecraft.resources.ResourceLocation;
 
+import com.kneelawk.commonevents.api.adapter.ListenerHandle;
+import com.kneelawk.commonevents.api.adapter.ListenerKey;
 import com.kneelawk.commonevents.impl.CELog;
+import com.kneelawk.commonevents.api.adapter.util.AdapterUtils;
 
-public class SimpleListenerHandle implements ListenerHandle {
+public class JavaListenerHandle implements ListenerHandle {
     private final ListenerKey key;
     private final ResourceLocation phase;
     private final Type listenerClass;
     private final String methodName;
     private final Type methodDescriptor;
 
-    public SimpleListenerHandle(ListenerKey key, ResourceLocation phase, Type listenerClass, String methodName,
-                                Type methodDescriptor) {
+    public JavaListenerHandle(ListenerKey key, ResourceLocation phase, Type listenerClass, String methodName,
+                              Type methodDescriptor) {
         this.key = key;
         this.phase = phase;
         this.listenerClass = listenerClass;
@@ -56,10 +59,10 @@ public class SimpleListenerHandle implements ListenerHandle {
     public <T> T createCallback(Class<T> callbackClass, String singularMethodName, MethodType singularMethodType)
         throws Throwable {
         Class<?> listenerClazz = Class.forName(listenerClass.getClassName());
-        MethodType methodType = ScannerUtils.getMethodType(methodDescriptor);
+        MethodType methodType = AdapterUtils.getMethodType(methodDescriptor);
 
         if (!singularMethodType.returnType().isAssignableFrom(methodType.returnType())) {
-            Type singularType = ScannerUtils.getMethodType(singularMethodType);
+            Type singularType = AdapterUtils.getMethodType(singularMethodType);
             CELog.LOGGER.warn(
                 "[Common Events] Callback listener {}.{}{} has return type that is incompatible with callback interface {}.{}{}. " +
                     "The associated event may throw a ClassCastException when called.",
@@ -67,9 +70,9 @@ public class SimpleListenerHandle implements ListenerHandle {
                 callbackClass.getName().replace('.', '/'), singularMethodName, singularType);
         }
 
-        MethodHandle handle = ListenerScanner.lookup.findStatic(listenerClazz, methodName, methodType);
+        MethodHandle handle = AdapterUtils.LOOKUP.findStatic(listenerClazz, methodName, methodType);
 
-        return callbackClass.cast(LambdaMetafactory.metafactory(ListenerScanner.lookup, singularMethodName,
+        return callbackClass.cast(LambdaMetafactory.metafactory(AdapterUtils.LOOKUP, singularMethodName,
                 MethodType.methodType(callbackClass), singularMethodType, handle, singularMethodType).getTarget()
             .invoke());
     }

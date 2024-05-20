@@ -19,7 +19,7 @@ package com.kneelawk.commonevents.impl;
 import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 
-import com.kneelawk.commonevents.impl.mod.ModFileHolder;
+import com.kneelawk.commonevents.api.adapter.mod.ModFileHolder;
 
 public abstract class Platform {
     private static final Platform INSTANCE;

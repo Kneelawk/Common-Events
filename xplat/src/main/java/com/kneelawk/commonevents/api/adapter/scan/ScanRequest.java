@@ -14,13 +14,22 @@
  * limitations under the License.
  */
 
-package com.kneelawk.commonevents.impl.scan;
+package com.kneelawk.commonevents.api.adapter.scan;
 
-import org.jetbrains.annotations.Nullable;
-import org.objectweb.asm.Type;
+import org.jetbrains.annotations.ApiStatus;
 
-public record ListenerKey(Type type, @Nullable String qualifier) {
-    public static ListenerKey fromClass(Class<?> clazz, String qualifier) {
-        return new ListenerKey(Type.getType(clazz), qualifier);
-    }
+/**
+ * Describes a request to scan a specific mod.
+ */
+@ApiStatus.NonExtendable
+public interface ScanRequest {
+    /**
+     * {@return the mod to be scanned}
+     */
+    ScannableMod getMod();
+
+    /**
+     * {@return whether the scan is taking place on the physical client or the physical server}
+     */
+    boolean isClientSide();
 }

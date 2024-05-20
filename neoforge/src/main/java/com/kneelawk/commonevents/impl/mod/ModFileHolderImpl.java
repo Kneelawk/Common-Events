@@ -19,11 +19,12 @@ package com.kneelawk.commonevents.impl.mod;
 import java.nio.file.Path;
 import java.util.List;
 
-import net.neoforged.fml.loading.moddiscovery.ModFile;
 import net.neoforged.neoforgespi.language.IModInfo;
 import net.neoforged.neoforgespi.locating.IModFile;
 
 import org.jetbrains.annotations.Nullable;
+
+import com.kneelawk.commonevents.api.adapter.mod.ModFileHolder;
 
 public class ModFileHolderImpl implements ModFileHolder {
     private final IModFile mod;

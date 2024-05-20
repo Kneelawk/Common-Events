@@ -14,17 +14,24 @@
  * limitations under the License.
  */
 
-package com.kneelawk.commonevents.impl.mod;
+package com.kneelawk.commonevents.api.adapter.scan;
 
-import java.nio.file.Path;
-import java.util.List;
+import org.jetbrains.annotations.ApiStatus;
 
-import org.jetbrains.annotations.Nullable;
+import com.kneelawk.commonevents.api.adapter.mod.ModFileHolder;
 
-public interface ModFileHolder {
-    List<String> getModIds();
-    
-    @Nullable Path getResource(String path);
-    
-    List<Path> getRootPaths();
+/**
+ * Describes a mod that can be scanned.
+ */
+@ApiStatus.NonExtendable
+public interface ScannableMod {
+    /**
+     * {@return the mod file associated with this scannable mod}
+     */
+    ModFileHolder getModFile();
+
+    /**
+     * {@return the info on how the mod wishes to be scanned}
+     */
+    ScannableInfo getInfo();
 }
