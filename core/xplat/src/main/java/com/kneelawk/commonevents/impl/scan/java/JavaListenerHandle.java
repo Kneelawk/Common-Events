@@ -20,14 +20,15 @@ import java.lang.invoke.LambdaMetafactory;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodType;
 
+import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.Type;
 
 import net.minecraft.resources.ResourceLocation;
 
 import com.kneelawk.commonevents.api.adapter.ListenerHandle;
 import com.kneelawk.commonevents.api.adapter.ListenerKey;
-import com.kneelawk.commonevents.impl.CELog;
 import com.kneelawk.commonevents.api.adapter.util.AdapterUtils;
+import com.kneelawk.commonevents.impl.CELog;
 
 public class JavaListenerHandle implements ListenerHandle {
     private final ListenerKey key;
@@ -46,17 +47,18 @@ public class JavaListenerHandle implements ListenerHandle {
     }
 
     @Override
-    public ListenerKey getKey() {
+    public @NotNull ListenerKey getKey() {
         return key;
     }
 
     @Override
-    public ResourceLocation getPhase() {
+    public @NotNull ResourceLocation getPhase() {
         return phase;
     }
 
     @Override
-    public <T> T createCallback(Class<T> callbackClass, String singularMethodName, MethodType singularMethodType)
+    public <T> @NotNull T createCallback(@NotNull Class<T> callbackClass, @NotNull String singularMethodName,
+                                         @NotNull MethodType singularMethodType)
         throws Throwable {
         Class<?> listenerClazz = Class.forName(listenerClass.getClassName());
         MethodType methodType = AdapterUtils.getMethodType(methodDescriptor);

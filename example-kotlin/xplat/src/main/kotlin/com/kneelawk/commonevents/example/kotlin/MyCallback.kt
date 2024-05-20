@@ -16,6 +16,6 @@
 
 package com.kneelawk.commonevents.example.kotlin
 
-fun interface MyEvent {
+fun interface MyCallback {
     fun doSomething(str: String)
 }
