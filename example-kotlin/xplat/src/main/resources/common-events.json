@@ -1,3 +1,4 @@
 {
-  "scan": true
+  "scan": true,
+  "adapter": "kotlin"
 }
