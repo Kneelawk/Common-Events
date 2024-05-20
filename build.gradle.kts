@@ -14,9 +14,5 @@ subprojects {
             isPreserveFileTimestamps = false
             isReproducibleFileOrder = true
         }
-
-        withType<GenerateModuleMetadata>().configureEach {
-            enabled = false
-        }
     }
 }

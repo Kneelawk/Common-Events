@@ -21,9 +21,9 @@ plugins {
 }
 
 submodule {
+    applyKotlin("mojmap")
     applyFabricLoaderDependency()
     applyXplatConnection(":kotlin-xplat", "mojmap")
-    setupJavadoc()
     disableRemap()
 }
 
