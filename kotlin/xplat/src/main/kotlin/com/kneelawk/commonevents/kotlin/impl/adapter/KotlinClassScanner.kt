@@ -124,6 +124,8 @@ class KotlinClassScanner(
 
         val nameType = Type.getObjectType(name)
         if (visitingClass == nameType) return
+        if ((access and Opcodes.ACC_PUBLIC) == 0) return
+        // we can only access public companion objects
 
         // mechanism to detect companion objects
         innerClasses.add(InnerClass(nameType, innerName))
@@ -135,7 +137,9 @@ class KotlinClassScanner(
         if (!shouldScan) return null
 
         val fieldType = Type.getType(descriptor)
-        if (innerClasses.contains(InnerClass(fieldType, name))) {
+        if ((access and Opcodes.ACC_PUBLIC) != 0 && innerClasses.contains(InnerClass(fieldType, name))) {
+            // we other fields will be private
+
             // fair to assume this is a companion object field
             queueType(fieldType)
         }
