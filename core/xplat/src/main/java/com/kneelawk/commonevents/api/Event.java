@@ -261,6 +261,128 @@ public final class Event<T> {
     }
 
     /**
+     * Creates an event builder with the given callback interface type.
+     *
+     * @param <T>            the type of the callback interface.
+     * @param type           the callback interface type.
+     * @param implementation a function which generates an invoker implementation using an array of callbacks.
+     * @return the event builder.
+     */
+    public static <T> Builder<T> builder(Class<? super T> type, Function<T[], T> implementation) {
+        return new Builder<>(type, implementation);
+    }
+
+    /**
+     * Event builder. Use {@link #builder(Class, Function)} to create new event builders.
+     */
+    public static class Builder<T> {
+        private final Class<? super T> type;
+        private final Function<T[], T> implementation;
+        private @Nullable T emptyImplementation;
+        private String qualifier = DEFAULT_QUALIFIER;
+        private boolean scanned = true;
+        private ResourceLocation[] defaultPhases = new ResourceLocation[0];
+
+        private Builder(Class<? super T> type, Function<T[], T> implementation) {
+            this.type = type;
+            this.implementation = implementation;
+        }
+
+        /**
+         * Finalizes this builder into a built event.
+         *
+         * @return the built event.
+         */
+        public Event<T> build() {
+            Function<T[], T> impl;
+            if (emptyImplementation != null) {
+                impl = callbacks -> switch (callbacks.length) {
+                    case 0 -> emptyImplementation;
+                    case 1 -> callbacks[0];
+                    default -> implementation.apply(callbacks);
+                };
+            } else {
+                impl = implementation;
+            }
+
+            Event<T> event = new Event<>(type, qualifier, impl, scanned);
+
+            for (int i = 1; i < defaultPhases.length; ++i) {
+                event.addPhaseOrdering(defaultPhases[i - 1], defaultPhases[i]);
+            }
+
+            return event;
+        }
+
+        /**
+         * Sets the implementation to use when there are no callback registrations.
+         *
+         * @param emptyImplementation the implementation of T to use when there are no callback registrations.
+         * @return this builder.
+         */
+        public Builder<T> emptyImplementation(T emptyImplementation) {
+            this.emptyImplementation = emptyImplementation;
+            return this;
+        }
+
+        /**
+         * Sets the event qualifier.
+         * <p>
+         * Event qualifiers are used for differentiating between otherwise indistinguishable events when scanning.
+         *
+         * @param qualifier the new event qualifier.
+         * @return this builder.
+         */
+        public Builder<T> qualifier(String qualifier) {
+            this.qualifier = qualifier;
+            return this;
+        }
+
+        /**
+         * Sets whether this event uses scanned {@link Listen} annotations.
+         *
+         * @param scanned whether the created event should use scanned annotations.
+         * @return this builder.
+         * @see #createUnscanned(Class, Function)
+         */
+        public Builder<T> scanned(boolean scanned) {
+            this.scanned = scanned;
+            return this;
+        }
+
+        /**
+         * Appends default phases to this builder that the created event will invoke in order.
+         * <p>
+         * Exposing the {@link ResourceLocation} of the default phases as {@code public static final} constants is encouraged.
+         * <p>
+         * An event phase is a named group of callbacks, which may be ordered before or after other groups of callbacks.
+         * This allows some callbacks to take priority over other callbacks.
+         * Adding separate events should be considered before making use of multiple event phases.
+         * <p>
+         * Phases may be freely added to events created with any of the factory functions,
+         * however using this function is preferred for widely used event phases.
+         * If more phases are necessary, discussion with the author of the event is encouraged.
+         * <p>
+         * Refer to {@link Event#addPhaseOrdering} for an explanation of event phases.
+         *
+         * @param defaultPhases the new default phases to append.
+         * @return this builder.
+         */
+        public Builder<T> defaultPhases(ResourceLocation... defaultPhases) {
+            if (this.defaultPhases.length > 0 && defaultPhases.length > 0) {
+                ResourceLocation[] newPhases = new ResourceLocation[this.defaultPhases.length + defaultPhases.length];
+                System.arraycopy(this.defaultPhases, 0, newPhases, 0, this.defaultPhases.length);
+                System.arraycopy(defaultPhases, 0, newPhases, this.defaultPhases.length, defaultPhases.length);
+                this.defaultPhases = newPhases;
+            } else if (this.defaultPhases.length == 0) {
+                this.defaultPhases = defaultPhases;
+            }
+
+            return this;
+        }
+    }
+
+    /**
      * Registers the given listener of the listed events.
      * <p>
      * The registration of the listener will be refused if one of the listed event involves generics in its callback type,
