@@ -80,9 +80,11 @@ class KotlinClassScanner(
         }
     }
 
+    data class InnerClass(val type: Type, val name: String)
+
     var shouldScan = forceScan
     var visitingClass: Type? = null
-    val innerClasses = mutableSetOf<Type>()
+    private val innerClasses = mutableSetOf<InnerClass>()
 
     override fun visit(
         version: Int, access: Int, name: String, signature: String?, superName: String?, interfaces: Array<out String>?
@@ -124,7 +126,7 @@ class KotlinClassScanner(
         if (visitingClass == nameType) return
 
         // mechanism to detect companion objects
-        innerClasses.add(nameType)
+        innerClasses.add(InnerClass(nameType, innerName))
     }
 
     override fun visitField(
@@ -133,7 +135,7 @@ class KotlinClassScanner(
         if (!shouldScan) return null
 
         val fieldType = Type.getType(descriptor)
-        if (innerClasses.contains(fieldType)) {
+        if (innerClasses.contains(InnerClass(fieldType, name))) {
             // fair to assume this is a companion object field
             queueType(fieldType)
         }
