@@ -18,31 +18,37 @@ package com.kneelawk.commonevents.impl.mod;
 
 import java.nio.file.Path;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import net.neoforged.neoforgespi.language.IModInfo;
 import net.neoforged.neoforgespi.locating.IModFile;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import com.kneelawk.commonevents.api.adapter.mod.ModFileHolder;
 
 public class ModFileHolderImpl implements ModFileHolder {
     private final IModFile mod;
+    private final String modIdStr;
 
-    public ModFileHolderImpl(IModFile mod) {this.mod = mod;}
-
-    @Override
-    public List<String> getModIds() {
-        return mod.getModInfos().stream().map(IModInfo::getModId).toList();
+    public ModFileHolderImpl(IModFile mod) {
+        this.mod = mod;
+        modIdStr = mod.getModInfos().stream().map(IModInfo::getModId).collect(Collectors.joining(", ", "[", "]"));
     }
 
     @Override
-    public @Nullable Path getResource(String path) {
+    public @NotNull String getModIdStr() {
+        return modIdStr;
+    }
+
+    @Override
+    public @Nullable Path getResource(@NotNull String path) {
         return mod.findResource(path);
     }
 
     @Override
-    public List<Path> getRootPaths() {
+    public @NotNull List<Path> getRootPaths() {
         return List.of(mod.getSecureJar().getRootPath());
     }
 }

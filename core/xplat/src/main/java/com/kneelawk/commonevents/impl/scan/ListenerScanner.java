@@ -126,7 +126,7 @@ public class ListenerScanner {
                     if (!element.isJsonObject()) {
                         CELog.LOGGER.warn(
                             "[Common Events] Mod {} common-events.json root is not a JSON object",
-                            mod.getModIds());
+                            mod.getModIdStr());
                         continue;
                     }
 
@@ -137,7 +137,7 @@ public class ListenerScanner {
                 } catch (IOException e) {
                     CELog.LOGGER.warn(
                         "[Common Events] Encountered invalid common-events.json in {}. Skipping...",
-                        mod.getModIds(), e);
+                        mod.getModIdStr(), e);
                 }
             }
         }

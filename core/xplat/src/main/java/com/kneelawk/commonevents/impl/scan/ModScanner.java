@@ -82,12 +82,12 @@ public class ModScanner {
         this.adapter = adapter;
     }
 
-    public List<String> getModIds() {
-        return mod.getModFile().getModIds();
+    public String getModIds() {
+        return mod.getModFile().getModIdStr();
     }
 
     public ScanResult scan(boolean isClientSide) {
-        List<String> modIds = mod.getModFile().getModIds();
+        String modIds = mod.getModFile().getModIdStr();
         CELog.LOGGER.debug("[Common Events] Scanning {} with adapter '{}'...", modIds, adapter.getId());
 
         ScanResult result = adapter.scan(new ScanRequestImpl(mod, isClientSide));

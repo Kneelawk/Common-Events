@@ -23,3 +23,10 @@ type = "REQUIRED"
 versionRange = "[0,)"
 ordering = "NONE"
 side = "BOTH"
+
+[[dependencies.common_events_kotlin]]
+modId = "kotlinforforge"
+type = "REQUIRED"
+versionRange = "[5,)"
+ordering = "NONE"
+side = "BOTH"

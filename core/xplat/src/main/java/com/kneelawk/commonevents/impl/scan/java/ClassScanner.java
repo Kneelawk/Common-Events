@@ -38,29 +38,26 @@ import net.minecraft.resources.ResourceLocation;
 import com.kneelawk.commonevents.api.Event;
 import com.kneelawk.commonevents.api.adapter.ListenerHandle;
 import com.kneelawk.commonevents.api.adapter.ListenerKey;
+import com.kneelawk.commonevents.api.adapter.util.AdapterUtils;
 import com.kneelawk.commonevents.impl.CEConstants;
 import com.kneelawk.commonevents.impl.CELog;
 
 public class ClassScanner extends ClassVisitor {
-    private static final int API = Opcodes.ASM9;
-    public static final String LISTENER_ANNOTATION_NAME = "Lcom/kneelawk/commonevents/api/Listener;";
-    public static final String LISTEN_ANNOTATION_NAME = "Lcom/kneelawk/commonevents/api/Listen;";
-
-    public static void scan(URL classUrl, List<String> modIds, boolean isClientSide, boolean forceScan,
+    public static void scan(URL classUrl, String modIds, boolean isClientSide, boolean forceScan,
                             Consumer<ListenerHandle> listenerFound) {
         try (InputStream is = classUrl.openStream(); BufferedInputStream buffered = new BufferedInputStream(is)) {
             scan(buffered, isClientSide, forceScan, listenerFound);
-        } catch (IOException e) {
+        } catch (Exception e) {
             CELog.LOGGER.warn("[Common Events] Error scanning class {} in mod {}", classUrl, modIds, e);
         }
     }
 
-    public static void scan(Path classPath, List<String> modIds, boolean isClientSide, boolean forceScan,
+    public static void scan(Path classPath, String modIds, boolean isClientSide, boolean forceScan,
                             Consumer<ListenerHandle> listenerFound) {
         try (InputStream is = Files.newInputStream(classPath);
              BufferedInputStream buffered = new BufferedInputStream(is)) {
             scan(buffered, isClientSide, forceScan, listenerFound);
-        } catch (IOException e) {
+        } catch (Exception e) {
             CELog.LOGGER.warn("[Common Events] Error scanning class {} in mod {}", classPath, modIds, e);
         }
     }
@@ -79,7 +76,7 @@ public class ClassScanner extends ClassVisitor {
     private boolean shouldScan;
 
     protected ClassScanner(boolean isClientSide, boolean forceScan, Consumer<ListenerHandle> listenerFound) {
-        super(API);
+        super(AdapterUtils.API);
         this.isClientSide = isClientSide;
         this.listenerFound = listenerFound;
         shouldScan = forceScan;
@@ -92,7 +89,7 @@ public class ClassScanner extends ClassVisitor {
 
     @Override
     public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
-        if (LISTENER_ANNOTATION_NAME.equals(descriptor)) {
+        if (AdapterUtils.LISTENER_ANNOTATION_NAME.equals(descriptor)) {
             CELog.LOGGER.debug("[Common Events] Found annotated class: {}", descriptor);
             return new ClassAnnotationScanner();
         } else {
@@ -104,22 +101,21 @@ public class ClassScanner extends ClassVisitor {
         private boolean isValidSide = true;
 
         protected ClassAnnotationScanner() {
-            super(API);
+            super(AdapterUtils.API);
         }
 
         @Override
         public void visitEnum(String name, String descriptor, String value) {
-            if ("side".equals(name)) {
-                isValidSide = "BOTH".equals(value) || ("CLIENT".equals(value) == isClientSide);
+            if (AdapterUtils.LISTENER_SIDE_FIELD_NAME.equals(name)) {
+                isValidSide = AdapterUtils.LISTENER_SIDE_BOTH_VALUE.equals(value) ||
+                    (AdapterUtils.LISTENER_SIDE_CLIENT_VALUE.equals(value) == isClientSide);
             }
         }
 
         @Override
         public void visitEnd() {
-            if (isValidSide) {
-                shouldScan = true;
-            } else {
-                shouldScan = false;
+            shouldScan = isValidSide;
+            if (!isValidSide) {
                 CELog.LOGGER.debug("[Common Events] Skipping {} because it is on the wrong side.",
                     visitingClass.getInternalName());
             }
@@ -143,14 +139,14 @@ public class ClassScanner extends ClassVisitor {
         private final Type descriptor;
 
         protected MethodScanner(String name, Type descriptor) {
-            super(API);
+            super(AdapterUtils.API);
             this.name = name;
             this.descriptor = descriptor;
         }
 
         @Override
         public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
-            if (LISTEN_ANNOTATION_NAME.equals(descriptor)) {
+            if (AdapterUtils.LISTEN_ANNOTATION_NAME.equals(descriptor)) {
                 return new MethodAnnotationScanner();
             } else {
                 return null;
@@ -159,20 +155,20 @@ public class ClassScanner extends ClassVisitor {
 
         private class MethodAnnotationScanner extends AnnotationVisitor {
             private Type keyType = null;
-            private String qualifier = Event.DEFAULT_QUALIFIER;
+            private String qualifier = CEConstants.DEFAULT_QUALIFIER;
             private ResourceLocation phase = CEConstants.DEFAULT_PHASE;
 
             protected MethodAnnotationScanner() {
-                super(API);
+                super(AdapterUtils.API);
             }
 
             @Override
             public void visit(String name, Object value) {
-                if ("value".equals(name) && value instanceof Type type) {
+                if (AdapterUtils.LISTEN_VALUE_FIELD_NAME.equals(name) && value instanceof Type type) {
                     keyType = type;
-                } else if ("qualifier".equals(name) && value instanceof String str) {
+                } else if (AdapterUtils.LISTEN_QUALIFIER_FIELD_NAME.equals(name) && value instanceof String str) {
                     qualifier = str;
-                } else if ("phase".equals(name) && value instanceof String str) {
+                } else if (AdapterUtils.LISTEN_PHASE_FIELD_NAME.equals(name) && value instanceof String str) {
                     try {
                         phase = new ResourceLocation(str);
                     } catch (ResourceLocationException e) {

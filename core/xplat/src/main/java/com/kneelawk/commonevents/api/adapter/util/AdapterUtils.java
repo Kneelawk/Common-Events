@@ -20,7 +20,11 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.util.Arrays;
 
+import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
+
+import com.kneelawk.commonevents.api.Listen;
+import com.kneelawk.commonevents.api.Listener;
 
 /**
  * Utilities for language adapters.
@@ -30,6 +34,56 @@ public final class AdapterUtils {
      * The recommended method handle lookup for all adapters.
      */
     public static final MethodHandles.Lookup LOOKUP = MethodHandles.lookup();
+
+    /**
+     * The ASM API level recommended for adapters.
+     */
+    public static final int API = Opcodes.ASM9;
+
+    /**
+     * The fully-qualified name of the {@link Listener} annotation.
+     */
+    public static final String LISTENER_ANNOTATION_NAME = "Lcom/kneelawk/commonevents/api/Listener;";
+
+    /**
+     * The name of the {@link Listener#side()} field name.
+     */
+    public static final String LISTENER_SIDE_FIELD_NAME = "side";
+
+    /**
+     * The enum value of {@link Listener.Side#BOTH}.
+     */
+    public static final String LISTENER_SIDE_BOTH_VALUE = "BOTH";
+
+    /**
+     * The enum value of {@link Listener.Side#CLIENT}.
+     */
+    public static final String LISTENER_SIDE_CLIENT_VALUE = "CLIENT";
+
+    /**
+     * The enum value of {@link Listener.Side#SERVER}.
+     */
+    public static final String LISTENER_SIDE_SERVER_VALUE = "SERVER";
+
+    /**
+     * The fully-qualified name of the {@link Listen} annotation.
+     */
+    public static final String LISTEN_ANNOTATION_NAME = "Lcom/kneelawk/commonevents/api/Listen;";
+
+    /**
+     * The name of the {@link Listen#value()} field name.
+     */
+    public static final String LISTEN_VALUE_FIELD_NAME = "value";
+
+    /**
+     * The name of the {@link Listen#qualifier()} field name.
+     */
+    public static final String LISTEN_QUALIFIER_FIELD_NAME = "qualifier";
+
+    /**
+     * The name of the {@link Listen#phase()}} field name.
+     */
+    public static final String LISTEN_PHASE_FIELD_NAME = "phase";
 
     private AdapterUtils() {}
 

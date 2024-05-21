@@ -28,9 +28,9 @@ import org.jetbrains.annotations.Nullable;
 @ApiStatus.NonExtendable
 public interface ModFileHolder {
     /**
-     * {@return a list of mod ids associated with this mod file}
+     * {@return a string describing all mod(s) associated with this file}
      */
-    List<String> getModIds();
+    String getModIdStr();
 
     /**
      * Gets a resource at the given location within this mod.

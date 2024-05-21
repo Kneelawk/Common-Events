@@ -150,7 +150,7 @@ public final class Event<T> {
      *
      * @see Listen#qualifier()
      */
-    public static final String DEFAULT_QUALIFIER = "common_events_default";
+    public static final String DEFAULT_QUALIFIER = CEConstants.DEFAULT_QUALIFIER;
 
     /**
      * Creates a new instance {@link Event} with a type and qualifier.

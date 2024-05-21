@@ -24,10 +24,9 @@ versionRange = "[0,)"
 ordering = "NONE"
 side = "BOTH"
 
-# Kotlin for does not have a neoforge.mods.toml file yet
-#[[dependencies.common_events_example_kotlin]]
-#modId = "kotlinforforge"
-#type = "REQUIRED"
-#versionRange = "[4,)"
-#ordering = "NONE"
-#side = "BOTH"
+[[dependencies.common_events_example_kotlin]]
+modId = "kotlinforforge"
+type = "REQUIRED"
+versionRange = "[5,)"
+ordering = "NONE"
+side = "BOTH"

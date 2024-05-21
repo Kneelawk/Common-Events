@@ -31,4 +31,10 @@ class EventListener2 {
             CommonEventsExampleKotlin.LOGGER.info("> EventListener2 received event: $str")
         }
     }
+
+    // This method is not currently a proper listener, as it requires an instance of this class
+//    @Listen(MyCallback::class, qualifier = "my_qualifier")
+    fun instanceListener(str: String) {
+        CommonEventsExampleKotlin.LOGGER.info("> broken EventListener2 listener received event: $str")
+    }
 }

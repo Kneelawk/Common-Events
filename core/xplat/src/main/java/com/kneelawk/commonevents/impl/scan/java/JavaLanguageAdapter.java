@@ -49,13 +49,13 @@ public class JavaLanguageAdapter implements LanguageAdapter {
     public @NotNull ScanResult scan(@NotNull ScanRequest request) {
         ScannableMod mod = request.getMod();
         ModFileHolder modFile = mod.getModFile();
-        List<String> modIds = modFile.getModIds();
+        String modIds = modFile.getModIdStr();
 
         Map<ListenerKey, List<ListenerHandle>> scanned = new HashMap<>();
         ClassLoader loader = getClass().getClassLoader();
 
         if (mod.getInfo() instanceof ScannableInfo.All) {
-            for (Path root : mod.getModFile().getRootPaths()) {
+            for (Path root : modFile.getRootPaths()) {
                 try (Stream<Path> stream = Files.walk(root)) {
                     for (Iterator<Path> iter = stream.iterator(); iter.hasNext(); ) {
                         Path classPath = iter.next();
@@ -65,7 +65,7 @@ public class JavaLanguageAdapter implements LanguageAdapter {
                                 handle -> scanned.computeIfAbsent(handle.getKey(), k -> new ArrayList<>()).add(handle));
                         }
                     }
-                } catch (IOException e) {
+                } catch (Exception e) {
                     CELog.LOGGER.warn("[Common Events] Error scanning classes in mod {}.", modIds, e);
                 }
             }

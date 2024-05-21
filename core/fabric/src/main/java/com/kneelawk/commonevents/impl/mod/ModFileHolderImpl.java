@@ -19,6 +19,7 @@ package com.kneelawk.commonevents.impl.mod;
 import java.nio.file.Path;
 import java.util.List;
 
+import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import net.fabricmc.loader.api.ModContainer;
@@ -28,6 +29,7 @@ import com.kneelawk.commonevents.api.adapter.mod.ModFileHolder;
 public class ModFileHolderImpl implements ModFileHolder {
     private final ModContainer mod;
     private final List<Path> alternateRoots;
+    private final String modIdStr;
 
     public ModFileHolderImpl(ModContainer mod) {
         this(mod, List.of());
@@ -36,20 +38,21 @@ public class ModFileHolderImpl implements ModFileHolder {
     public ModFileHolderImpl(ModContainer mod, List<Path> alternateRoots) {
         this.mod = mod;
         this.alternateRoots = alternateRoots;
+        modIdStr = "[" + mod.getMetadata().getId() + "]";
     }
 
     @Override
-    public List<String> getModIds() {
-        return List.of(mod.getMetadata().getId());
+    public @NotNull String getModIdStr() {
+        return modIdStr;
     }
 
     @Override
-    public @Nullable Path getResource(String path) {
+    public @Nullable Path getResource(@NotNull String path) {
         return mod.findPath(path).orElse(null);
     }
 
     @Override
-    public List<Path> getRootPaths() {
+    public @NotNull List<Path> getRootPaths() {
         if (alternateRoots.isEmpty()) {
             return mod.getRootPaths();
         } else {
