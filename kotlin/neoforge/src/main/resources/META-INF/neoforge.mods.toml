@@ -13,7 +13,7 @@ logoFile = "assets/common_events_kotlin/icon.png"
 [[dependencies.common_events_kotlin]]
 modId = "neoforge"
 type = "REQUIRED"
-versionRange = "[20.4.148-beta,)"
+versionRange = "[20.6.40-beta,)"
 ordering = "NONE"
 side = "BOTH"
 
@@ -24,9 +24,10 @@ versionRange = "[0,)"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.common_events_kotlin]]
-modId = "kotlinforforge"
-type = "REQUIRED"
-versionRange = "[5,)"
-ordering = "NONE"
-side = "BOTH"
+# Kotlin for Forge still isn't being detected in my environment
+#[[dependencies.common_events_kotlin]]
+#modId = "kotlinforforge"
+#type = "REQUIRED"
+#versionRange = "[5,)"
+#ordering = "NONE"
+#side = "BOTH"
