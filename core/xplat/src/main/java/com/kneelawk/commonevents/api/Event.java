@@ -274,6 +274,8 @@ public final class Event<T> {
 
     /**
      * Event builder. Use {@link #builder(Class, Function)} to create new event builders.
+     *
+     * @param <T> the type of callback this builder builds events for.
      */
     public static class Builder<T> {
         private final Class<? super T> type;
