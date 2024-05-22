@@ -29,7 +29,6 @@ import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Function;
 
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.resources.ResourceLocation;
@@ -164,8 +163,8 @@ public final class Event<T> {
      * @param <T>            the type of the invoker executed by the event
      * @return a new event instance
      */
-    public static <T> @NotNull Event<T> create(@NotNull Class<? super T> type, @NotNull String qualifier,
-                                               @NotNull Function<T[], T> implementation) {
+    public static <T> Event<T> create(Class<? super T> type, String qualifier,
+                                      Function<T[], T> implementation) {
         return new Event<>(type, qualifier, implementation, true);
     }
 
@@ -177,8 +176,8 @@ public final class Event<T> {
      * @param <T>            the type of the invoker executed by the event
      * @return a new event instance
      */
-    public static <T> @NotNull Event<T> create(@NotNull Class<? super T> type,
-                                               @NotNull Function<T[], T> implementation) {
+    public static <T> Event<T> create(Class<? super T> type,
+                                      Function<T[], T> implementation) {
         return create(type, DEFAULT_QUALIFIER, implementation);
     }
 
@@ -196,8 +195,8 @@ public final class Event<T> {
      * @param <T>                 the type of the invoker executed by the event
      * @return a new event instance
      */
-    public static <T> @NotNull Event<T> create(@NotNull Class<? super T> type, @NotNull T emptyImplementation,
-                                               @NotNull Function<T[], T> implementation) {
+    public static <T> Event<T> create(Class<? super T> type, T emptyImplementation,
+                                      Function<T[], T> implementation) {
         return create(type, callbacks -> switch (callbacks.length) {
             case 0 -> emptyImplementation;
             case 1 -> callbacks[0];
@@ -227,9 +226,9 @@ public final class Event<T> {
      * @param <T>            the type of the invoker executed by the event
      * @return a new event instance
      */
-    public static <T> @NotNull Event<T> createWithPhases(@NotNull Class<? super T> type,
-                                                         @NotNull Function<T[], T> implementation,
-                                                         @NotNull ResourceLocation... defaultPhases) {
+    public static <T> Event<T> createWithPhases(Class<? super T> type,
+                                                Function<T[], T> implementation,
+                                                ResourceLocation... defaultPhases) {
         CommonEventsImpl.ensureContainsDefaultPhase(defaultPhases);
         CommonEventsImpl.ensureNoDuplicates(defaultPhases,
             id -> new IllegalArgumentException("Duplicate event phase: " + id));
@@ -255,8 +254,8 @@ public final class Event<T> {
      * @param <T>            the type of invoker executed by the event
      * @return a new event instance
      */
-    public static <T> @NotNull Event<T> createUnscanned(@NotNull Class<? super T> type,
-                                                        @NotNull Function<T[], T> implementation) {
+    public static <T> Event<T> createUnscanned(Class<? super T> type,
+                                               Function<T[], T> implementation) {
         return new Event<>(type, DEFAULT_QUALIFIER, implementation, false);
     }
 
@@ -397,7 +396,7 @@ public final class Event<T> {
      * @see #register(Object)
      * @see #register(ResourceLocation, Object)
      */
-    public static void listenAll(@NotNull Object listener, @NotNull Event<?>... events) {
+    public static void listenAll(Object listener, Event<?>... events) {
         if (events.length == 0) {
             throw new IllegalArgumentException("Tried to register a listener for an empty event list.");
         }
@@ -450,14 +449,14 @@ public final class Event<T> {
      * {@return the class of the type of the invoker used to execute an event and the class of the type of the callback}
      */
     @Contract(pure = true)
-    public @NotNull Class<? super T> getType() {
+    public Class<? super T> getType() {
         return this.type;
     }
 
     /**
      * {@return the extra qualifier used to differentiate this event from other events with the same callback type class}
      */
-    public @NotNull String getQualifier() {
+    public String getQualifier() {
         return qualifier;
     }
 
@@ -467,7 +466,7 @@ public final class Event<T> {
      * @param callback the callback
      * @see #register(ResourceLocation, Object)
      */
-    public void register(@NotNull T callback) {
+    public void register(T callback) {
         this.register(DEFAULT_PHASE, callback);
     }
 
@@ -477,7 +476,7 @@ public final class Event<T> {
      * @param phase    the phase name
      * @param callback the callback
      */
-    public void register(@NotNull ResourceLocation phase, @NotNull T callback) {
+    public void register(ResourceLocation phase, T callback) {
         Objects.requireNonNull(phase, "Tried to register a callback for a null phase!");
         Objects.requireNonNull(callback, "Tried to register a null callback!");
 
@@ -499,7 +498,7 @@ public final class Event<T> {
      * @return the invoker instance
      */
     @Contract(pure = true)
-    public @NotNull T invoker() {
+    public T invoker() {
         return this.invoker;
     }
 
@@ -514,7 +513,7 @@ public final class Event<T> {
      * @param firstPhase  the name of the phase that should run before the other. It will be created if it didn't exist yet
      * @param secondPhase the name of the phase that should run after the other. It will be created if it didn't exist yet
      */
-    public void addPhaseOrdering(@NotNull ResourceLocation firstPhase, @NotNull ResourceLocation secondPhase) {
+    public void addPhaseOrdering(ResourceLocation firstPhase, ResourceLocation secondPhase) {
         Objects.requireNonNull(firstPhase, "Tried to add an ordering for a null phase.");
         Objects.requireNonNull(secondPhase, "Tried to add an ordering for a null phase.");
 

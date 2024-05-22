@@ -22,7 +22,6 @@ import java.util.List;
 import java.util.Objects;
 
 import org.jetbrains.annotations.Contract;
-import org.jetbrains.annotations.NotNull;
 
 import net.minecraft.resources.ResourceLocation;
 
@@ -54,7 +53,7 @@ public class PhaseData<T, P extends PhaseData<T, P>> {
      * @param name the name of this phase.
      * @param data the data held within this phase.
      */
-    public PhaseData(@NotNull ResourceLocation name, T data) {
+    public PhaseData(ResourceLocation name, T data) {
         Objects.requireNonNull(name);
 
         this.name = name;
@@ -65,7 +64,7 @@ public class PhaseData<T, P extends PhaseData<T, P>> {
      * {@return the identifier of this phase}
      */
     @Contract(pure = true)
-    public @NotNull ResourceLocation getName() {
+    public ResourceLocation getName() {
         return this.name;
     }
 
@@ -103,7 +102,7 @@ public class PhaseData<T, P extends PhaseData<T, P>> {
      * @param <T>    the type of data held by the phases
      * @param <P>    this phase-data subclass
      */
-    public static <T, P extends PhaseData<T, P>> void link(@NotNull P first, @NotNull P second) {
+    public static <T, P extends PhaseData<T, P>> void link(P first, P second) {
         first.addSubsequentPhase(second);
         second.addPreviousPhase(first);
     }
