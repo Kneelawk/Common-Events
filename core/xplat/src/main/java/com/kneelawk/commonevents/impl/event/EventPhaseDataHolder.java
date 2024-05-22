@@ -1,5 +1,5 @@
 /*
- * Copyright 2022 The Quilt Project
+ * Copyright (c) 2024 Cyan Kneelawk.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,10 +14,7 @@
  * limitations under the License.
  */
 
-package com.kneelawk.commonevents.impl;
-
-import java.lang.reflect.Array;
-import java.util.Arrays;
+package com.kneelawk.commonevents.impl.event;
 
 import org.jetbrains.annotations.ApiStatus;
 
@@ -26,15 +23,17 @@ import net.minecraft.resources.ResourceLocation;
 import com.kneelawk.commonevents.api.phase.PhaseData;
 
 @ApiStatus.Internal
-public final class EventPhaseData<T> extends PhaseData<T[], EventPhaseData<T>> {
+public final class EventPhaseDataHolder<T> extends PhaseData<EventPhaseData<T>, EventPhaseDataHolder<T>> {
     @SuppressWarnings("unchecked")
-    public EventPhaseData(ResourceLocation id, Class<?> listenerClass) {
-        super(id, (T[]) Array.newInstance(listenerClass, 0));
+    public EventPhaseDataHolder(ResourceLocation id, Class<?> listenerClass, boolean sorted) {
+        super(id, sorted ? new SortedEventPhaseData<>(listenerClass) : new UnsortedEventPhaseData<>(listenerClass));
     }
 
-    public void addListener(T listener) {
-        int oldLength = this.data.length;
-        this.data = Arrays.copyOf(data, oldLength + 1);
-        this.data[oldLength] = listener;
+    public void addListener(Object key, T listener) {
+        this.data.addListener(key, listener);
+    }
+
+    public void removeListener(Object key) {
+        this.data.removeListener(key);
     }
 }

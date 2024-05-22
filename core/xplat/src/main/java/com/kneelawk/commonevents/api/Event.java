@@ -20,6 +20,7 @@ package com.kneelawk.commonevents.api;
 import java.lang.reflect.Array;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,7 +38,7 @@ import com.kneelawk.commonevents.api.phase.PhaseData;
 import com.kneelawk.commonevents.api.phase.PhaseSorting;
 import com.kneelawk.commonevents.impl.CEConstants;
 import com.kneelawk.commonevents.impl.CommonEventsImpl;
-import com.kneelawk.commonevents.impl.EventPhaseData;
+import com.kneelawk.commonevents.impl.event.EventPhaseDataHolder;
 import com.kneelawk.commonevents.impl.scan.ListenerScanner;
 
 /**
@@ -165,7 +166,7 @@ public final class Event<T> {
      */
     public static <T> Event<T> create(Class<? super T> type, String qualifier,
                                       Function<T[], T> implementation) {
-        return new Event<>(type, qualifier, implementation, true);
+        return new Event<>(type, qualifier, implementation, true, false);
     }
 
     /**
@@ -256,7 +257,7 @@ public final class Event<T> {
      */
     public static <T> Event<T> createUnscanned(Class<? super T> type,
                                                Function<T[], T> implementation) {
-        return new Event<>(type, DEFAULT_QUALIFIER, implementation, false);
+        return new Event<>(type, DEFAULT_QUALIFIER, implementation, false, false);
     }
 
     /**
@@ -283,6 +284,7 @@ public final class Event<T> {
         private String qualifier = DEFAULT_QUALIFIER;
         private boolean scanned = true;
         private ResourceLocation[] defaultPhases = new ResourceLocation[0];
+        private boolean optimizeRemoval = false;
 
         private Builder(Class<? super T> type, Function<T[], T> implementation) {
             this.type = type;
@@ -306,7 +308,7 @@ public final class Event<T> {
                 impl = implementation;
             }
 
-            Event<T> event = new Event<>(type, qualifier, impl, scanned);
+            Event<T> event = new Event<>(type, qualifier, impl, scanned, optimizeRemoval);
 
             for (int i = 1; i < defaultPhases.length; ++i) {
                 event.addPhaseOrdering(defaultPhases[i - 1], defaultPhases[i]);
@@ -381,6 +383,23 @@ public final class Event<T> {
 
             return this;
         }
+
+        /**
+         * Sets whether the built event should be optimized for improved removal costs.
+         * <p>
+         * If the event is optimized for improved removal costs, then registration performance will be slightly worse.
+         * Specifically, when {@code optimizeRemoval} is {@code false}, then {@link #unregister(Object)} will have
+         * {@code O(n)} complexity but {@link #register(Object)} will have {@code O(1)} complexity. However, if
+         * {@code optimizeRemoval} is {@code true} then both {@link #unregister(Object)} and {@link #register(Object)}
+         * will have {@code O(log(n))} complexity.
+         *
+         * @param optimizeRemoval whether removals should have improved performance at the cost of registration performance.
+         * @return this builder.
+         */
+        public Builder<T> optimizeRemoval(boolean optimizeRemoval) {
+            this.optimizeRemoval = optimizeRemoval;
+            return this;
+        }
     }
 
     /**
@@ -411,6 +430,7 @@ public final class Event<T> {
     private final Class<? super T> type;
     private final String qualifier;
     private final Function<T[], T> implementation;
+    private final boolean sortPhaseCallbacks;
     private final Lock lock = new ReentrantLock();
     /**
      * The invoker field used to execute callbacks.
@@ -423,14 +443,20 @@ public final class Event<T> {
     /**
      * Registered event phases.
      */
-    private final Map<ResourceLocation, EventPhaseData<T>> phases = new LinkedHashMap<>();
+    private final Map<ResourceLocation, EventPhaseDataHolder<T>> phases = new LinkedHashMap<>();
     /**
      * Phases sorted in the correct dependency order.
      */
-    private final List<EventPhaseData<T>> sortedPhases = new ArrayList<>();
+    private final List<EventPhaseDataHolder<T>> sortedPhases = new ArrayList<>();
+    /**
+     * Map of phases by the keys they contain.
+     */
+    private final Map<Object, EventPhaseDataHolder<T>> keysInPhases = new HashMap<>();
 
     @SuppressWarnings("unchecked")
-    private Event(Class<? super T> type, String qualifier, Function<T[], T> implementation, boolean addScanned) {
+    private Event(Class<? super T> type, String qualifier, Function<T[], T> implementation, boolean addScanned,
+                  boolean sortPhaseCallbacks) {
+        this.sortPhaseCallbacks = sortPhaseCallbacks;
         Objects.requireNonNull(type, "Class specifying the type of T in the event cannot be null");
         Objects.requireNonNull(implementation, "Function to generate invoker implementation for T cannot be null");
 
@@ -462,31 +488,95 @@ public final class Event<T> {
 
     /**
      * Register a callback to the event.
+     * <p>
+     * This uses the callback object as its own key.
      *
      * @param callback the callback
      * @see #register(ResourceLocation, Object)
+     * @see #registerKeyed(Object, Object)
+     * @see #registerKeyed(ResourceLocation, Object, Object)
      */
     public void register(T callback) {
-        this.register(DEFAULT_PHASE, callback);
+        this.registerKeyed(callback, callback);
     }
 
     /**
      * Registers a callback to a specific phase of the event.
+     * <p>
+     * this uses the callback object as its own key.
      *
      * @param phase    the phase name
      * @param callback the callback
+     * @see #register(Object)
+     * @see #register(ResourceLocation, Object)
+     * @see #registerKeyed(ResourceLocation, Object, Object)
      */
     public void register(ResourceLocation phase, T callback) {
+        this.registerKeyed(phase, callback, callback);
+    }
+
+    /**
+     * Register a keyed callback to the event.
+     * <p>
+     * The callback key is used for un-registering the callback.
+     *
+     * @param key      the callback's key
+     * @param callback the callback
+     * @see #register(Object)
+     * @see #register(ResourceLocation, Object)
+     * @see #registerKeyed(ResourceLocation, Object, Object)
+     */
+    public void registerKeyed(Object key, T callback) {
+        this.registerKeyed(DEFAULT_PHASE, key, callback);
+    }
+
+    /**
+     * Registers a keyed callback to a specific phase of the event.
+     * <p>
+     * The callback key is used for un-registering the callback.
+     *
+     * @param key      the callback's key
+     * @param phase    the phase name
+     * @param callback the callback
+     * @see #register(Object)
+     * @see #register(ResourceLocation, Object)
+     * @see #registerKeyed(Object, Object)
+     */
+    public void registerKeyed(ResourceLocation phase, Object key, T callback) {
         Objects.requireNonNull(phase, "Tried to register a callback for a null phase!");
         Objects.requireNonNull(callback, "Tried to register a null callback!");
 
         this.lock.lock();
         try {
-            this.getOrCreatePhase(phase, true).addListener(callback);
+            if (keysInPhases.containsKey(key)) return;
+
+            EventPhaseDataHolder<T> phaseData = this.getOrCreatePhase(phase, true);
+            phaseData.addListener(key, callback);
+            keysInPhases.put(key, phaseData);
             this.rebuildInvoker(this.callbacks.length + 1);
         } finally {
             this.lock.unlock();
         }
+    }
+
+    /**
+     * Removes the callback associated with the given key.
+     *
+     * @param key the key of the callback to unregister.
+     */
+    public void unregister(Object key) {
+        EventPhaseDataHolder<T> phaseData = keysInPhases.get(key);
+        if (phaseData != null) phaseData.removeListener(key);
+    }
+
+    /**
+     * Checks whether the given callback key is registered with this event.
+     *
+     * @param key the callback key to check.
+     * @return whether the given callback key is registered.
+     */
+    public boolean isRegistered(Object key) {
+        return keysInPhases.containsKey(key);
     }
 
     /**
@@ -532,11 +622,11 @@ public final class Event<T> {
 
     /* Implementation */
 
-    private EventPhaseData<T> getOrCreatePhase(ResourceLocation id, boolean sortIfCreate) {
+    private EventPhaseDataHolder<T> getOrCreatePhase(ResourceLocation id, boolean sortIfCreate) {
         var phase = this.phases.get(id);
 
         if (phase == null) {
-            phase = new EventPhaseData<>(id, this.callbacks.getClass().getComponentType());
+            phase = new EventPhaseDataHolder<>(id, this.callbacks.getClass().getComponentType(), sortPhaseCallbacks);
             this.phases.put(id, phase);
             this.sortedPhases.add(phase);
 
@@ -552,15 +642,16 @@ public final class Event<T> {
         // Rebuild handlers.
         if (this.sortedPhases.size() == 1) {
             // Special case with a single phase: use the array of the phase directly.
-            this.callbacks = this.sortedPhases.get(0).getData();
+            this.callbacks = this.sortedPhases.get(0).getData().getCallbacks();
         } else {
             @SuppressWarnings("unchecked")
             var newCallbacks = (T[]) Array.newInstance(this.callbacks.getClass().getComponentType(), newLength);
             int newHandlersIndex = 0;
 
             for (var existingPhase : this.sortedPhases) {
-                int length = existingPhase.getData().length;
-                System.arraycopy(existingPhase.getData(), 0, newCallbacks, newHandlersIndex, length);
+                T[] phaseCallbacks = existingPhase.getData().getCallbacks();
+                int length = phaseCallbacks.length;
+                System.arraycopy(phaseCallbacks, 0, newCallbacks, newHandlersIndex, length);
                 newHandlersIndex += length;
             }
 
