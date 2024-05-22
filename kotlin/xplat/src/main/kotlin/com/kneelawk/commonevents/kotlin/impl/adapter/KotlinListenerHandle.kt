@@ -33,7 +33,7 @@ class KotlinListenerHandle(
 
     override fun getPhase(): ResourceLocation = phase
 
-    override fun <T : Any?> createCallback(
+    override fun <T : Any> createCallback(
         callbackClass: Class<T>, singularMethodName: String, singularMethodType: MethodType
     ): T {
         val listenerClazz = Class.forName(listenerClass.className)
@@ -71,5 +71,10 @@ class KotlinListenerHandle(
                 ).target.invoke(objectInstance)
             )
         }
+    }
+
+    override fun toString(): String {
+        val staticStr = if (static) "static " else ""
+        return """KotlinListenerHandle{$key($phase) -> $staticStr${listenerClass.internalName}.$methodName$methodDescriptor}"""
     }
 }

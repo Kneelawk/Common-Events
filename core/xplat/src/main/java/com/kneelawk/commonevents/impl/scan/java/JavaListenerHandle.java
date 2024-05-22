@@ -81,7 +81,7 @@ public class JavaListenerHandle implements ListenerHandle {
 
     @Override
     public String toString() {
-        return "SimpleListenerHandle{" + key.type().getInternalName() + "(" + phase + ") -> " +
+        return "JavaListenerHandle{" + key + "(" + phase + ") -> " +
             listenerClass.getInternalName() + "." + methodName + methodDescriptor + '}';
     }
 }

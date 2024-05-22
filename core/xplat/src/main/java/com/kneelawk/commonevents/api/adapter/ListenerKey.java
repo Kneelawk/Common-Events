@@ -16,10 +16,10 @@
 
 package com.kneelawk.commonevents.api.adapter;
 
-import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.Type;
 
 import com.kneelawk.commonevents.api.Event;
+import com.kneelawk.commonevents.impl.CEConstants;
 
 /**
  * A key by which a {@link ListenerHandle} can be looked up.
@@ -27,7 +27,7 @@ import com.kneelawk.commonevents.api.Event;
  * @param type      the callback interface type the listener implements.
  * @param qualifier the listener's additional qualifier or {@link Event#DEFAULT_QUALIFIER} if none.
  */
-public record ListenerKey(Type type, @Nullable String qualifier) {
+public record ListenerKey(Type type, String qualifier) {
     /**
      * Creates a listener key from a class instead of an ASM type.
      *
@@ -37,5 +37,11 @@ public record ListenerKey(Type type, @Nullable String qualifier) {
      */
     public static ListenerKey fromClass(Class<?> clazz, String qualifier) {
         return new ListenerKey(Type.getType(clazz), qualifier);
+    }
+
+    @Override
+    public String toString() {
+        if (CEConstants.DEFAULT_QUALIFIER.equals(qualifier)) return type.getInternalName();
+        return "(" + type.getInternalName() + "|" + qualifier + ")";
     }
 }
