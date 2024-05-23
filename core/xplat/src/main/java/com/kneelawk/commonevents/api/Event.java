@@ -544,6 +544,7 @@ public final class Event<T> {
      */
     public void registerKeyed(ResourceLocation phase, Object key, T callback) {
         Objects.requireNonNull(phase, "Tried to register a callback for a null phase!");
+        Objects.requireNonNull(key, "Tried to register a callback with a null key!");
         Objects.requireNonNull(callback, "Tried to register a null callback!");
 
         this.lock.lock();
