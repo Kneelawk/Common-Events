@@ -18,6 +18,7 @@ package com.kneelawk.commonevents.api;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 
@@ -171,6 +172,12 @@ public final class EventBus {
     @SuppressWarnings("unchecked")
     public <T> void registerListener(Class<T> callbackInterface, String qualifier, ResourceLocation phase, Object key,
                                      T listener) {
+        Objects.requireNonNull(callbackInterface, "Tried to register a listener with a null callback interface class!");
+        Objects.requireNonNull(qualifier, "Tried to register a listener with a null event qualifier!");
+        Objects.requireNonNull(phase, "Tried to register a listener to a null phase!");
+        Objects.requireNonNull(listener, "Tried to register a null listener!");
+        Objects.requireNonNull(key, "Tried to register a listener with a null key!");
+
         EventKey eventKey = EventKey.fromClass(callbackInterface, qualifier);
 
         Event<T> event = (Event<T>) events.get(eventKey);
