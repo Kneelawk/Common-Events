@@ -20,18 +20,20 @@ import java.lang.invoke.MethodType;
 
 import net.minecraft.resources.ResourceLocation;
 
+import com.kneelawk.commonevents.api.EventKey;
+
 /**
  * Holds a reference to a callback handler that can be converted into a callback interface when needed.
  */
 public interface ListenerHandle {
     /**
-     * Gets the listener key this handle is associated with.
+     * Gets the event key this handle is associated with.
      * <p>
      * This translates into the event type this listener is listening for.
      *
-     * @return the listener key this handle is associated with.
+     * @return the event key this handle is associated with.
      */
-    ListenerKey getKey();
+    EventKey getKey();
 
     /**
      * Gets the event phase during which this handle's listener should be notified.

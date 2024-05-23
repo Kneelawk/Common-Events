@@ -428,7 +428,7 @@ public final class Event<T> {
      * The function used to generate the implementation of the invoker to execute events.
      */
     private final Class<? super T> type;
-    private final String qualifier;
+    private final EventKey key;
     private final Function<T[], T> implementation;
     private final boolean sortPhaseCallbacks;
     private final Lock lock = new ReentrantLock();
@@ -461,7 +461,7 @@ public final class Event<T> {
         Objects.requireNonNull(implementation, "Function to generate invoker implementation for T cannot be null");
 
         this.type = type;
-        this.qualifier = qualifier;
+        this.key = EventKey.fromClass(type, qualifier);
         this.implementation = implementation;
         this.callbacks = (T[]) Array.newInstance(type, 0);
         this.update();
@@ -480,10 +480,10 @@ public final class Event<T> {
     }
 
     /**
-     * {@return the extra qualifier used to differentiate this event from other events with the same callback type class}
+     * {@return the unique key describing this event}
      */
-    public String getQualifier() {
-        return qualifier;
+    public EventKey getKey() {
+        return this.key;
     }
 
     /**

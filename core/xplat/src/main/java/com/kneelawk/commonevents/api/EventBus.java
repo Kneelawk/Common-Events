@@ -16,13 +16,14 @@
 
 package com.kneelawk.commonevents.api;
 
+import java.util.List;
 import java.util.Map;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
 
 import net.minecraft.resources.ResourceLocation;
 
-import com.kneelawk.commonevents.api.adapter.ListenerKey;
+import com.kneelawk.commonevents.api.adapter.ListenerHolder;
 
 /**
  * A collection of events, that selectively registers objects based on which callbacks they implement.
@@ -33,9 +34,16 @@ import com.kneelawk.commonevents.api.adapter.ListenerKey;
  */
 public final class EventBus {
     private final ResourceLocation name;
-    private final Map<ListenerKey, Event<?>> events = new Object2ObjectOpenHashMap<>();
+    private final Map<EventKey, Event<?>> events = new Object2ObjectOpenHashMap<>();
 
     private EventBus(ResourceLocation name) {this.name = name;}
+
+    /**
+     * {@return this event bus's name}
+     */
+    public ResourceLocation getName() {
+        return name;
+    }
 
     /**
      * Add an event to this event bus. Any future listeners registered with this event bus will be able to be registered
@@ -44,6 +52,13 @@ public final class EventBus {
      * @param event the event to add to the bus.
      */
     public void addEvent(Event<?> event) {
-        events.put(ListenerKey.fromClass(event.getType(), event.getQualifier()), event);
+        events.put(event.getKey(), event);
+    }
+
+    @SuppressWarnings("unchecked")
+    private void registerListeners(Object key, List<ListenerHolder> holders) {
+        for (ListenerHolder holder : holders) {
+            ((Event<Object>) events.get(holder.key())).registerKeyed(key, holder.listener());
+        }
     }
 }

@@ -16,7 +16,6 @@
 
 package com.kneelawk.commonevents.impl.scan.java;
 
-import java.io.IOException;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -31,7 +30,7 @@ import org.jetbrains.annotations.NotNull;
 
 import com.kneelawk.commonevents.api.adapter.LanguageAdapter;
 import com.kneelawk.commonevents.api.adapter.ListenerHandle;
-import com.kneelawk.commonevents.api.adapter.ListenerKey;
+import com.kneelawk.commonevents.api.EventKey;
 import com.kneelawk.commonevents.api.adapter.mod.ModFileHolder;
 import com.kneelawk.commonevents.api.adapter.scan.ScanRequest;
 import com.kneelawk.commonevents.api.adapter.scan.ScanResult;
@@ -51,7 +50,7 @@ public class JavaLanguageAdapter implements LanguageAdapter {
         ModFileHolder modFile = mod.getModFile();
         String modIds = modFile.getModIdStr();
 
-        Map<ListenerKey, List<ListenerHandle>> scanned = new HashMap<>();
+        Map<EventKey, List<ListenerHandle>> scanned = new HashMap<>();
         ClassLoader loader = getClass().getClassLoader();
 
         if (mod.getInfo() instanceof ScannableInfo.All) {

@@ -17,7 +17,7 @@
 package com.kneelawk.commonevents.kotlin.impl.adapter
 
 import com.kneelawk.commonevents.api.adapter.ListenerHandle
-import com.kneelawk.commonevents.api.adapter.ListenerKey
+import com.kneelawk.commonevents.api.EventKey
 import com.kneelawk.commonevents.api.adapter.util.AdapterUtils.*
 import com.kneelawk.commonevents.impl.CEConstants
 import com.kneelawk.commonevents.impl.CELog
@@ -199,7 +199,7 @@ class KotlinClassScanner(
                 keyType?.let { ty ->
                     listenerFound(
                         KotlinListenerHandle(
-                            ListenerKey(ty, qualifier), phase, visitingClass!!, name, descriptor, static
+                            EventKey(ty, qualifier), phase, visitingClass!!, name, descriptor, static
                         )
                     )
                 }

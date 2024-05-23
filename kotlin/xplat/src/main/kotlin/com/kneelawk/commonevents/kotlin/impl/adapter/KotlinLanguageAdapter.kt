@@ -18,7 +18,7 @@ package com.kneelawk.commonevents.kotlin.impl.adapter
 
 import com.kneelawk.commonevents.api.adapter.LanguageAdapter
 import com.kneelawk.commonevents.api.adapter.ListenerHandle
-import com.kneelawk.commonevents.api.adapter.ListenerKey
+import com.kneelawk.commonevents.api.EventKey
 import com.kneelawk.commonevents.api.adapter.scan.ScanRequest
 import com.kneelawk.commonevents.api.adapter.scan.ScanResult
 import com.kneelawk.commonevents.api.adapter.scan.ScannableInfo
@@ -35,7 +35,7 @@ class KotlinLanguageAdapter : LanguageAdapter {
         val modIds = modFile.modIdStr
         val info = mod.info
 
-        val handles = mutableMapOf<ListenerKey, MutableList<ListenerHandle>>()
+        val handles = mutableMapOf<EventKey, MutableList<ListenerHandle>>()
         val scanned = mutableSetOf<Type>()
         val queued = mutableListOf<Type>()
 

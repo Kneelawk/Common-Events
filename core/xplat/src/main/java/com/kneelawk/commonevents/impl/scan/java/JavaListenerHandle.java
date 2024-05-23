@@ -26,18 +26,18 @@ import org.objectweb.asm.Type;
 import net.minecraft.resources.ResourceLocation;
 
 import com.kneelawk.commonevents.api.adapter.ListenerHandle;
-import com.kneelawk.commonevents.api.adapter.ListenerKey;
+import com.kneelawk.commonevents.api.EventKey;
 import com.kneelawk.commonevents.api.adapter.util.AdapterUtils;
 import com.kneelawk.commonevents.impl.CELog;
 
 public class JavaListenerHandle implements ListenerHandle {
-    private final ListenerKey key;
+    private final EventKey key;
     private final ResourceLocation phase;
     private final Type listenerClass;
     private final String methodName;
     private final Type methodDescriptor;
 
-    public JavaListenerHandle(ListenerKey key, ResourceLocation phase, Type listenerClass, String methodName,
+    public JavaListenerHandle(EventKey key, ResourceLocation phase, Type listenerClass, String methodName,
                               Type methodDescriptor) {
         this.key = key;
         this.phase = phase;
@@ -47,7 +47,7 @@ public class JavaListenerHandle implements ListenerHandle {
     }
 
     @Override
-    public @NotNull ListenerKey getKey() {
+    public @NotNull EventKey getKey() {
         return key;
     }
 

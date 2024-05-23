@@ -14,29 +14,31 @@
  * limitations under the License.
  */
 
-package com.kneelawk.commonevents.api.adapter;
+package com.kneelawk.commonevents.api;
 
 import org.objectweb.asm.Type;
 
-import com.kneelawk.commonevents.api.Event;
+import com.kneelawk.commonevents.api.adapter.ListenerHandle;
 import com.kneelawk.commonevents.impl.CEConstants;
 
 /**
- * A key by which a {@link ListenerHandle} can be looked up.
+ * A unique key that describes an {@link Event}.
+ * <p>
+ * When scanning this is used to key {@link ListenerHandle}s to determine which events they are for.
  *
  * @param type      the callback interface type the listener implements.
  * @param qualifier the listener's additional qualifier or {@link Event#DEFAULT_QUALIFIER} if none.
  */
-public record ListenerKey(Type type, String qualifier) {
+public record EventKey(Type type, String qualifier) {
     /**
-     * Creates a listener key from a class instead of an ASM type.
+     * Creates an event key from a class instead of an ASM type.
      *
      * @param clazz     the class of the callback interface.
      * @param qualifier the additional qualifier.
-     * @return the newly created listener key.
+     * @return the newly created event key.
      */
-    public static ListenerKey fromClass(Class<?> clazz, String qualifier) {
-        return new ListenerKey(Type.getType(clazz), qualifier);
+    public static EventKey fromClass(Class<?> clazz, String qualifier) {
+        return new EventKey(Type.getType(clazz), qualifier);
     }
 
     @Override

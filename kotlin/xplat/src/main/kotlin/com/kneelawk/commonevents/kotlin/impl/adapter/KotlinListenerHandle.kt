@@ -17,7 +17,7 @@
 package com.kneelawk.commonevents.kotlin.impl.adapter
 
 import com.kneelawk.commonevents.api.adapter.ListenerHandle
-import com.kneelawk.commonevents.api.adapter.ListenerKey
+import com.kneelawk.commonevents.api.EventKey
 import com.kneelawk.commonevents.api.adapter.util.AdapterUtils
 import com.kneelawk.commonevents.impl.CELog
 import net.minecraft.resources.ResourceLocation
@@ -26,10 +26,10 @@ import java.lang.invoke.LambdaMetafactory
 import java.lang.invoke.MethodType
 
 class KotlinListenerHandle(
-    private val key: ListenerKey, private val phase: ResourceLocation, private val listenerClass: Type,
+    private val key: EventKey, private val phase: ResourceLocation, private val listenerClass: Type,
     private val methodName: String, private val methodDescriptor: Type, private val static: Boolean
 ) : ListenerHandle {
-    override fun getKey(): ListenerKey = key
+    override fun getKey(): EventKey = key
 
     override fun getPhase(): ResourceLocation = phase
 

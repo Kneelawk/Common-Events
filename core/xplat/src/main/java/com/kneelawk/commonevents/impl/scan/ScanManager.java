@@ -46,7 +46,7 @@ import org.jetbrains.annotations.Nullable;
 
 import com.kneelawk.commonevents.api.Event;
 import com.kneelawk.commonevents.api.adapter.ListenerHandle;
-import com.kneelawk.commonevents.api.adapter.ListenerKey;
+import com.kneelawk.commonevents.api.EventKey;
 import com.kneelawk.commonevents.api.adapter.mod.ModFileHolder;
 import com.kneelawk.commonevents.api.adapter.scan.ScanResult;
 import com.kneelawk.commonevents.impl.CELog;
@@ -57,7 +57,7 @@ public class ScanManager {
 
     private static boolean initialized = false;
     private static final Lock initLock = new ReentrantLock();
-    private static final Map<ListenerKey, List<ListenerHandle>> scanned = new HashMap<>();
+    private static final Map<EventKey, List<ListenerHandle>> scanned = new HashMap<>();
 
     public static final ExecutorService SCAN_EXECUTOR =
         new ThreadPoolExecutor(0, Runtime.getRuntime().availableProcessors(), 2, TimeUnit.SECONDS,
@@ -95,7 +95,7 @@ public class ScanManager {
         MethodType singularMethodType =
             MethodType.methodType(singularMethod.getReturnType(), singularMethod.getParameterTypes());
 
-        List<ListenerHandle> listeners = scanned.get(ListenerKey.fromClass(type, event.getQualifier()));
+        List<ListenerHandle> listeners = scanned.get(event.getKey());
         if (listeners != null) {
             for (ListenerHandle handle : listeners) {
                 try {
@@ -175,8 +175,8 @@ public class ScanManager {
             loadDuration.toSeconds(), loadDuration.toMillisPart());
     }
 
-    private static void merge(Map<ListenerKey, List<ListenerHandle>> result) {
-        for (Map.Entry<ListenerKey, List<ListenerHandle>> entry : result.entrySet()) {
+    private static void merge(Map<EventKey, List<ListenerHandle>> result) {
+        for (Map.Entry<EventKey, List<ListenerHandle>> entry : result.entrySet()) {
             List<ListenerHandle> handles = entry.getValue();
             if (!handles.isEmpty()) {
                 scanned.computeIfAbsent(entry.getKey(), k -> new ArrayList<>()).addAll(handles);

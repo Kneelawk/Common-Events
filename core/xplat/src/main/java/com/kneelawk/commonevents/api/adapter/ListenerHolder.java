@@ -14,18 +14,17 @@
  * limitations under the License.
  */
 
-package com.kneelawk.commonevents.api.adapter.scan;
+package com.kneelawk.commonevents.api.adapter;
 
-import java.util.List;
-import java.util.Map;
-
-import com.kneelawk.commonevents.api.adapter.ListenerHandle;
 import com.kneelawk.commonevents.api.EventKey;
 
 /**
- * The result of scanning a mod.
+ * Holds an instance of a listener along with the {@link EventKey} for the listener.
+ * <p>
+ * This is analogous to {@link ListenerHandle} but for already instantiated listeners.
  *
- * @param listeners the listeners found while scanning a mod.
+ * @param key      the key of the event the listener wants to subscribe to.
+ * @param listener the listener implementing the event's callback interface.
  */
-public record ScanResult(Map<EventKey, List<ListenerHandle>> listeners) {
+public record ListenerHolder(EventKey key, Object listener) {
 }
