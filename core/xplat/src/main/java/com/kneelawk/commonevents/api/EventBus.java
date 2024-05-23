@@ -26,7 +26,8 @@ import net.minecraft.resources.ResourceLocation;
 import com.kneelawk.commonevents.api.adapter.ListenerHolder;
 
 /**
- * A collection of events, that selectively registers objects based on which callbacks they implement.
+ * A convenience object holding a collection of events, that selectively registers objects based on which callbacks
+ * they implement.
  * <p>
  * Event buses organize events by the event's callback interface type and qualifier. This is because objects registered
  * to an event bus are generally registered based on the type of callback they implement and which qualifier they are
@@ -53,6 +54,132 @@ public final class EventBus {
      */
     public void addEvent(Event<?> event) {
         events.put(event.getKey(), event);
+    }
+
+    /**
+     * Registers a listener for the given event type with this bus.
+     *
+     * @param callbackInterface the callback interface the event handles and the listener implements.
+     * @param listener          the event listener to register.
+     * @param <T>               the type of the callback interface the listener implements.
+     * @throws IllegalArgumentException if the specified callback interface and qualifier do not match any events in
+     *                                  this bus.
+     */
+    public <T> void registerListener(Class<T> callbackInterface, T listener) {
+        registerListener(callbackInterface, Event.DEFAULT_QUALIFIER, Event.DEFAULT_PHASE, listener, listener);
+    }
+
+    /**
+     * Registers a listener for the given event type with this bus.
+     *
+     * @param callbackInterface the callback interface the event handles and the listener implements.
+     * @param phase             the phase to register the listener to.
+     * @param listener          the event listener to register.
+     * @param <T>               the type of the callback interface the listener implements.
+     * @throws IllegalArgumentException if the specified callback interface and qualifier do not match any events in
+     *                                  this bus.
+     */
+    public <T> void registerListener(Class<T> callbackInterface, ResourceLocation phase, T listener) {
+        registerListener(callbackInterface, Event.DEFAULT_QUALIFIER, phase, listener, listener);
+    }
+
+    /**
+     * Registers a listener for the given event type with this bus.
+     *
+     * @param callbackInterface the callback interface the event handles and the listener implements.
+     * @param key               the key used to remove the listener.
+     * @param listener          the event listener to register.
+     * @param <T>               the type of the callback interface the listener implements.
+     * @throws IllegalArgumentException if the specified callback interface and qualifier do not match any events in
+     *                                  this bus.
+     */
+    public <T> void getisterListener(Class<T> callbackInterface, Object key, T listener) {
+        registerListener(callbackInterface, Event.DEFAULT_QUALIFIER, Event.DEFAULT_PHASE, key, listener);
+    }
+
+    /**
+     * Registers a listener for the given event type with this bus.
+     *
+     * @param callbackInterface the callback interface the event handles and the listener implements.
+     * @param phase             the phase to register the listener to.
+     * @param key               the key used to remove the listener.
+     * @param listener          the event listener to register.
+     * @param <T>               the type of the callback interface the listener implements.
+     * @throws IllegalArgumentException if the specified callback interface and qualifier do not match any events in
+     *                                  this bus.
+     */
+    public <T> void registerListener(Class<T> callbackInterface, ResourceLocation phase, Object key, T listener) {
+        registerListener(callbackInterface, Event.DEFAULT_QUALIFIER, phase, key, listener);
+    }
+
+    /**
+     * Registers a listener for the given event type with this bus.
+     *
+     * @param callbackInterface the callback interface the event handles and the listener implements.
+     * @param qualifier         the event's qualifier to distinguish between events with the same callback interface.
+     * @param listener          the event listener to register.
+     * @param <T>               the type of the callback interface the listener implements.
+     * @throws IllegalArgumentException if the specified callback interface and qualifier do not match any events in
+     *                                  this bus.
+     */
+    public <T> void registerListener(Class<T> callbackInterface, String qualifier, T listener) {
+        registerListener(callbackInterface, qualifier, Event.DEFAULT_PHASE, listener, listener);
+    }
+
+    /**
+     * Registers a listener for the given event type with this bus.
+     *
+     * @param callbackInterface the callback interface the event handles and the listener implements.
+     * @param qualifier         the event's qualifier to distinguish between events with the same callback interface.
+     * @param phase             the phase to register the listener to.
+     * @param listener          the event listener to register.
+     * @param <T>               the type of the callback interface the listener implements.
+     * @throws IllegalArgumentException if the specified callback interface and qualifier do not match any events in
+     *                                  this bus.
+     */
+    public <T> void registerListener(Class<T> callbackInterface, String qualifier, ResourceLocation phase, T listener) {
+        registerListener(callbackInterface, qualifier, phase, listener, listener);
+    }
+
+    /**
+     * Registers a listener for the given event type with this bus.
+     *
+     * @param callbackInterface the callback interface the event handles and the listener implements.
+     * @param qualifier         the event's qualifier to distinguish between events with the same callback interface.
+     * @param key               the key used to remove the listener.
+     * @param listener          the event listener to register.
+     * @param <T>               the type of the callback interface the listener implements.
+     * @throws IllegalArgumentException if the specified callback interface and qualifier do not match any events in
+     *                                  this bus.
+     */
+    public <T> void registerListener(Class<T> callbackInterface, String qualifier, Object key, T listener) {
+        registerListener(callbackInterface, qualifier, Event.DEFAULT_PHASE, key, listener);
+    }
+
+    /**
+     * Registers a listener for the given event type with this bus.
+     *
+     * @param callbackInterface the callback interface the event handles and the listener implements.
+     * @param qualifier         the event's qualifier to distinguish between events with the same callback interface.
+     * @param phase             the phase to register the listener to.
+     * @param key               the key used to remove the listener.
+     * @param listener          the event listener to register.
+     * @param <T>               the type of the callback interface the listener implements.
+     * @throws IllegalArgumentException if the specified callback interface and qualifier do not match any events in
+     *                                  this bus.
+     */
+    @SuppressWarnings("unchecked")
+    public <T> void registerListener(Class<T> callbackInterface, String qualifier, ResourceLocation phase, Object key,
+                                     T listener) {
+        EventKey eventKey = EventKey.fromClass(callbackInterface, qualifier);
+
+        Event<T> event = (Event<T>) events.get(eventKey);
+        if (event == null)
+            throw new IllegalArgumentException(
+                "This event bus does not contain event for the key: '" + eventKey + "'. Contained events: " +
+                    events.keySet());
+
+        event.registerKeyed(phase, key, listener);
     }
 
     @SuppressWarnings("unchecked")
