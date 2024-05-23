@@ -565,7 +565,7 @@ public final class Event<T> {
      * @param key the key of the callback to unregister.
      */
     public void unregister(Object key) {
-        EventPhaseDataHolder<T> phaseData = keysInPhases.get(key);
+        EventPhaseDataHolder<T> phaseData = keysInPhases.remove(key);
         if (phaseData != null) phaseData.removeListener(key);
     }
 

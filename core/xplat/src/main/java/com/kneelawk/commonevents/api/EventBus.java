@@ -19,7 +19,7 @@ package com.kneelawk.commonevents.api;
 import java.util.List;
 import java.util.Map;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectOpenHashMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 
 import net.minecraft.resources.ResourceLocation;
 
@@ -35,7 +35,7 @@ import com.kneelawk.commonevents.api.adapter.ListenerHolder;
  */
 public final class EventBus {
     private final ResourceLocation name;
-    private final Map<EventKey, Event<?>> events = new Object2ObjectOpenHashMap<>();
+    private final Map<EventKey, Event<?>> events = new Object2ObjectLinkedOpenHashMap<>();
 
     private EventBus(ResourceLocation name) {this.name = name;}
 
@@ -180,6 +180,17 @@ public final class EventBus {
                     events.keySet());
 
         event.registerKeyed(phase, key, listener);
+    }
+
+    /**
+     * Unregisters all listeners associated with the given key.
+     *
+     * @param key the key of the listeners to unregister.
+     */
+    public void unregisterListeners(Object key) {
+        for (Event<?> event : events.values()) {
+            event.unregister(key);
+        }
     }
 
     @SuppressWarnings("unchecked")
