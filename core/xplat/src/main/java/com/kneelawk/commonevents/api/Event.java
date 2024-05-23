@@ -518,7 +518,7 @@ public final class Event<T> {
     /**
      * Register a keyed callback to the event.
      * <p>
-     * The callback key is used for un-registering the callback.
+     * The callback key is used for un-registering the callback. Only one callback can be registerd for a given key.
      *
      * @param key      the callback's key
      * @param callback the callback
@@ -533,7 +533,7 @@ public final class Event<T> {
     /**
      * Registers a keyed callback to a specific phase of the event.
      * <p>
-     * The callback key is used for un-registering the callback.
+     * The callback key is used for un-registering the callback. Only one callback can be registered for a given key.
      *
      * @param key      the callback's key
      * @param phase    the phase name
