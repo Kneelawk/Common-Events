@@ -39,7 +39,7 @@ import com.kneelawk.commonevents.api.phase.PhaseSorting;
 import com.kneelawk.commonevents.impl.CEConstants;
 import com.kneelawk.commonevents.impl.CommonEventsImpl;
 import com.kneelawk.commonevents.impl.event.EventPhaseDataHolder;
-import com.kneelawk.commonevents.impl.scan.ListenerScanner;
+import com.kneelawk.commonevents.impl.scan.ScanManager;
 
 /**
  * An object which stores event callbacks.
@@ -467,7 +467,7 @@ public final class Event<T> {
         this.update();
 
         if (addScanned) {
-            ListenerScanner.addScannedListeners(this);
+            ScanManager.addScannedListeners(this);
         }
     }
 

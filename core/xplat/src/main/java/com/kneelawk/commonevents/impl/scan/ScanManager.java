@@ -52,7 +52,7 @@ import com.kneelawk.commonevents.api.adapter.scan.ScanResult;
 import com.kneelawk.commonevents.impl.CELog;
 import com.kneelawk.commonevents.impl.Platform;
 
-public class ListenerScanner {
+public class ScanManager {
     private static final String EVENTS_JSON_PATH = "common-events.json";
 
     private static boolean initialized = false;

@@ -21,13 +21,13 @@ import java.util.function.Function;
 import net.minecraft.resources.ResourceLocation;
 
 import com.kneelawk.commonevents.api.Event;
-import com.kneelawk.commonevents.impl.scan.ListenerScanner;
+import com.kneelawk.commonevents.impl.scan.ScanManager;
 
 public class CommonEventsImpl {
 
     public static void init() {
         CELog.LOGGER.info("Initializing Common Events {}...", Platform.getInstance().getModVersion());
-        ListenerScanner.ensureInitialized();
+        ScanManager.ensureInitialized();
     }
 
     /// Following code copied from QSL ///
