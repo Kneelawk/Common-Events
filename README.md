@@ -19,7 +19,7 @@ about manual registration.
         "scan": true
     }
     ```
-* Then annotate a class within your mod with `@Listener`. This will allow that class to be searched for listening
+* Then annotate a class within your mod with `@Scan`. This will allow that class to be searched for listening
   methods.
 * Finally, annotate a `public static` method with `@Listen(<callback-interface>.class)`. The listening method *must*
   have the same signature as the callback interface's single method.
@@ -27,9 +27,9 @@ about manual registration.
 ### Class-Loading and Static Initializers
 
 Common-Events will scan all mods at the earliest possible occasion. However, this will not cause class-loading
-of `@Listener`-annotated classes. These classes will only be loaded and statically initialized when an event is created
+of `@Scan`-annotated classes. These classes will only be loaded and statically initialized when an event is created
 with a callback-interface type that one of the class's methods listens for, unless the classes are loaded by something
-else sooner. This allows `@Listener`-annotated classes to safely listen for client-sided events without having to worry
+else sooner. This allows `@Scan`-annotated classes to safely listen for client-sided events without having to worry
 about accidentally getting loaded on dedicated servers.
 
 ### Only Scanning Specific Classes

@@ -23,7 +23,7 @@ import net.minecraft.resources.ResourceLocation;
 
 import com.kneelawk.commonevents.api.Event;
 import com.kneelawk.commonevents.api.Listen;
-import com.kneelawk.commonevents.api.Listener;
+import com.kneelawk.commonevents.api.Scan;
 
 public class CommonEventsExample {
     public static final String MOD_ID = "common_events_example";
@@ -49,7 +49,7 @@ public class CommonEventsExample {
         LOGGER.info("  MY_EVENT fired.");
     }
 
-    @Listener
+    @Scan
     public class EventListener {
         static {
             LOGGER.info("# EventListener statically initialized");

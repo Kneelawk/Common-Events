@@ -69,7 +69,7 @@ import com.kneelawk.commonevents.impl.scan.ListenerScanner;
  * <h2>Example: Registering callbacks</h2>
  * <p>
  * The most common use of an event will be registering a callback which is executed by the event. To register a callback,
- * pass an instance of {@code T} into {@link #register} or use the {@link Listener} and {@link Listen} annotations.
+ * pass an instance of {@code T} into {@link #register} or use the {@link Scan} and {@link Listen} annotations.
  *
  * <pre>{@code
  * // Events should use a dedicated functional interface for T rather than overloading multiple events to the same type
@@ -108,9 +108,9 @@ import com.kneelawk.commonevents.impl.scan.ListenerScanner;
  *     }
  * }
  *
- * // When using the scanning method, the class must be annotated with @Listener and have public, static methods
+ * // When using the scanning method, the class must be annotated with @Scan and have public, static methods
  * // annotated with @Listen. The class must also be publicly accessible.
- * @Listener
+ * @Scan
  * public class AnnotationListenerClass {
  *     @Listen(Example.class)
  *     public void doSomething() {
@@ -244,7 +244,7 @@ public final class Event<T> {
     }
 
     /**
-     * Creates a new instance of {@link Event} that does not invoke any {@link Listener}s.
+     * Creates a new instance of {@link Event} that does not invoke any {@link Scan}s.
      * <p>
      * This is best for when there may be multiple instances of the same event, when the event callback type is too
      * vague to be useful to annotation-based listeners, or when registration should be limited to calls to

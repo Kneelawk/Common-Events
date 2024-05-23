@@ -26,15 +26,15 @@ import java.lang.annotation.Target;
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.TYPE)
-public @interface Listener {
+public @interface Scan {
 
     /**
-     * Used to restrict registration and loading of this listener class to a single physical side.
+     * Used to restrict registration and loading of this scanned class to a single physical side.
      * <p>
      * <b>Note:</b> If none of the events being listened to in this class are loaded on the wrong side, then this class
      * will never be loaded on the wrong side.
      *
-     * @return the physical side this listener should be allowed to load on.
+     * @return the physical side this scanned class should be allowed to load on.
      */
     Side side() default Side.BOTH;
 

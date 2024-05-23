@@ -22,7 +22,6 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.List;
 import java.util.function.Consumer;
 
 import org.objectweb.asm.AnnotationVisitor;
@@ -35,7 +34,6 @@ import org.objectweb.asm.Type;
 import net.minecraft.ResourceLocationException;
 import net.minecraft.resources.ResourceLocation;
 
-import com.kneelawk.commonevents.api.Event;
 import com.kneelawk.commonevents.api.adapter.ListenerHandle;
 import com.kneelawk.commonevents.api.adapter.ListenerKey;
 import com.kneelawk.commonevents.api.adapter.util.AdapterUtils;
@@ -89,7 +87,7 @@ public class ClassScanner extends ClassVisitor {
 
     @Override
     public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
-        if (AdapterUtils.LISTENER_ANNOTATION_NAME.equals(descriptor)) {
+        if (AdapterUtils.SCAN_ANNOTATION_NAME.equals(descriptor)) {
             CELog.LOGGER.debug("[Common Events] Found annotated class: {}", descriptor);
             return new ClassAnnotationScanner();
         } else {
@@ -106,9 +104,9 @@ public class ClassScanner extends ClassVisitor {
 
         @Override
         public void visitEnum(String name, String descriptor, String value) {
-            if (AdapterUtils.LISTENER_SIDE_FIELD_NAME.equals(name)) {
-                isValidSide = AdapterUtils.LISTENER_SIDE_BOTH_VALUE.equals(value) ||
-                    (AdapterUtils.LISTENER_SIDE_CLIENT_VALUE.equals(value) == isClientSide);
+            if (AdapterUtils.SCAN_SIDE_FIELD_NAME.equals(name)) {
+                isValidSide = AdapterUtils.SCAN_SIDE_BOTH_VALUE.equals(value) ||
+                    (AdapterUtils.SCAN_SIDE_CLIENT_VALUE.equals(value) == isClientSide);
             }
         }
 

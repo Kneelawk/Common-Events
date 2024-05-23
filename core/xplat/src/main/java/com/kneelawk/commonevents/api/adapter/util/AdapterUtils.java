@@ -24,7 +24,7 @@ import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
 import com.kneelawk.commonevents.api.Listen;
-import com.kneelawk.commonevents.api.Listener;
+import com.kneelawk.commonevents.api.Scan;
 
 /**
  * Utilities for language adapters.
@@ -41,29 +41,29 @@ public final class AdapterUtils {
     public static final int API = Opcodes.ASM9;
 
     /**
-     * The fully-qualified name of the {@link Listener} annotation.
+     * The fully-qualified name of the {@link Scan} annotation.
      */
-    public static final String LISTENER_ANNOTATION_NAME = "Lcom/kneelawk/commonevents/api/Listener;";
+    public static final String SCAN_ANNOTATION_NAME = "Lcom/kneelawk/commonevents/api/Scan;";
 
     /**
-     * The name of the {@link Listener#side()} field name.
+     * The name of the {@link Scan#side()} field name.
      */
-    public static final String LISTENER_SIDE_FIELD_NAME = "side";
+    public static final String SCAN_SIDE_FIELD_NAME = "side";
 
     /**
-     * The enum value of {@link Listener.Side#BOTH}.
+     * The enum value of {@link Scan.Side#BOTH}.
      */
-    public static final String LISTENER_SIDE_BOTH_VALUE = "BOTH";
+    public static final String SCAN_SIDE_BOTH_VALUE = "BOTH";
 
     /**
-     * The enum value of {@link Listener.Side#CLIENT}.
+     * The enum value of {@link Scan.Side#CLIENT}.
      */
-    public static final String LISTENER_SIDE_CLIENT_VALUE = "CLIENT";
+    public static final String SCAN_SIDE_CLIENT_VALUE = "CLIENT";
 
     /**
-     * The enum value of {@link Listener.Side#SERVER}.
+     * The enum value of {@link Scan.Side#SERVER}.
      */
-    public static final String LISTENER_SIDE_SERVER_VALUE = "SERVER";
+    public static final String SCAN_SIDE_SERVER_VALUE = "SERVER";
 
     /**
      * The fully-qualified name of the {@link Listen} annotation.

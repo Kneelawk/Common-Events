@@ -93,7 +93,7 @@ class KotlinClassScanner(
     }
 
     override fun visitAnnotation(descriptor: String, visible: Boolean): AnnotationVisitor? {
-        if (LISTENER_ANNOTATION_NAME == descriptor) {
+        if (SCAN_ANNOTATION_NAME == descriptor) {
             CELog.LOGGER.debug("[Common Events] Found annotated class: {}", descriptor)
             markScannedType(visitingClass!!)
             return ClassAnnotationScanner()
@@ -103,9 +103,9 @@ class KotlinClassScanner(
     private inner class ClassAnnotationScanner : AnnotationVisitor(API) {
         private var isValidSide = true
         override fun visitEnum(name: String?, descriptor: String?, value: String?) {
-            if (LISTENER_SIDE_FIELD_NAME == name) {
+            if (SCAN_SIDE_FIELD_NAME == name) {
                 isValidSide =
-                    (LISTENER_SIDE_BOTH_VALUE == value) || ((LISTENER_SIDE_CLIENT_VALUE == value) == isClientSide)
+                    (SCAN_SIDE_BOTH_VALUE == value) || ((SCAN_SIDE_CLIENT_VALUE == value) == isClientSide)
             }
         }
 

@@ -17,9 +17,9 @@
 package com.kneelawk.commonevents.example.kotlin
 
 import com.kneelawk.commonevents.api.Listen
-import com.kneelawk.commonevents.api.Listener
+import com.kneelawk.commonevents.api.Scan
 
-@Listener
+@Scan
 object EventListener {
     init {
         CommonEventsExampleKotlin.LOGGER.info("# EventListener initialized.")
