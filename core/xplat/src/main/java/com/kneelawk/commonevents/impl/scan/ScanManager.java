@@ -20,7 +20,6 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.time.Duration;
@@ -42,13 +41,12 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import org.jetbrains.annotations.Nullable;
-
 import com.kneelawk.commonevents.api.Event;
-import com.kneelawk.commonevents.api.adapter.ListenerHandle;
 import com.kneelawk.commonevents.api.EventKey;
+import com.kneelawk.commonevents.api.adapter.ListenerHandle;
 import com.kneelawk.commonevents.api.adapter.mod.ModFileHolder;
 import com.kneelawk.commonevents.api.adapter.scan.ScanResult;
+import com.kneelawk.commonevents.api.adapter.util.AdapterUtils;
 import com.kneelawk.commonevents.impl.CELog;
 import com.kneelawk.commonevents.impl.Platform;
 
@@ -87,7 +85,7 @@ public class ScanManager {
         // We can't specify event's based on type parameters
         if (type.getTypeParameters().length > 0) return;
 
-        Method singularMethod = getSingularMethod(type);
+        Method singularMethod = AdapterUtils.getSingularMethod(type);
         // The type does not have a singular method
         if (singularMethod == null) return;
 
@@ -182,25 +180,6 @@ public class ScanManager {
                 scanned.computeIfAbsent(entry.getKey(), k -> new ArrayList<>()).addAll(handles);
             }
         }
-    }
-
-    /**
-     * Gets the singular abstract method in a functional interface.
-     *
-     * @param interfaceClass the interface to find the singular abstract method of.
-     * @return the interface's singular abstract method.
-     */
-    public static @Nullable Method getSingularMethod(Class<?> interfaceClass) {
-        Method singularMethod = null;
-
-        for (Method method : interfaceClass.getMethods()) {
-            if (Modifier.isAbstract(method.getModifiers()) && Modifier.isPublic(method.getModifiers())) {
-                if (singularMethod != null) return null;
-                singularMethod = method;
-            }
-        }
-
-        return singularMethod;
     }
 
     private record ModScan(ModScanner scanner, CompletableFuture<ScanResult> future) {}

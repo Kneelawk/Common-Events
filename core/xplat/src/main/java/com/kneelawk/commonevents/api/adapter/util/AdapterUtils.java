@@ -18,8 +18,11 @@ package com.kneelawk.commonevents.api.adapter.util;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.Arrays;
 
+import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
@@ -148,5 +151,24 @@ public final class AdapterUtils {
             case Type.OBJECT -> Class.forName(type.getClassName());
             default -> throw new AssertionError("Unexpected value: " + type.getSort());
         };
+    }
+
+    /**
+     * Gets the singular abstract method in a functional interface.
+     *
+     * @param interfaceClass the interface to find the singular abstract method of.
+     * @return the interface's singular abstract method.
+     */
+    public static @Nullable Method getSingularMethod(Class<?> interfaceClass) {
+        Method singularMethod = null;
+
+        for (Method method : interfaceClass.getMethods()) {
+            if (Modifier.isAbstract(method.getModifiers()) && Modifier.isPublic(method.getModifiers())) {
+                if (singularMethod != null) return null;
+                singularMethod = method;
+            }
+        }
+
+        return singularMethod;
     }
 }

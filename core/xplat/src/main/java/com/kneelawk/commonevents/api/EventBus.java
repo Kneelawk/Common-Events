@@ -16,15 +16,26 @@
 
 package com.kneelawk.commonevents.api;
 
+import java.lang.invoke.LambdaMetafactory;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodType;
+import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
+import org.jetbrains.annotations.Nullable;
+import org.objectweb.asm.Type;
+
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
+import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import net.minecraft.resources.ResourceLocation;
 
 import com.kneelawk.commonevents.api.adapter.ListenerHolder;
+import com.kneelawk.commonevents.api.adapter.util.AdapterUtils;
+import com.kneelawk.commonevents.impl.CELog;
 
 /**
  * A convenience object holding a collection of events, that selectively registers objects based on which callbacks
@@ -181,12 +192,41 @@ public final class EventBus {
         EventKey eventKey = EventKey.fromClass(callbackInterface, qualifier);
 
         Event<T> event = (Event<T>) events.get(eventKey);
-        if (event == null)
-            throw new IllegalArgumentException(
-                "This event bus does not contain event for the key: '" + eventKey + "'. Contained events: " +
-                    events.keySet());
+        if (event == null) throw new IllegalArgumentException(
+            "This event bus does not contain event for the key: '" + eventKey + "'. Contained events: " +
+                events.keySet());
 
         event.registerKeyed(phase, key, listener);
+    }
+
+    /**
+     * Registers multiple listeners to this event bus, using the given removal key.
+     * <p>
+     * Listeners are found by scanning the {@code listeners} parameter. If the parameter is a {@link Class}, then
+     * listener methods are found by scanning the given class for static methods annotated with {@link Listen}.
+     * Otherwise, the listener method are found by scanning the passed object for instance methods annotated with
+     * {@link Listen}. Instance scanning includes annotated methods in superclasses and implemented interfaces.
+     *
+     * @param listeners the class or instance to search for listener methods.
+     */
+    public void registerListeners(Object listeners) {
+        registerListeners(listeners, listeners);
+    }
+
+    /**
+     * Registers multiple listeners to this event bus, using the given removal key.
+     * <p>
+     * Listeners are found by scanning the {@code listeners} parameter. If the parameter is a {@link Class}, then
+     * listener methods are found by scanning the given class for static methods annotated with {@link Listen}.
+     * Otherwise, the listener method are found by scanning the passed object for instance methods annotated with
+     * {@link Listen}. Instance scanning includes annotated methods in superclasses and implemented interfaces.
+     *
+     * @param key       the removal key to associate all found listeners with.
+     * @param listeners the class or instance to search for listener methods.
+     */
+    public void registerListeners(Object key, Object listeners) {
+        List<ListenerHolder> holders = findListeners(listeners);
+        registerListeners(key, holders);
     }
 
     /**
@@ -198,6 +238,108 @@ public final class EventBus {
         for (Event<?> event : events.values()) {
             event.unregister(key);
         }
+    }
+
+    private List<ListenerHolder> findListeners(Object listeners) {
+        List<ListenerHolder> holders = new ObjectArrayList<>();
+
+        if (listeners instanceof Class<?> clazz) {
+            for (Method m : clazz.getDeclaredMethods()) {
+                if (Modifier.isPublic(m.getModifiers()) && Modifier.isStatic(m.getModifiers())) {
+                    Listen l = m.getAnnotation(Listen.class);
+                    if (l != null) {
+                        holders.add(buildHolder(l, clazz, m, null));
+                    }
+                }
+            }
+        } else {
+            Class<?> clazz = listeners.getClass();
+            for (Method m : clazz.getMethods()) {
+                if (Modifier.isPublic(m.getModifiers())) {
+                    Listen l = m.getAnnotation(Listen.class);
+                    if (l != null) {
+                        holders.add(buildHolder(l, clazz, m, listeners));
+                    }
+                }
+            }
+        }
+
+        return holders;
+    }
+
+    private ListenerHolder buildHolder(Listen annotation, Class<?> listenerClass, Method listenerMethod,
+                                       @Nullable Object instance) {
+        Class<?> callbackInterface = annotation.value();
+        ResourceLocation phase = new ResourceLocation(annotation.phase());
+
+        Method interfaceMethod = AdapterUtils.getSingularMethod(callbackInterface);
+        if (interfaceMethod == null) throw new IllegalArgumentException(
+            "Tried to listen to callback interface " + callbackInterface + " which is not a functional interface");
+
+        MethodType expectedMethodType =
+            MethodType.methodType(interfaceMethod.getReturnType(), interfaceMethod.getParameterTypes());
+        MethodType actualMethodType =
+            MethodType.methodType(listenerMethod.getReturnType(), listenerMethod.getParameterTypes());
+
+        checkReturnTypes(callbackInterface, listenerClass, interfaceMethod, listenerMethod, expectedMethodType,
+            actualMethodType);
+
+        try {
+            if (instance == null) {
+                MethodHandle handle =
+                    AdapterUtils.LOOKUP.findStatic(listenerClass, listenerMethod.getName(), actualMethodType);
+
+                Object listener = callbackInterface.cast(
+                    LambdaMetafactory.metafactory(AdapterUtils.LOOKUP, interfaceMethod.getName(),
+                            MethodType.methodType(callbackInterface), expectedMethodType, handle, expectedMethodType)
+                        .getTarget().invoke());
+
+                return new ListenerHolder(EventKey.fromClass(callbackInterface, annotation.qualifier()), phase,
+                    listener);
+            } else {
+                MethodHandle handle =
+                    AdapterUtils.LOOKUP.findVirtual(listenerClass, listenerMethod.getName(), actualMethodType);
+
+                Object listener = callbackInterface.cast(
+                    LambdaMetafactory.metafactory(AdapterUtils.LOOKUP, interfaceMethod.getName(),
+                        MethodType.methodType(callbackInterface, listenerClass), expectedMethodType, handle,
+                        expectedMethodType).getTarget().invoke(instance));
+
+                return new ListenerHolder(EventKey.fromClass(callbackInterface, annotation.qualifier()), phase,
+                    listener);
+            }
+        } catch (Throwable e) {
+            throw handleError(callbackInterface, listenerClass, interfaceMethod, listenerMethod, expectedMethodType,
+                actualMethodType, e);
+        }
+    }
+
+    private static void checkReturnTypes(Class<?> callbackInterface, Class<?> listenerClass, Method interfaceMethod,
+                                         Method staticMethod, MethodType expectedMethodType,
+                                         MethodType actualMethodType) {
+        if (!expectedMethodType.returnType().isAssignableFrom(actualMethodType.returnType())) {
+            String callbackClassName = callbackInterface.getName().replace('.', '/');
+            String listenerClassName = listenerClass.getName().replace('.', '/');
+            Type expectedType = AdapterUtils.getMethodType(expectedMethodType);
+            Type actualType = AdapterUtils.getMethodType(actualMethodType);
+            CELog.LOGGER.warn(
+                "[Common Events] Callback listener {}.{}{} has return type that is incompatible with callback interface {}.{}{}. " +
+                    "The associated event may throw a ClassCastException when called.", listenerClassName,
+                staticMethod.getName(), actualType, callbackClassName, interfaceMethod.getName(), expectedType);
+        }
+    }
+
+    private static RuntimeException handleError(Class<?> callbackInterface, Class<?> listenerClass,
+                                                Method interfaceMethod, Method staticMethod,
+                                                MethodType expectedMethodType, MethodType actualMethodType,
+                                                Throwable e) {
+        String callbackClassName = callbackInterface.getName().replace('.', '/');
+        String listenerClassName = listenerClass.getName().replace('.', '/');
+        Type expectedType = AdapterUtils.getMethodType(expectedMethodType);
+        Type actualType = AdapterUtils.getMethodType(actualMethodType);
+        return new RuntimeException(
+            "Error connecting listener method " + listenerClassName + "." + staticMethod.getName() + actualType +
+                " with callback interface " + callbackClassName + "." + interfaceMethod.getName() + expectedType, e);
     }
 
     @SuppressWarnings("unchecked")
