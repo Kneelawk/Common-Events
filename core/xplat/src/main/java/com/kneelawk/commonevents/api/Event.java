@@ -403,28 +403,6 @@ public final class Event<T> {
     }
 
     /**
-     * Registers the given listener of the listed events.
-     * <p>
-     * The registration of the listener will be refused if one of the listed event involves generics in its callback type,
-     * as checking for valid registration is just too expensive, please use the regular {@link #register(Object)} method
-     * for those as the Java compiler will be able to do the checks itself.
-     *
-     * @param listener the listener of events
-     * @param events   the events to listen
-     * @throws IllegalArgumentException if the listener doesn't listen one of the events to listen
-     * @see #register(Object)
-     * @see #register(ResourceLocation, Object)
-     */
-    public static void listenAll(Object listener, Event<?>... events) {
-        if (events.length == 0) {
-            throw new IllegalArgumentException("Tried to register a listener for an empty event list.");
-        }
-
-        // TODO
-//		EventRegistry.listenAll(listener, events);
-    }
-
-    /**
      * The function used to generate the implementation of the invoker to execute events.
      */
     private final Class<? super T> type;
