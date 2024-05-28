@@ -25,7 +25,6 @@ import org.objectweb.asm.Type;
 import net.minecraft.resources.ResourceLocation;
 
 import com.kneelawk.commonevents.api.Event;
-import com.kneelawk.commonevents.api.EventBus;
 import com.kneelawk.commonevents.api.adapter.BusEventHandle;
 import com.kneelawk.commonevents.api.adapter.scan.BadEventException;
 
@@ -46,7 +45,7 @@ public class JavaBusEventHandle implements BusEventHandle {
     }
 
     @Override
-    public void addToBus(@NotNull EventBus addTo) throws Throwable {
+    public Event<?> getEvent() throws Throwable {
         Class<?> holderClazz = Class.forName(holderClass.getClassName());
         Field field = holderClazz.getDeclaredField(fieldName);
 
@@ -57,7 +56,7 @@ public class JavaBusEventHandle implements BusEventHandle {
                     " that has not been statically initialized");
         }
 
-        addTo.addEvent(event);
+        return event;
     }
 
     @Override

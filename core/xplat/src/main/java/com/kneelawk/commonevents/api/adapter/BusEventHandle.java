@@ -16,9 +16,11 @@
 
 package com.kneelawk.commonevents.api.adapter;
 
+import org.jetbrains.annotations.Nullable;
+
 import net.minecraft.resources.ResourceLocation;
 
-import com.kneelawk.commonevents.api.EventBus;
+import com.kneelawk.commonevents.api.Event;
 
 /**
  * Holds a reference to an event field that can be added to an event bus when that bus is initialized.
@@ -32,11 +34,9 @@ public interface BusEventHandle {
     ResourceLocation[] getBusNames();
 
     /**
-     * Adds the referenced event to the given bus.
+     * Gets the referenced event, so it can be added to an event bus.
      *
-     * @param addTo the bus to add this handle's event to.
-     * @throws Throwable if an error occurs while obtaining the event instance or adding it to the bus. If an exception
-     *                   is thrown, the event bus should not contain this handler's event.
+     * @throws Throwable if an error occurs while obtaining the event instance.
      */
-    void addToBus(EventBus addTo) throws Throwable;
+    @Nullable Event<?> getEvent() throws Throwable;
 }

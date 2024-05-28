@@ -122,7 +122,10 @@ public class ScanManager {
         if (events != null) {
             for (BusEventHandle handle : events) {
                 try {
-                    handle.addToBus(bus);
+                    Event<?> event = handle.getEvent();
+                    if (event != null) {
+                        bus.addEvent(event);
+                    }
                 } catch (Exception e) {
                     CELog.LOGGER.error("[Common Events] Error adding event {} to event bus {}", handle, bus.getName(),
                         e);
