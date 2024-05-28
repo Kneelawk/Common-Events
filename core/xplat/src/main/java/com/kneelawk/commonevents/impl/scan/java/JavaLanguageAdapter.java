@@ -20,17 +20,20 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Stream;
 
 import org.jetbrains.annotations.NotNull;
 
+import net.minecraft.resources.ResourceLocation;
+
+import com.kneelawk.commonevents.api.EventKey;
+import com.kneelawk.commonevents.api.adapter.BusEventHandle;
 import com.kneelawk.commonevents.api.adapter.LanguageAdapter;
 import com.kneelawk.commonevents.api.adapter.ListenerHandle;
-import com.kneelawk.commonevents.api.EventKey;
 import com.kneelawk.commonevents.api.adapter.mod.ModFileHolder;
 import com.kneelawk.commonevents.api.adapter.scan.ScanRequest;
 import com.kneelawk.commonevents.api.adapter.scan.ScanResult;
@@ -50,7 +53,9 @@ public class JavaLanguageAdapter implements LanguageAdapter {
         ModFileHolder modFile = mod.getModFile();
         String modIds = modFile.getModIdStr();
 
-        Map<EventKey, List<ListenerHandle>> scanned = new HashMap<>();
+        Map<EventKey, List<ListenerHandle>> scannedListeners = new LinkedHashMap<>();
+        Map<ResourceLocation, List<BusEventHandle>> scannedBusEvents = new LinkedHashMap<>();
+
         ClassLoader loader = getClass().getClassLoader();
 
         if (mod.getInfo() instanceof ScannableInfo.All) {
@@ -61,7 +66,8 @@ public class JavaLanguageAdapter implements LanguageAdapter {
                         Path fileName = classPath.getFileName();
                         if (fileName != null && fileName.toString().endsWith(".class")) {
                             ClassScanner.scan(classPath, modIds, request.isClientSide(), false,
-                                handle -> scanned.computeIfAbsent(handle.getKey(), k -> new ArrayList<>()).add(handle));
+                                handle -> addHandle(handle, scannedListeners),
+                                handle -> addHandle(handle, scannedBusEvents));
                         }
                     }
                 } catch (Exception e) {
@@ -73,7 +79,7 @@ public class JavaLanguageAdapter implements LanguageAdapter {
                 URL classPath = loader.getResource(classStr.replace('.', '/') + ".class");
                 if (classPath != null) {
                     ClassScanner.scan(classPath, modIds, request.isClientSide(), true,
-                        handle -> scanned.computeIfAbsent(handle.getKey(), k -> new ArrayList<>()).add(handle));
+                        handle -> addHandle(handle, scannedListeners), handle -> addHandle(handle, scannedBusEvents));
                 } else {
                     CELog.LOGGER.warn("[Common Events] Scan class {} not found in mod {}. Skipping...",
                         classStr, modIds);
@@ -81,6 +87,16 @@ public class JavaLanguageAdapter implements LanguageAdapter {
             }
         }
 
-        return new ScanResult(scanned);
+        return new ScanResult(scannedListeners, scannedBusEvents);
+    }
+
+    private static void addHandle(ListenerHandle handle, Map<EventKey, List<ListenerHandle>> scannedListeners) {
+        scannedListeners.computeIfAbsent(handle.getKey(), k -> new ArrayList<>()).add(handle);
+    }
+
+    private static void addHandle(BusEventHandle handle, Map<ResourceLocation, List<BusEventHandle>> scannedBusEvents) {
+        for (ResourceLocation busName : handle.getBusNames()) {
+            scannedBusEvents.computeIfAbsent(busName, k -> new ArrayList<>()).add(handle);
+        }
     }
 }

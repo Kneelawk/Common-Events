@@ -36,6 +36,7 @@ import net.minecraft.resources.ResourceLocation;
 import com.kneelawk.commonevents.api.adapter.ListenerHolder;
 import com.kneelawk.commonevents.api.adapter.util.AdapterUtils;
 import com.kneelawk.commonevents.impl.CELog;
+import com.kneelawk.commonevents.impl.scan.ScanManager;
 
 /**
  * A convenience object holding a collection of events, that selectively registers objects based on which callbacks
@@ -49,7 +50,55 @@ public final class EventBus {
     private final ResourceLocation name;
     private final Map<EventKey, Event<?>> events = new Object2ObjectLinkedOpenHashMap<>();
 
-    private EventBus(ResourceLocation name) {this.name = name;}
+    /**
+     * Creates a new {@link EventBus} builder with the given name.
+     *
+     * @param name the name for the event bus to be built.
+     * @return the event bus builder.
+     */
+    public static Builder builder(ResourceLocation name) {
+        return new Builder(name);
+    }
+
+    /**
+     * {@link EventBus} builder. Use {@link #builder(ResourceLocation)} to create new builders.
+     */
+    public static class Builder {
+        private final ResourceLocation name;
+        private boolean scanned = true;
+
+        private Builder(ResourceLocation name) {
+            this.name = name;
+        }
+
+        /**
+         * Finalizes this builder into a built event bus.
+         *
+         * @return the built event bus.
+         */
+        public EventBus build() {
+            return new EventBus(name, scanned);
+        }
+
+        /**
+         * Sets whether the resulting event bus should add scanned events.
+         *
+         * @param scanned whether the built bus should add scanned events.
+         * @return this builder.
+         */
+        public Builder scanned(boolean scanned) {
+            this.scanned = scanned;
+            return this;
+        }
+    }
+
+    private EventBus(ResourceLocation name, boolean scanned) {
+        this.name = name;
+
+        if (scanned) {
+            ScanManager.addScannedEvents(this);
+        }
+    }
 
     /**
      * {@return this event bus's name}

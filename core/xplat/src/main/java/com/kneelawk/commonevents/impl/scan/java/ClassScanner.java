@@ -22,11 +22,14 @@ import java.io.InputStream;
 import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.ClassReader;
 import org.objectweb.asm.ClassVisitor;
+import org.objectweb.asm.FieldVisitor;
 import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
@@ -34,49 +37,53 @@ import org.objectweb.asm.Type;
 import net.minecraft.ResourceLocationException;
 import net.minecraft.resources.ResourceLocation;
 
-import com.kneelawk.commonevents.api.adapter.ListenerHandle;
 import com.kneelawk.commonevents.api.EventKey;
+import com.kneelawk.commonevents.api.adapter.BusEventHandle;
+import com.kneelawk.commonevents.api.adapter.ListenerHandle;
 import com.kneelawk.commonevents.api.adapter.util.AdapterUtils;
 import com.kneelawk.commonevents.impl.CEConstants;
 import com.kneelawk.commonevents.impl.CELog;
 
 public class ClassScanner extends ClassVisitor {
     public static void scan(URL classUrl, String modIds, boolean isClientSide, boolean forceScan,
-                            Consumer<ListenerHandle> listenerFound) {
+                            Consumer<ListenerHandle> listenerFound, Consumer<BusEventHandle> busEventFound) {
         try (InputStream is = classUrl.openStream(); BufferedInputStream buffered = new BufferedInputStream(is)) {
-            scan(buffered, isClientSide, forceScan, listenerFound);
+            scan(buffered, isClientSide, forceScan, listenerFound, busEventFound);
         } catch (Exception e) {
             CELog.LOGGER.warn("[Common Events] Error scanning class {} in mod {}", classUrl, modIds, e);
         }
     }
 
     public static void scan(Path classPath, String modIds, boolean isClientSide, boolean forceScan,
-                            Consumer<ListenerHandle> listenerFound) {
+                            Consumer<ListenerHandle> listenerFound, Consumer<BusEventHandle> busEventFound) {
         try (InputStream is = Files.newInputStream(classPath);
              BufferedInputStream buffered = new BufferedInputStream(is)) {
-            scan(buffered, isClientSide, forceScan, listenerFound);
+            scan(buffered, isClientSide, forceScan, listenerFound, busEventFound);
         } catch (Exception e) {
             CELog.LOGGER.warn("[Common Events] Error scanning class {} in mod {}", classPath, modIds, e);
         }
     }
 
     private static void scan(BufferedInputStream buffered, boolean isClientSide, boolean forceScan,
-                             Consumer<ListenerHandle> listenerFound)
+                             Consumer<ListenerHandle> listenerFound, Consumer<BusEventHandle> busEventFound)
         throws IOException {
         ClassReader cr = new ClassReader(buffered);
-        cr.accept(new ClassScanner(isClientSide, forceScan, listenerFound),
+        cr.accept(new ClassScanner(isClientSide, forceScan, listenerFound, busEventFound),
             ClassReader.SKIP_CODE | ClassReader.SKIP_DEBUG | ClassReader.SKIP_FRAMES);
     }
 
     private final boolean isClientSide;
     private final Consumer<ListenerHandle> listenerFound;
+    private final Consumer<BusEventHandle> busEventFound;
     private Type visitingClass = null;
     private boolean shouldScan;
 
-    protected ClassScanner(boolean isClientSide, boolean forceScan, Consumer<ListenerHandle> listenerFound) {
+    protected ClassScanner(boolean isClientSide, boolean forceScan, Consumer<ListenerHandle> listenerFound,
+                           Consumer<BusEventHandle> busEventFound) {
         super(AdapterUtils.API);
         this.isClientSide = isClientSide;
         this.listenerFound = listenerFound;
+        this.busEventFound = busEventFound;
         shouldScan = forceScan;
     }
 
@@ -182,6 +189,76 @@ public class ClassScanner extends ClassVisitor {
                     listenerFound.accept(
                         new JavaListenerHandle(new EventKey(keyType, qualifier), phase, visitingClass, name,
                             descriptor));
+                }
+            }
+        }
+    }
+
+    @Override
+    public FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
+        if ((access & Opcodes.ACC_STATIC) != 0 && (access & Opcodes.ACC_PUBLIC) != 0) {
+            return new FieldScanner(name);
+        } else {
+            return null;
+        }
+    }
+
+    private class FieldScanner extends FieldVisitor {
+        private final String name;
+
+        protected FieldScanner(String name) {
+            super(AdapterUtils.API);
+            this.name = name;
+        }
+
+        @Override
+        public AnnotationVisitor visitAnnotation(String descriptor, boolean visible) {
+            if (AdapterUtils.BUS_EVENT_ANNOTATION_NAME.equals(descriptor)) {
+                return new FieldAnnotationScanner();
+            } else {
+                return null;
+            }
+        }
+
+        private class FieldAnnotationScanner extends AnnotationVisitor {
+            private final List<ResourceLocation> eventBusNames = new ArrayList<>();
+
+            protected FieldAnnotationScanner() {
+                super(AdapterUtils.API);
+            }
+
+            @Override
+            public AnnotationVisitor visitArray(String name) {
+                if (AdapterUtils.BUS_EVENT_VALUE_FIELD_NAME.equals(name)) {
+                    return new FieldAnnotationArrayScanner();
+                } else {
+                    return null;
+                }
+            }
+
+            private class FieldAnnotationArrayScanner extends AnnotationVisitor {
+                protected FieldAnnotationArrayScanner() {
+                    super(AdapterUtils.API);
+                }
+
+                @Override
+                public void visit(String name, Object value) {
+                    if (value instanceof String str) {
+                        try {
+                            eventBusNames.add(new ResourceLocation(str));
+                        } catch (ResourceLocationException e) {
+                            CELog.LOGGER.warn("[Common Event] Encountered invalid event bus name '{}' in {}.{}", str,
+                                visitingClass.getInternalName(), name);
+                        }
+                    }
+                }
+            }
+
+            @Override
+            public void visitEnd() {
+                if (!eventBusNames.isEmpty()) {
+                    busEventFound.accept(
+                        new JavaBusEventHandle(eventBusNames.toArray(ResourceLocation[]::new), visitingClass, name));
                 }
             }
         }

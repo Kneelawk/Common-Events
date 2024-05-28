@@ -93,6 +93,7 @@ class KotlinLanguageAdapter : LanguageAdapter {
             }
         }
 
-        return ScanResult(handles)
+        // FIXME
+        return ScanResult(handles, mapOf())
     }
 }

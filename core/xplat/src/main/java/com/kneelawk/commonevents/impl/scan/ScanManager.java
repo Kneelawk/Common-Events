@@ -41,8 +41,12 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
+import net.minecraft.resources.ResourceLocation;
+
 import com.kneelawk.commonevents.api.Event;
+import com.kneelawk.commonevents.api.EventBus;
 import com.kneelawk.commonevents.api.EventKey;
+import com.kneelawk.commonevents.api.adapter.BusEventHandle;
 import com.kneelawk.commonevents.api.adapter.ListenerHandle;
 import com.kneelawk.commonevents.api.adapter.mod.ModFileHolder;
 import com.kneelawk.commonevents.api.adapter.scan.ScanResult;
@@ -55,7 +59,8 @@ public class ScanManager {
 
     private static boolean initialized = false;
     private static final Lock initLock = new ReentrantLock();
-    private static final Map<EventKey, List<ListenerHandle>> scanned = new HashMap<>();
+    private static final Map<EventKey, List<ListenerHandle>> scannedListeners = new HashMap<>();
+    private static final Map<ResourceLocation, List<BusEventHandle>> scannedBusEvents = new HashMap<>();
 
     public static final ExecutorService SCAN_EXECUTOR =
         new ThreadPoolExecutor(0, Runtime.getRuntime().availableProcessors(), 2, TimeUnit.SECONDS,
@@ -93,7 +98,7 @@ public class ScanManager {
         MethodType singularMethodType =
             MethodType.methodType(singularMethod.getReturnType(), singularMethod.getParameterTypes());
 
-        List<ListenerHandle> listeners = scanned.get(event.getKey());
+        List<ListenerHandle> listeners = scannedListeners.get(event.getKey());
         if (listeners != null) {
             for (ListenerHandle handle : listeners) {
                 try {
@@ -101,6 +106,24 @@ public class ScanManager {
                     ((Event<Object>) event).register(handle.getPhase(), callback);
                 } catch (Exception e) {
                     CELog.LOGGER.error("[Common Events] Error creating callback instance for {}", handle, e);
+                } catch (Throwable e) {
+                    throw new Error(e);
+                }
+            }
+        }
+    }
+
+    public static void addScannedEvents(EventBus bus) {
+        ensureInitialized();
+
+        List<BusEventHandle> events = scannedBusEvents.get(bus.getName());
+        if (events != null) {
+            for (BusEventHandle handle : events) {
+                try {
+                    handle.addToBus(bus);
+                } catch (Exception e) {
+                    CELog.LOGGER.error("[Common Events] Error adding event {} to event bus {}", handle, bus.getName(),
+                        e);
                 } catch (Throwable e) {
                     throw new Error(e);
                 }
@@ -153,7 +176,7 @@ public class ScanManager {
                 try {
                     ScanResult result = scan.future().get();
 
-                    merge(result.listeners());
+                    merge(result);
                 } catch (InterruptedException | ExecutionException e) {
                     CELog.LOGGER.warn("[Common Events] Encountered error while scanning {}", scan.scanner().getModIds(),
                         e);
@@ -163,7 +186,7 @@ public class ScanManager {
             for (ModScanner modScanner : toScan) {
                 ScanResult result = modScanner.scan(isClientSide);
 
-                merge(result.listeners());
+                merge(result);
             }
         }
 
@@ -173,11 +196,17 @@ public class ScanManager {
             loadDuration.toSeconds(), loadDuration.toMillisPart());
     }
 
-    private static void merge(Map<EventKey, List<ListenerHandle>> result) {
-        for (Map.Entry<EventKey, List<ListenerHandle>> entry : result.entrySet()) {
+    private static void merge(ScanResult result) {
+        for (Map.Entry<EventKey, List<ListenerHandle>> entry : result.listeners().entrySet()) {
             List<ListenerHandle> handles = entry.getValue();
             if (!handles.isEmpty()) {
-                scanned.computeIfAbsent(entry.getKey(), k -> new ArrayList<>()).addAll(handles);
+                scannedListeners.computeIfAbsent(entry.getKey(), k -> new ArrayList<>()).addAll(handles);
+            }
+        }
+        for (Map.Entry<ResourceLocation, List<BusEventHandle>> entry : result.events().entrySet()) {
+            List<BusEventHandle> handles = entry.getValue();
+            if (!handles.isEmpty()) {
+                scannedBusEvents.computeIfAbsent(entry.getKey(), k -> new ArrayList<>()).addAll(handles);
             }
         }
     }

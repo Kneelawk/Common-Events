@@ -26,6 +26,7 @@ import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
+import com.kneelawk.commonevents.api.BusEvent;
 import com.kneelawk.commonevents.api.Listen;
 import com.kneelawk.commonevents.api.Scan;
 
@@ -49,7 +50,7 @@ public final class AdapterUtils {
     public static final String SCAN_ANNOTATION_NAME = "Lcom/kneelawk/commonevents/api/Scan;";
 
     /**
-     * The name of the {@link Scan#side()} field name.
+     * The name of the {@link Scan#side()} field.
      */
     public static final String SCAN_SIDE_FIELD_NAME = "side";
 
@@ -74,19 +75,29 @@ public final class AdapterUtils {
     public static final String LISTEN_ANNOTATION_NAME = "Lcom/kneelawk/commonevents/api/Listen;";
 
     /**
-     * The name of the {@link Listen#value()} field name.
+     * The name of the {@link Listen#value()} field.
      */
     public static final String LISTEN_VALUE_FIELD_NAME = "value";
 
     /**
-     * The name of the {@link Listen#qualifier()} field name.
+     * The name of the {@link Listen#qualifier()} field.
      */
     public static final String LISTEN_QUALIFIER_FIELD_NAME = "qualifier";
 
     /**
-     * The name of the {@link Listen#phase()}} field name.
+     * The name of the {@link Listen#phase()}} field.
      */
     public static final String LISTEN_PHASE_FIELD_NAME = "phase";
+
+    /**
+     * The fully-qualified name of the {@link BusEvent} annotation.
+     */
+    public static final String BUS_EVENT_ANNOTATION_NAME = "Lcom/kneelawk/commonevents/api/BusEvent;";
+
+    /**
+     * The name of the {@link BusEvent#value()} field.
+     */
+    public static final String BUS_EVENT_VALUE_FIELD_NAME = "value";
 
     private AdapterUtils() {}
 
