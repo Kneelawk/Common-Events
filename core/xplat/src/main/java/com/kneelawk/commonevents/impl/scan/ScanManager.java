@@ -103,7 +103,9 @@ public class ScanManager {
             for (ListenerHandle handle : listeners) {
                 try {
                     Object callback = handle.createCallback(type, singularMethodName, singularMethodType);
-                    ((Event<Object>) event).register(handle.getPhase(), callback);
+                    if (callback != null) {
+                        ((Event<Object>) event).register(handle.getPhase(), callback);
+                    }
                 } catch (Exception e) {
                     CELog.LOGGER.error("[Common Events] Error creating callback instance for {}", handle, e);
                 } catch (Throwable e) {

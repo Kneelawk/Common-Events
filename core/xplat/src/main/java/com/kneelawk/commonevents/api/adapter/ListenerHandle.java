@@ -18,6 +18,8 @@ package com.kneelawk.commonevents.api.adapter;
 
 import java.lang.invoke.MethodType;
 
+import org.jetbrains.annotations.Nullable;
+
 import net.minecraft.resources.ResourceLocation;
 
 import com.kneelawk.commonevents.api.EventKey;
@@ -44,14 +46,17 @@ public interface ListenerHandle {
 
     /**
      * Creates a callback instance that can actually be registered with the event.
+     * <p>
+     * This should return {@code null} to indicate that the callback interface could not be created but no error
+     * occurred.
      *
      * @param <T>                the type of the callback interface.
      * @param callbackClass      the class of the callback interface that the handle should be converted into.
      * @param singularMethodName the name of the callback interface's singular method.
      * @param singularMethodType the type of the callback interface's singular method.
-     * @return an instance of the specified callback interface.
+     * @return an instance of the specified callback interface or {@code null} if not appropriate.
      * @throws ClassNotFoundException if the class this handle references does not exist.
      */
-    <T> T createCallback(Class<T> callbackClass, String singularMethodName, MethodType singularMethodType)
+    <T> @Nullable T createCallback(Class<T> callbackClass, String singularMethodName, MethodType singularMethodType)
         throws Throwable;
 }

@@ -57,6 +57,8 @@ abstract class SubmoduleExtension(private val project: Project, private val java
                 "xplat", "mojmap" -> {
                     add("compileOnly", "org.jetbrains.kotlin:kotlin-stdlib")
                     add("compileOnly", "org.jetbrains.kotlin:kotlin-reflect")
+                    add("testCompileOnly", "org.jetbrains.kotlin:kotlin-stdlib")
+                    add("testCompileOnly", "org.jetbrains.kotlin:kotlin-reflect")
                 }
                 "neoforge" -> {
                     val kotlinVersion = project.getProperty<String>("neoforge_kotlin_version")

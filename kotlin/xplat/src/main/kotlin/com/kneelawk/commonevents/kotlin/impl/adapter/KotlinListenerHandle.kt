@@ -16,8 +16,8 @@
 
 package com.kneelawk.commonevents.kotlin.impl.adapter
 
-import com.kneelawk.commonevents.api.adapter.ListenerHandle
 import com.kneelawk.commonevents.api.EventKey
+import com.kneelawk.commonevents.api.adapter.ListenerHandle
 import com.kneelawk.commonevents.api.adapter.util.AdapterUtils
 import com.kneelawk.commonevents.impl.CELog
 import net.minecraft.resources.ResourceLocation
@@ -35,7 +35,7 @@ class KotlinListenerHandle(
 
     override fun <T : Any> createCallback(
         callbackClass: Class<T>, singularMethodName: String, singularMethodType: MethodType
-    ): T {
+    ): T? {
         val listenerClazz = Class.forName(listenerClass.className)
         val methodType = AdapterUtils.getMethodType(methodDescriptor)
 
@@ -61,8 +61,7 @@ class KotlinListenerHandle(
         } else {
             val handle = AdapterUtils.LOOKUP.findVirtual(listenerClazz, methodName, methodType)
 
-            val objectInstance = listenerClazz.kotlin.objectInstance
-                ?: throw IllegalArgumentException(listenerClazz.name + " is not a kotlin object but has non-static listener method " + methodName)
+            val objectInstance = listenerClazz.kotlin.objectInstance ?: return null
 
             return callbackClass.cast(
                 LambdaMetafactory.metafactory(
