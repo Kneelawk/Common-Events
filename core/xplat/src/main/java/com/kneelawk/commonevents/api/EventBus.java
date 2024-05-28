@@ -51,6 +51,28 @@ public final class EventBus {
     private final Map<EventKey, Event<?>> events = new Object2ObjectLinkedOpenHashMap<>();
 
     /**
+     * Event fired when an event bus is created.
+     */
+    public static final Event<Created> CREATED_EVENT = Event.create(Created.class, callbacks -> bus -> {
+        for (Created callback : callbacks) {
+            callback.onCreated(bus);
+        }
+    });
+
+    /**
+     * Callback for when an event bus is created.
+     */
+    @FunctionalInterface
+    public interface Created {
+        /**
+         * Called when an event bus is created.
+         *
+         * @param bus the bus that has been created.
+         */
+        void onCreated(EventBus bus);
+    }
+
+    /**
      * Creates a new {@link EventBus} builder with the given name.
      *
      * @param name the name for the event bus to be built.
@@ -66,6 +88,7 @@ public final class EventBus {
     public static class Builder {
         private final ResourceLocation name;
         private boolean scanned = true;
+        private boolean fireEvent = true;
 
         private Builder(ResourceLocation name) {
             this.name = name;
@@ -77,7 +100,7 @@ public final class EventBus {
          * @return the built event bus.
          */
         public EventBus build() {
-            return new EventBus(name, scanned);
+            return new EventBus(name, scanned, fireEvent);
         }
 
         /**
@@ -90,13 +113,28 @@ public final class EventBus {
             this.scanned = scanned;
             return this;
         }
+
+        /**
+         * Sets whether the resulting event bus should fire the {@link #CREATED_EVENT}.
+         *
+         * @param fireEvent whether to fire the created event when the bus is created.
+         * @return this builder.
+         */
+        public Builder fireEvent(boolean fireEvent) {
+            this.fireEvent = fireEvent;
+            return this;
+        }
     }
 
-    private EventBus(ResourceLocation name, boolean scanned) {
+    private EventBus(ResourceLocation name, boolean scanned, boolean fireEvent) {
         this.name = name;
 
         if (scanned) {
             ScanManager.addScannedEvents(this);
+        }
+
+        if (fireEvent) {
+            CREATED_EVENT.invoker().onCreated(this);
         }
     }
 
