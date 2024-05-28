@@ -36,7 +36,9 @@ public interface BusEventHandle {
     /**
      * Gets the referenced event, so it can be added to an event bus.
      *
+     * @return the event value of the field this handle points to.
      * @throws Throwable if an error occurs while obtaining the event instance.
      */
-    @Nullable Event<?> getEvent() throws Throwable;
+    @Nullable
+    Event<?> getEvent() throws Throwable;
 }
