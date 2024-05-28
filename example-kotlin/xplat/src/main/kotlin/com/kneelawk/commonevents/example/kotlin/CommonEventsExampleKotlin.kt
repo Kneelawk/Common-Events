@@ -17,6 +17,8 @@
 package com.kneelawk.commonevents.example.kotlin
 
 import com.kneelawk.commonevents.api.Event
+import com.kneelawk.commonevents.api.EventBus
+import net.minecraft.resources.ResourceLocation
 import org.slf4j.LoggerFactory
 
 object CommonEventsExampleKotlin {
@@ -24,16 +26,27 @@ object CommonEventsExampleKotlin {
     val LOGGER = LoggerFactory.getLogger(MOD_ID)
 
     init {
+        LOGGER.info("# Creating EVENT_BUS...")
+    }
+
+    val EVENT_BUS = EventBus.builder(ResourceLocation(MOD_ID, "bus")).build()
+
+    init {
+        LOGGER.info("# EVENT_BUS created")
         LOGGER.info("# Creating MY_EVENT...")
     }
 
     val MY_EVENT =
-        Event.create(MyCallback::class.java, "my_qualifier") { listeners -> MyCallback { str -> listeners.forEach { it.doSomething(str) } } }
-    
+        Event.create(
+            MyCallback::class.java,
+            "my_qualifier"
+        ) { listeners -> MyCallback { str -> listeners.forEach { it.doSomething(str) } } }
+
     init {
         LOGGER.info("# MY_EVENT created")
+        EVENT_BUS.addEvent(MY_EVENT)
     }
-    
+
     fun init() {
         LOGGER.info("  Firing MY_EVENT...")
         MY_EVENT.invoker().doSomething("Hello world!")

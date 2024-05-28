@@ -52,8 +52,7 @@ public class JavaBusEventHandle implements BusEventHandle {
         Event<?> event = (Event<?>) field.get(null);
         if (event == null) {
             throw new BadEventException(
-                "Encountered @BusEvent annotated field " + holderClass.getInternalName() + "." + fieldName +
-                    " that has not been statically initialized");
+                "Encountered @BusEvent annotated field that has not been statically initialized");
         }
 
         return event;
