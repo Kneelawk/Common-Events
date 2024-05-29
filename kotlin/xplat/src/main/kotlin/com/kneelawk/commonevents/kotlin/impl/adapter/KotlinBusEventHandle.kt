@@ -21,6 +21,7 @@ import com.kneelawk.commonevents.api.adapter.BusEventHandle
 import com.kneelawk.commonevents.api.adapter.scan.BadEventException
 import net.minecraft.resources.ResourceLocation
 import org.objectweb.asm.Type
+import kotlin.reflect.full.companionObjectInstance
 import kotlin.reflect.jvm.kotlinProperty
 
 class KotlinBusEventHandle(
@@ -28,7 +29,7 @@ class KotlinBusEventHandle(
 ) : BusEventHandle {
     override fun getBusNames(): Array<ResourceLocation> = busNames
 
-    override fun getEvent(): Event<*>? {
+    override fun getEvent(): Event<*> {
         val holderClazz = Class.forName(holderClass.className)
         val field = holderClazz.getDeclaredField(fieldName)
         val prop = field.kotlinProperty
@@ -37,7 +38,11 @@ class KotlinBusEventHandle(
             return field.get(null) as Event<*>?
                 ?: throw BadEventException("Encountered @BusEvent annotated field that has not been statically initialized")
         } else {
-            return prop.getter.call() as Event<*>?
+            val holderKlass = holderClazz.kotlin
+            val obj = holderKlass.objectInstance ?: holderKlass.companionObjectInstance
+            ?: throw BadEventException("Encountered @BusEvent annotated field not located in an object or companion object")
+
+            return prop.getter.call(obj) as Event<*>?
                 ?: throw BadEventException("Encountered @BusEvent annotated property that has not been statically initialized")
         }
     }

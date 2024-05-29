@@ -17,16 +17,21 @@
 package com.kneelawk.commonevents.example.kotlin
 
 import com.kneelawk.commonevents.api.Listen
-import com.kneelawk.commonevents.api.Scan
 
-@Scan
-object EventListener {
-    init {
-        CommonEventsExampleKotlin.LOGGER.info("# EventListener initialized")
+object EventListener3 {
+    // These listeners are not scanned and are instead added through an event bus
+    @Listen(MyCallback::class, qualifier = "my_qualifier")
+    fun listener0(str: String) {
+        CommonEventsExampleKotlin.LOGGER.info("> EventListener3 listener0 received event $str")
     }
 
-    @Listen(MyCallback::class, qualifier = "my_qualifier")
-    fun onDoSomething(str: String) {
-        CommonEventsExampleKotlin.LOGGER.info("> EventListener Received event: $str")
+    @Listen(EventHolder.Callback::class)
+    fun listener1() {
+        CommonEventsExampleKotlin.LOGGER.info("> EventListener3 listener1 received event")
+    }
+
+    @Listen(EventHolder2.Callback::class)
+    fun listener2() {
+        CommonEventsExampleKotlin.LOGGER.info("> EventListener3 listener2 received event")
     }
 }

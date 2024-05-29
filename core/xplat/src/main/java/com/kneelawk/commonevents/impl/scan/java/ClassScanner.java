@@ -23,7 +23,9 @@ import java.net.URL;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 import java.util.function.Consumer;
 
 import org.objectweb.asm.AnnotationVisitor;
@@ -197,7 +199,7 @@ public class ClassScanner extends ClassVisitor {
     @Override
     public FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
         if (!shouldScan) return null;
-        
+
         if ((access & Opcodes.ACC_STATIC) != 0 && (access & Opcodes.ACC_PUBLIC) != 0) {
             return new FieldScanner(name);
         } else {
@@ -206,11 +208,11 @@ public class ClassScanner extends ClassVisitor {
     }
 
     private class FieldScanner extends FieldVisitor {
-        private final String name;
+        private final String fieldName;
 
-        protected FieldScanner(String name) {
+        protected FieldScanner(String fieldName) {
             super(AdapterUtils.API);
-            this.name = name;
+            this.fieldName = fieldName;
         }
 
         @Override
@@ -224,6 +226,7 @@ public class ClassScanner extends ClassVisitor {
 
         private class FieldAnnotationScanner extends AnnotationVisitor {
             private final List<ResourceLocation> eventBusNames = new ArrayList<>();
+            private final Set<ResourceLocation> eventBusSet = new HashSet<>();
 
             protected FieldAnnotationScanner() {
                 super(AdapterUtils.API);
@@ -246,12 +249,24 @@ public class ClassScanner extends ClassVisitor {
                 @Override
                 public void visit(String name, Object value) {
                     if (value instanceof String str) {
+                        ResourceLocation busName;
                         try {
-                            eventBusNames.add(new ResourceLocation(str));
+                            busName = new ResourceLocation(str);
                         } catch (ResourceLocationException e) {
-                            CELog.LOGGER.warn("[Common Event] Encountered invalid event bus name '{}' in {}.{}", str,
-                                visitingClass.getInternalName(), name);
+                            CELog.LOGGER.warn(
+                                "[Common Events] Encountered invalid event bus name '{}' in {}.{} annotation", str,
+                                visitingClass.getInternalName(), fieldName, e);
+                            return;
                         }
+
+                        if (!eventBusSet.add(busName)) {
+                            CELog.LOGGER.warn(
+                                "[Common Events] Event bus name '{}' mentioned multiple times in {}.{} annotation. Ignoring...",
+                                busName, visitingClass.getInternalName(), fieldName);
+                            return;
+                        }
+
+                        eventBusNames.add(busName);
                     }
                 }
             }
@@ -260,7 +275,8 @@ public class ClassScanner extends ClassVisitor {
             public void visitEnd() {
                 if (!eventBusNames.isEmpty()) {
                     busEventFound.accept(
-                        new JavaBusEventHandle(eventBusNames.toArray(ResourceLocation[]::new), visitingClass, name));
+                        new JavaBusEventHandle(eventBusNames.toArray(ResourceLocation[]::new), visitingClass,
+                            fieldName));
                 }
             }
         }

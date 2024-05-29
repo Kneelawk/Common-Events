@@ -32,9 +32,24 @@ class EventListener2 {
         }
     }
 
-    // This method is not currently a proper listener, as it requires an instance of this class
-//    @Listen(MyCallback::class, qualifier = "my_qualifier")
+    // This method will not be added to an event during scanning, but will be picked up when adding
+    // an EventListener2 instance to an event bus.
+    // IMPLEMENTATION NOTE: The presence of this annotation does mean that this class will be loaded when
+    // the associated event is loaded, even though this listener is not valid to be added during event
+    // initialization. This is because the EventListener2 class must be loaded in order for Kotlin to
+    // determine that it is not a valid object class.
+    @Listen(MyCallback::class, qualifier = "my_qualifier")
     fun instanceListener(str: String) {
-        CommonEventsExampleKotlin.LOGGER.info("> broken EventListener2 listener received event: $str")
+        CommonEventsExampleKotlin.LOGGER.info("> EventListener2 instanceListener0 received event: $str")
+    }
+
+    @Listen(EventHolder.Callback::class)
+    fun instanceListener1() {
+        CommonEventsExampleKotlin.LOGGER.info("> EventListener2 instanceListener1 received event")
+    }
+
+    @Listen(EventHolder2.Callback::class)
+    fun instanceListener2() {
+        CommonEventsExampleKotlin.LOGGER.info("> EventListener2 instanceListener2 received event")
     }
 }

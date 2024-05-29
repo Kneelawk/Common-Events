@@ -24,8 +24,16 @@ import com.kneelawk.commonevents.example.kotlin.EventHolder2.Callback
 @Scan
 class EventHolder2 {
     companion object {
+        init {
+            CommonEventsExampleKotlin.LOGGER.info("# Creating EventHolder2.EVENT...")
+        }
+
         @BusEvent("common_events_example_kotlin:bus")
         val EVENT = Event.create(Callback::class.java) { callbacks -> Callback { callbacks.forEach { it.call() } } }
+
+        init {
+            CommonEventsExampleKotlin.LOGGER.info("# EventHolder2.EVENT created")
+        }
 
         fun fire() {
             CommonEventsExampleKotlin.LOGGER.info("  Firing EventHolder2.EVENT")

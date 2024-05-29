@@ -16,13 +16,15 @@
 
 package com.kneelawk.commonevents.kotlin.impl.adapter
 
+import com.kneelawk.commonevents.api.EventKey
+import com.kneelawk.commonevents.api.adapter.BusEventHandle
 import com.kneelawk.commonevents.api.adapter.LanguageAdapter
 import com.kneelawk.commonevents.api.adapter.ListenerHandle
-import com.kneelawk.commonevents.api.EventKey
 import com.kneelawk.commonevents.api.adapter.scan.ScanRequest
 import com.kneelawk.commonevents.api.adapter.scan.ScanResult
 import com.kneelawk.commonevents.api.adapter.scan.ScannableInfo
 import com.kneelawk.commonevents.impl.CELog
+import net.minecraft.resources.ResourceLocation
 import org.objectweb.asm.Type
 import java.nio.file.Files
 
@@ -35,11 +37,15 @@ class KotlinLanguageAdapter : LanguageAdapter {
         val modIds = modFile.modIdStr
         val info = mod.info
 
-        val handles = mutableMapOf<EventKey, MutableList<ListenerHandle>>()
+        val listeners = mutableMapOf<EventKey, MutableList<ListenerHandle>>()
+        val busEvents = mutableMapOf<ResourceLocation, MutableList<BusEventHandle>>()
         val scanned = mutableSetOf<Type>()
         val queued = mutableListOf<Type>()
 
-        fun put(handle: ListenerHandle) = handles.computeIfAbsent(handle.key) { mutableListOf() }.add(handle)
+        fun put(handle: ListenerHandle) = listeners.computeIfAbsent(handle.key) { mutableListOf() }.add(handle)
+        fun put(handle: BusEventHandle) =
+            handle.busNames.forEach { busName -> busEvents.computeIfAbsent(busName) { mutableListOf() }.add(handle) }
+
         fun markScanned(type: Type) = scanned.add(type)
         fun queueType(type: Type) = queued.add(type)
 
@@ -53,7 +59,7 @@ class KotlinLanguageAdapter : LanguageAdapter {
                             val fileName = classPath.fileName
                             if (fileName != null && fileName.toString().endsWith(".class")) {
                                 KotlinClassScanner.scan(
-                                    classPath, modIds, request.isClientSide, false, ::put, ::markScanned, ::queueType
+                                    classPath, modIds, request.isClientSide, false, ::put, ::put, ::markScanned, ::queueType
                                 )
                             }
                         }
@@ -67,7 +73,7 @@ class KotlinLanguageAdapter : LanguageAdapter {
                 val classUrl = loader.getResource(classStr.replace('.', '/') + ".class")
                 if (classUrl != null) {
                     KotlinClassScanner.scan(
-                        classUrl, modIds, request.isClientSide, true, ::put, ::markScanned, ::queueType
+                        classUrl, modIds, request.isClientSide, true, ::put, ::put, ::markScanned, ::queueType
                     )
                 } else {
                     CELog.LOGGER.warn(
@@ -82,7 +88,7 @@ class KotlinLanguageAdapter : LanguageAdapter {
             if (!scanned.contains(ty)) {
                 val classUrl = loader.getResource(ty.internalName + ".class")
                 if (classUrl != null) {
-                    KotlinClassScanner.scan(classUrl, modIds, request.isClientSide, true, ::put, ::markScanned) {}
+                    KotlinClassScanner.scan(classUrl, modIds, request.isClientSide, true, ::put, ::put, ::markScanned) {}
                 } else {
                     CELog.LOGGER.warn(
                         "[Common Events] Kotlin companion object class {} not found in mod {}. Skipping...",
@@ -93,7 +99,6 @@ class KotlinLanguageAdapter : LanguageAdapter {
             }
         }
 
-        // FIXME
-        return ScanResult(handles, mapOf())
+        return ScanResult(listeners, busEvents)
     }
 }

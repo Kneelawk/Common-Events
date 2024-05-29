@@ -16,8 +16,9 @@
 
 package com.kneelawk.commonevents.kotlin.impl.adapter
 
-import com.kneelawk.commonevents.api.adapter.ListenerHandle
 import com.kneelawk.commonevents.api.EventKey
+import com.kneelawk.commonevents.api.adapter.BusEventHandle
+import com.kneelawk.commonevents.api.adapter.ListenerHandle
 import com.kneelawk.commonevents.api.adapter.util.AdapterUtils.*
 import com.kneelawk.commonevents.impl.CEConstants
 import com.kneelawk.commonevents.impl.CELog
@@ -31,29 +32,32 @@ import java.nio.file.Path
 
 class KotlinClassScanner(
     private val isClientSide: Boolean, forceScan: Boolean, private val listenerFound: (ListenerHandle) -> Unit,
-    private val markScannedType: (Type) -> Unit, private val queueType: (Type) -> Unit
+    private val busEventFound: (BusEventHandle) -> Unit, private val markScannedType: (Type) -> Unit,
+    private val queueType: (Type) -> Unit
 ) : ClassVisitor(API) {
     companion object {
         private fun scan(
             bis: BufferedInputStream, isClientSide: Boolean, forceScan: Boolean,
-            listenerFound: (ListenerHandle) -> Unit, markScannedType: (Type) -> Unit, queueType: (Type) -> Unit
+            listenerFound: (ListenerHandle) -> Unit, busEventFound: (BusEventHandle) -> Unit,
+            markScannedType: (Type) -> Unit, queueType: (Type) -> Unit
         ) {
             val cr = ClassReader(bis)
             cr.accept(
-                KotlinClassScanner(isClientSide, forceScan, listenerFound, markScannedType, queueType),
+                KotlinClassScanner(isClientSide, forceScan, listenerFound, busEventFound, markScannedType, queueType),
                 ClassReader.SKIP_CODE or ClassReader.SKIP_DEBUG or ClassReader.SKIP_FRAMES
             )
         }
 
         fun scan(
             classUrl: URL, modIds: String, isClientSide: Boolean, forceScan: Boolean,
-            listenerFound: (ListenerHandle) -> Unit, markScannedType: (Type) -> Unit, queueType: (Type) -> Unit
+            listenerFound: (ListenerHandle) -> Unit, busEventFound: (BusEventHandle) -> Unit,
+            markScannedType: (Type) -> Unit, queueType: (Type) -> Unit
         ) {
             try {
                 classUrl.openStream().use { stream ->
                     BufferedInputStream(stream).use { bis ->
                         scan(
-                            bis, isClientSide, forceScan, listenerFound, markScannedType, queueType
+                            bis, isClientSide, forceScan, listenerFound, busEventFound, markScannedType, queueType
                         )
                     }
                 }
@@ -64,13 +68,14 @@ class KotlinClassScanner(
 
         fun scan(
             classPath: Path, modIds: String, isClientSide: Boolean, forceScan: Boolean,
-            listenerFound: (ListenerHandle) -> Unit, markScannedType: (Type) -> Unit, queueType: (Type) -> Unit
+            listenerFound: (ListenerHandle) -> Unit, busEventFound: (BusEventHandle) -> Unit,
+            markScannedType: (Type) -> Unit, queueType: (Type) -> Unit
         ) {
             try {
                 Files.newInputStream(classPath).use { stream ->
                     BufferedInputStream(stream).use { bis ->
                         scan(
-                            bis, isClientSide, forceScan, listenerFound, markScannedType, queueType
+                            bis, isClientSide, forceScan, listenerFound, busEventFound, markScannedType, queueType
                         )
                     }
                 }
@@ -144,8 +149,59 @@ class KotlinClassScanner(
             queueType(fieldType)
         }
 
-        // TODO: event field scanning for auto-adding to event busses
-        return null
+        return FieldScanner(name)
+    }
+
+    private inner class FieldScanner(private val fieldName: String) : FieldVisitor(API) {
+        override fun visitAnnotation(descriptor: String, visible: Boolean): AnnotationVisitor? {
+            if (BUS_EVENT_ANNOTATION_NAME == descriptor) {
+                return FieldAnnotationScanner()
+            }
+            return null
+        }
+
+        private inner class FieldAnnotationScanner : AnnotationVisitor(API) {
+            val eventBusNames = mutableListOf<ResourceLocation>()
+            val eventBusSet = mutableSetOf<ResourceLocation>()
+
+            override fun visitArray(name: String): AnnotationVisitor? {
+                if (BUS_EVENT_VALUE_FIELD_NAME == name) {
+                    return FieldAnnotationArrayScanner()
+                }
+                return null
+            }
+
+            private inner class FieldAnnotationArrayScanner : AnnotationVisitor(API) {
+                override fun visit(name: String?, value: Any) {
+                    if (value is String) {
+                        val busName = try {
+                            ResourceLocation(value)
+                        } catch (e: ResourceLocationException) {
+                            CELog.LOGGER.warn(
+                                "[Common Events] Encountered invalid event bus name '{}' in {}.{} annotation",
+                                value, visitingClass!!.internalName, fieldName, e
+                            )
+                            return
+                        }
+
+                        if (!eventBusSet.add(busName)) {
+                            CELog.LOGGER.warn(
+                                "[Common Events] Event bus name '{}' mentioned multiple times in {}.{} annotation. Ignoring...",
+                                busName, visitingClass!!.internalName, fieldName
+                            )
+                        }
+
+                        eventBusNames.add(busName)
+                    }
+                }
+            }
+
+            override fun visitEnd() {
+                if (eventBusNames.isNotEmpty()) {
+                    busEventFound(KotlinBusEventHandle(eventBusNames.toTypedArray(), visitingClass!!, fieldName))
+                }
+            }
+        }
     }
 
     override fun visitMethod(

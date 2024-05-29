@@ -48,8 +48,15 @@ object CommonEventsExampleKotlin {
     }
 
     fun init() {
+        val listeners2 = EventListener2()
+        EVENT_BUS.registerListeners(listeners2)
+        EVENT_BUS.registerListeners(EventListener3)
+
         LOGGER.info("  Firing MY_EVENT...")
         MY_EVENT.invoker().doSomething("Hello world!")
         LOGGER.info("  MY_EVENT fired")
+
+        EventHolder.fire()
+        EventHolder2.fire()
     }
 }
