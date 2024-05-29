@@ -277,6 +277,9 @@ public class ClassScanner extends ClassVisitor {
                     busEventFound.accept(
                         new JavaBusEventHandle(eventBusNames.toArray(ResourceLocation[]::new), visitingClass,
                             fieldName));
+                } else {
+                    CELog.LOGGER.warn("[Common Events] No bus names present in {}.{} annotation. Ignoring...",
+                        visitingClass.getInternalName(), fieldName);
                 }
             }
         }

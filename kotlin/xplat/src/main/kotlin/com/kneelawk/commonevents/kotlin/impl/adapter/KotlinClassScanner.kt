@@ -199,6 +199,11 @@ class KotlinClassScanner(
             override fun visitEnd() {
                 if (eventBusNames.isNotEmpty()) {
                     busEventFound(KotlinBusEventHandle(eventBusNames.toTypedArray(), visitingClass!!, fieldName))
+                } else {
+                    CELog.LOGGER.warn(
+                        "[Common Events] No bus names present in {}.{} annotation. Ignoring...",
+                        visitingClass!!.internalName, fieldName
+                    )
                 }
             }
         }
