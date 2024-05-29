@@ -156,6 +156,94 @@ public final class EventBus {
     }
 
     /**
+     * Checks whether this event bus has the event described by the given callback type and qualifier.
+     *
+     * @param callbackType the callback interface class of the event.
+     * @return whether this event bus has the event.
+     */
+    public boolean hasEvent(Class<?> callbackType) {
+        return hasEvent(EventKey.fromClass(callbackType, Event.DEFAULT_QUALIFIER));
+    }
+
+    /**
+     * Checks whether this event bus has the event described by the given callback type and qualifier.
+     *
+     * @param callbackType the callback interface class of the event.
+     * @param qualifier    the qualifier of the event.
+     * @return whether this event bus has the event.
+     */
+    public boolean hasEvent(Class<?> callbackType, String qualifier) {
+        return hasEvent(EventKey.fromClass(callbackType, qualifier));
+    }
+
+    /**
+     * Checks whether this event bus has the event described by the given key.
+     *
+     * @param key the key of the event to check.
+     * @return whether this event bus has the event.
+     */
+    public boolean hasEvent(EventKey key) {
+        return events.containsKey(key);
+    }
+
+    /**
+     * Gets the invoker for the specified event.
+     *
+     * @param callbackType the class of the callback interface of the event.
+     * @param <T>          the type of the callback interface.
+     * @return the event with the given callback interface type and qualifier.
+     * @throws EventNotFoundException if no event is present that matches the given specifiers.
+     */
+    public <T> T getInvoker(Class<T> callbackType) {
+        return getInvoker(callbackType, Event.DEFAULT_QUALIFIER);
+    }
+
+    /**
+     * Gets the invoker for the specified event.
+     *
+     * @param callbackType the class of the callback interface of the event.
+     * @param qualifier    the qualifier of the event.
+     * @param <T>          the type of the callback interface.
+     * @return the event with the given callback interface type and qualifier.
+     * @throws EventNotFoundException if no event is present that matches the given specifiers.
+     */
+    @SuppressWarnings("unchecked")
+    public <T> T getInvoker(Class<T> callbackType, String qualifier) {
+        EventKey key = EventKey.fromClass(callbackType, qualifier);
+        Event<T> event = (Event<T>) events.get(key);
+        if (event == null) throw new EventNotFoundException("Event " + key + " not found in event bus " + name);
+        return event.invoker();
+    }
+
+    /**
+     * Tries to get the invoker for the specified event.
+     *
+     * @param callbackType the class of the callback interface of the event.
+     * @param <T>          the type of the callback interface.
+     * @return the event with the given callback interface type and qualifier, or {@code null} if no event is present
+     * that matches the given specifiers.
+     */
+    public <T> @Nullable T tryGetInvoker(Class<T> callbackType) {
+        return tryGetInvoker(callbackType, Event.DEFAULT_QUALIFIER);
+    }
+
+    /**
+     * Tries to get the invoker for the specified event.
+     *
+     * @param callbackType the class of the callback interface of the event.
+     * @param qualifier    the qualifier of the event.
+     * @param <T>          the type of the callback interface.
+     * @return the event with the given callback interface type and qualifier, or {@code null} if no event is present
+     * that matches the given specifiers.
+     */
+    @SuppressWarnings("unchecked")
+    public <T> @Nullable T tryGetInvoker(Class<T> callbackType, String qualifier) {
+        Event<T> event = (Event<T>) events.get(EventKey.fromClass(callbackType, qualifier));
+        if (event == null) return null;
+        return event.invoker();
+    }
+
+    /**
      * Registers a listener for the given event type with this bus.
      *
      * @param callbackInterface the callback interface the event handles and the listener implements.
