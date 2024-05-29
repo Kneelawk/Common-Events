@@ -16,11 +16,14 @@
 
 package com.kneelawk.commonevents.api.adapter.mod;
 
+import java.lang.annotation.Annotation;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.Nullable;
+import org.objectweb.asm.Type;
 
 /**
  * A platform-independent representation of a mod file.
@@ -51,4 +54,16 @@ public interface ModFileHolder {
      * @return this mod's root paths.
      */
     List<Path> getRootPaths();
+
+    /**
+     * Gets a stream of all classes that have been annotated with the given annotation.
+     * <p>
+     * This is not implemented on all platforms. If this is not implemented on the given platform, it will return null.
+     *
+     * @param annotationClass the annotation to look for.
+     * @return a stream of all classes that have been annotated with the given annotation.
+     */
+    default @Nullable Stream<Type> getAnnotatedClasses(Class<? extends Annotation> annotationClass) {
+        return null;
+    }
 }

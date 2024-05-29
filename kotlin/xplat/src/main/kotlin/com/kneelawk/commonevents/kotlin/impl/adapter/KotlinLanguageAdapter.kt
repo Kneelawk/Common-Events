@@ -17,6 +17,7 @@
 package com.kneelawk.commonevents.kotlin.impl.adapter
 
 import com.kneelawk.commonevents.api.EventKey
+import com.kneelawk.commonevents.api.Scan
 import com.kneelawk.commonevents.api.adapter.BusEventHandle
 import com.kneelawk.commonevents.api.adapter.LanguageAdapter
 import com.kneelawk.commonevents.api.adapter.ListenerHandle
@@ -52,20 +53,33 @@ class KotlinLanguageAdapter : LanguageAdapter {
         val loader = javaClass.classLoader
 
         if (info is ScannableInfo.All) {
-            for (root in modFile.rootPaths) {
-                try {
-                    Files.walk(root).use { stream ->
-                        for (classPath in stream) {
-                            val fileName = classPath.fileName
-                            if (fileName != null && fileName.toString().endsWith(".class")) {
-                                KotlinClassScanner.scan(
-                                    classPath, modIds, request.isClientSide, false, ::put, ::put, ::markScanned, ::queueType
-                                )
+            val classesToScan = modFile.getAnnotatedClasses(Scan::class.java);
+            if (classesToScan == null) {
+                for (root in modFile.rootPaths) {
+                    try {
+                        Files.walk(root).use { stream ->
+                            for (classPath in stream) {
+                                val fileName = classPath.fileName
+                                if (fileName != null && fileName.toString().endsWith(".class")) {
+                                    KotlinClassScanner.scan(
+                                        classPath, modIds, request.isClientSide, false, ::put, ::put,
+                                        ::markScanned, ::queueType
+                                    )
+                                }
                             }
                         }
+                    } catch (e: Exception) {
+                        CELog.LOGGER.warn("[Common Events] Error scanning classes in mod {}.", modIds, e)
                     }
-                } catch (e: Exception) {
-                    CELog.LOGGER.warn("[Common Events] Error scanning classes in mod {}.", modIds, e)
+                }
+            } else {
+                for (classToScan in classesToScan) {
+                    val classUrl = loader.getResource(classToScan.internalName + ".class")
+                    if (classUrl != null) {
+                        KotlinClassScanner.scan(
+                            classUrl, modIds, request.isClientSide, true, ::put, ::put, ::markScanned, ::queueType
+                        )
+                    }
                 }
             }
         } else if (info is ScannableInfo.Only && info.classes.isNotEmpty()) {
@@ -88,7 +102,9 @@ class KotlinLanguageAdapter : LanguageAdapter {
             if (!scanned.contains(ty)) {
                 val classUrl = loader.getResource(ty.internalName + ".class")
                 if (classUrl != null) {
-                    KotlinClassScanner.scan(classUrl, modIds, request.isClientSide, true, ::put, ::put, ::markScanned) {}
+                    KotlinClassScanner.scan(
+                        classUrl, modIds, request.isClientSide, true, ::put, ::put, ::markScanned
+                    ) {}
                 } else {
                     CELog.LOGGER.warn(
                         "[Common Events] Kotlin companion object class {} not found in mod {}. Skipping...",

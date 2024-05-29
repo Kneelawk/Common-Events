@@ -16,15 +16,20 @@
 
 package com.kneelawk.commonevents.impl.mod;
 
+import java.lang.annotation.Annotation;
+import java.lang.annotation.ElementType;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import net.neoforged.neoforgespi.language.IModInfo;
+import net.neoforged.neoforgespi.language.ModFileScanData;
 import net.neoforged.neoforgespi.locating.IModFile;
 
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
+import org.objectweb.asm.Type;
 
 import com.kneelawk.commonevents.api.adapter.mod.ModFileHolder;
 
@@ -50,5 +55,11 @@ public class ModFileHolderImpl implements ModFileHolder {
     @Override
     public @NotNull List<Path> getRootPaths() {
         return List.of(mod.getSecureJar().getRootPath());
+    }
+
+    @Override
+    public @Nullable Stream<Type> getAnnotatedClasses(@NotNull Class<? extends Annotation> annotationClass) {
+        return mod.getScanResult().getAnnotatedBy(annotationClass, ElementType.TYPE)
+            .map(ModFileScanData.AnnotationData::clazz);
     }
 }

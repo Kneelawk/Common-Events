@@ -27,10 +27,12 @@ import java.util.Map;
 import java.util.stream.Stream;
 
 import org.jetbrains.annotations.NotNull;
+import org.objectweb.asm.Type;
 
 import net.minecraft.resources.ResourceLocation;
 
 import com.kneelawk.commonevents.api.EventKey;
+import com.kneelawk.commonevents.api.Scan;
 import com.kneelawk.commonevents.api.adapter.BusEventHandle;
 import com.kneelawk.commonevents.api.adapter.LanguageAdapter;
 import com.kneelawk.commonevents.api.adapter.ListenerHandle;
@@ -59,19 +61,35 @@ public class JavaLanguageAdapter implements LanguageAdapter {
         ClassLoader loader = getClass().getClassLoader();
 
         if (mod.getInfo() instanceof ScannableInfo.All) {
-            for (Path root : modFile.getRootPaths()) {
-                try (Stream<Path> stream = Files.walk(root)) {
-                    for (Iterator<Path> iter = stream.iterator(); iter.hasNext(); ) {
-                        Path classPath = iter.next();
-                        Path fileName = classPath.getFileName();
-                        if (fileName != null && fileName.toString().endsWith(".class")) {
-                            ClassScanner.scan(classPath, modIds, request.isClientSide(), false,
-                                handle -> addHandle(handle, scannedListeners),
-                                handle -> addHandle(handle, scannedBusEvents));
+            Stream<Type> classesToScan = modFile.getAnnotatedClasses(Scan.class);
+            if (classesToScan == null) {
+                for (Path root : modFile.getRootPaths()) {
+                    try (Stream<Path> stream = Files.walk(root)) {
+                        for (Iterator<Path> iter = stream.iterator(); iter.hasNext(); ) {
+                            Path classPath = iter.next();
+                            Path fileName = classPath.getFileName();
+                            if (fileName != null && fileName.toString().endsWith(".class")) {
+                                ClassScanner.scan(classPath, modIds, request.isClientSide(), false,
+                                    handle -> addHandle(handle, scannedListeners),
+                                    handle -> addHandle(handle, scannedBusEvents));
+                            }
                         }
+                    } catch (Exception e) {
+                        CELog.LOGGER.warn("[Common Events] Error scanning classes in mod {}.", modIds, e);
                     }
-                } catch (Exception e) {
-                    CELog.LOGGER.warn("[Common Events] Error scanning classes in mod {}.", modIds, e);
+                }
+            } else {
+                for (Iterator<Type> classTypeIter = classesToScan.iterator(); classTypeIter.hasNext(); ) {
+                    Type classType = classTypeIter.next();
+                    URL classPath = loader.getResource(classType.getInternalName() + ".class");
+                    if (classPath != null) {
+                        ClassScanner.scan(classPath, modIds, request.isClientSide(), true,
+                            handle -> addHandle(handle, scannedListeners),
+                            handle -> addHandle(handle, scannedBusEvents));
+                    } else {
+                        CELog.LOGGER.warn("[Common Events] Scan class {} not found in mod {}. Skipping...",
+                            classType.getClassName(), modIds);
+                    }
                 }
             }
         } else if (mod.getInfo() instanceof ScannableInfo.Only only && !only.classes().isEmpty()) {
