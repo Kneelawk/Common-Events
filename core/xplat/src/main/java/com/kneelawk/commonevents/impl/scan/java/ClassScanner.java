@@ -196,6 +196,8 @@ public class ClassScanner extends ClassVisitor {
 
     @Override
     public FieldVisitor visitField(int access, String name, String descriptor, String signature, Object value) {
+        if (!shouldScan) return null;
+        
         if ((access & Opcodes.ACC_STATIC) != 0 && (access & Opcodes.ACC_PUBLIC) != 0) {
             return new FieldScanner(name);
         } else {
