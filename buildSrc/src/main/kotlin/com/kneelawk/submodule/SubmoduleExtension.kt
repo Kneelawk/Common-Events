@@ -37,6 +37,7 @@ import org.gradle.api.tasks.javadoc.Javadoc
 import org.gradle.jvm.tasks.Jar
 import org.gradle.kotlin.dsl.*
 import org.gradle.language.jvm.tasks.ProcessResources
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 abstract class SubmoduleExtension(private val project: Project, private val javaVersion: String) {
@@ -49,7 +50,7 @@ abstract class SubmoduleExtension(private val project: Project, private val java
         project.plugins.apply("org.jetbrains.kotlin.jvm")
 
         project.tasks.withType<KotlinCompile>().configureEach {
-            kotlinOptions.jvmTarget = javaVersion
+            compilerOptions.jvmTarget.set(JvmTarget.fromTarget(javaVersion))
         }
 
         project.dependencies {
