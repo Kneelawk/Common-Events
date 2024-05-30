@@ -445,7 +445,7 @@ public final class EventBus {
     private ListenerHolder buildHolder(Listen annotation, Class<?> listenerClass, Method listenerMethod,
                                        @Nullable Object instance) {
         Class<?> callbackInterface = annotation.value();
-        ResourceLocation phase = new ResourceLocation(annotation.phase());
+        ResourceLocation phase = ResourceLocation.parse(annotation.phase());
 
         Method interfaceMethod = AdapterUtils.getSingularMethod(callbackInterface);
         if (interfaceMethod == null) throw new IllegalArgumentException(

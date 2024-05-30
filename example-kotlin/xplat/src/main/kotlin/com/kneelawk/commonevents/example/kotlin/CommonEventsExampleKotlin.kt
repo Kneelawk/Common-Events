@@ -29,7 +29,7 @@ object CommonEventsExampleKotlin {
         LOGGER.info("# Creating EVENT_BUS...")
     }
 
-    val EVENT_BUS = EventBus.builder(ResourceLocation(MOD_ID, "bus")).build()
+    val EVENT_BUS = EventBus.builder(ResourceLocation.fromNamespaceAndPath(MOD_ID, "bus")).build()
 
     init {
         LOGGER.info("# EVENT_BUS created")

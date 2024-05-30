@@ -35,7 +35,8 @@ public class CommonEventsExample {
         LOGGER.info("# Creating EVENT_BUS...");
     }
 
-    public static final EventBus EVENT_BUS = EventBus.builder(new ResourceLocation(MOD_ID, "bus")).build();
+    public static final EventBus EVENT_BUS =
+        EventBus.builder(ResourceLocation.fromNamespaceAndPath(MOD_ID, "bus")).build();
 
     static {
         LOGGER.info("# EVENT_BUS created.");
@@ -61,7 +62,7 @@ public class CommonEventsExample {
             for (MyCallback callback : callbacks) {
                 callback.onEvent();
             }
-        }, new ResourceLocation(MOD_ID, "my_phase"), Event.DEFAULT_PHASE);
+        }, ResourceLocation.fromNamespaceAndPath(MOD_ID, "my_phase"), Event.DEFAULT_PHASE);
 
         static {
             LOGGER.info("# MY_EVENT created.");

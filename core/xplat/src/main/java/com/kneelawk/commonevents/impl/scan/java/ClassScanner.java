@@ -177,7 +177,7 @@ public class ClassScanner extends ClassVisitor {
                     qualifier = str;
                 } else if (AdapterUtils.LISTEN_PHASE_FIELD_NAME.equals(name) && value instanceof String str) {
                     try {
-                        phase = new ResourceLocation(str);
+                        phase = ResourceLocation.parse(str);
                     } catch (ResourceLocationException e) {
                         CELog.LOGGER.warn("[Common Events] Encountered invalid phase '{}' in {}.{}{}", str,
                             visitingClass.getInternalName(), name, descriptor, e);
@@ -251,7 +251,7 @@ public class ClassScanner extends ClassVisitor {
                     if (value instanceof String str) {
                         ResourceLocation busName;
                         try {
-                            busName = new ResourceLocation(str);
+                            busName = ResourceLocation.parse(str);
                         } catch (ResourceLocationException e) {
                             CELog.LOGGER.warn(
                                 "[Common Events] Encountered invalid event bus name '{}' in {}.{} annotation", str,

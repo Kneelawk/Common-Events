@@ -25,27 +25,33 @@ pluginManagement {
     }
 }
 
-fun add(name: String, path: String) {
+fun add(enabled: Boolean, name: String, path: String) {
+    if (!enabled) return
     include(name)
     project(name).projectDir = file(path)
 }
 
 rootProject.name = "common-events"
 
-add(":xplat", "core/xplat")
-add(":fabric", "core/fabric")
-add(":neoforge", "core/neoforge")
-add(":xplat-mojmap", "core/xplat-mojmap")
+val xplat = true
+val mojmap = true
+val fabric = true
+val neoforge = false
 
-add(":kotlin-xplat", "kotlin/xplat")
-add(":kotlin-fabric", "kotlin/fabric")
-add(":kotlin-neoforge", "kotlin/neoforge")
-add(":kotlin-xplat-mojmap", "kotlin/xplat-mojmap")
+add(xplat, ":xplat", "core/xplat")
+add(fabric, ":fabric", "core/fabric")
+add(neoforge, ":neoforge", "core/neoforge")
+add(mojmap, ":xplat-mojmap", "core/xplat-mojmap")
 
-add(":example-xplat", "example/xplat")
-add(":example-fabric", "example/fabric")
-add(":example-neoforge", "example/neoforge")
+add(xplat, ":kotlin-xplat", "kotlin/xplat")
+add(fabric, ":kotlin-fabric", "kotlin/fabric")
+add(neoforge, ":kotlin-neoforge", "kotlin/neoforge")
+add(mojmap, ":kotlin-xplat-mojmap", "kotlin/xplat-mojmap")
 
-add(":example-kotlin-xplat", "example-kotlin/xplat")
-add(":example-kotlin-fabric", "example-kotlin/fabric")
-add(":example-kotlin-neoforge", "example-kotlin/neoforge")
+add(xplat, ":example-xplat", "example/xplat")
+add(fabric, ":example-fabric", "example/fabric")
+add(neoforge, ":example-neoforge", "example/neoforge")
+
+add(xplat, ":example-kotlin-xplat", "example-kotlin/xplat")
+add(fabric, ":example-kotlin-fabric", "example-kotlin/fabric")
+add(neoforge, ":example-kotlin-neoforge", "example-kotlin/neoforge")

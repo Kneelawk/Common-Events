@@ -175,7 +175,7 @@ class KotlinClassScanner(
                 override fun visit(name: String?, value: Any) {
                     if (value is String) {
                         val busName = try {
-                            ResourceLocation(value)
+                            ResourceLocation.parse(value)
                         } catch (e: ResourceLocationException) {
                             CELog.LOGGER.warn(
                                 "[Common Events] Encountered invalid event bus name '{}' in {}.{} annotation",
@@ -246,7 +246,7 @@ class KotlinClassScanner(
                     qualifier = value
                 } else if (LISTEN_PHASE_FIELD_NAME == name && value is String) {
                     try {
-                        phase = ResourceLocation(value)
+                        phase = ResourceLocation.parse(value)
                     } catch (e: ResourceLocationException) {
                         CELog.LOGGER.warn(
                             "[Common Events] Encountered invalid phase '{}' in {}.{}{}",

@@ -26,6 +26,6 @@ public class CEConstants {
     public static final String DEFAULT_QUALIFIER = "common_events_default";
 
     public static ResourceLocation rl(String path) {
-        return new ResourceLocation(MOD_ID, path);
+        return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
     }
 }
