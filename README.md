@@ -76,6 +76,15 @@ The kotlin adapter can be used by adding a dependency on the following:
 
 ```groovy
 modImplementation "com.kneelawk.common-events:common-events-kotlin-<platform>:<version>"
+include "com.kneelawk.common-events:common-events-kotlin-<platform>:<version>"
+```
+And by adding an `adapter` statement to your `common-events.json` like so:
+
+```json
+{
+    "adapter": "kotlin",
+    "scan": true
+}
 ```
 
 The kotlin adapter allows you to mark `object`s with the `@Scan` annotation without having to mark your `@Listen`
