@@ -7,6 +7,28 @@ registration of event listeners.
 
 [QSL]: https://github.com/QuiltMC/quilt-standard-libraries
 
+## Getting Common-Events
+
+You can get Common-Events by adding the following to your `build.gradle` file:
+```groovy
+repositories {
+    maven {
+        name = "Kneelawk"
+        url = "https://maven.kneelawk.com/releases/"
+    }
+}
+
+dependencies {
+    // If using loom:
+    modImplementation "com.kneelawk.common-events:common-events-<platform>:<version>"
+    include "com.kneelawk.common-events:common-events-<platform>:<version>"
+    
+    // If using userdev:
+    implementation "com.kneelawk.common-events:common-events-<platform>:<version>"
+    jarJar "com.kneelawk.common-events:common-events-<platform>:<version>"
+}
+```
+
 ## How to Register Listeners
 
 Like in Fabric and Quilt's event systems, callback listeners can be registered directly on event objects. However,
@@ -48,9 +70,14 @@ like so:
 
 Classes referenced here also have the same kind of delayed initialization as classes annotated with `@Listener`.
 
-## Adapters & Kotlin Support
+## Kotlin Adapter
 
-Adapter support, as well as an official Kotlin adapter, are planned. However, I want to focus on getting the java
-portion of this library working first.
+The kotlin adapter can be used by adding a dependency on the following:
 
-For the time-being, annotating functions marked with `@Listen` with the `@JvmStatic` annotation works quite well.
+```groovy
+modImplementation "com.kneelawk.common-events:common-events-kotlin-<platform>:<version>"
+```
+
+The kotlin adapter allows you to mark `object`s with the `@Scan` annotation without having to mark your `@Listen`
+-annotated methods with `@JvmStatic`. This also allows `@BusEvent`-annotated kotlin fields to be discovered, which is
+impossible with the java adapter.
