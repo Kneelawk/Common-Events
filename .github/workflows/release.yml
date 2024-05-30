@@ -3,9 +3,8 @@ name: release
 
 env:
   PROJECT_NAME: Common-Events
-  JAVADOC_NAME: common-events
-  SUB_JAVADOC: xplat
-  MAVEN_IDENTIFIER: 'com.kneelawk:common-events-xplat-intermediary'
+  JAVADOC_DIR: com/kneelawk/common-events/common-events-xplat-intermediary
+  MAVEN_IDENTIFIER: 'com.kneelawk.common-events:common-events-xplat-intermediary'
   ROLE_ID: '1239439830979710988'
 
 # Variant: github, maven+javadoc, discord
@@ -96,8 +95,8 @@ jobs:
             let changesStart = lines.findIndex(line => line.startsWith('*'));
             lines.splice(0, changesStart);
             lines.unshift(`# ${process.env.PROJECT_NAME} Release`, `**<@&${process.env.ROLE_ID}> ${process.env.PROJECT_NAME} ${versions[0]} has been released for Minecraft ${versions[1]}!**`, '', '__Changes:__');
-            lines.push("Available on Kneelawk's maven: https://kneelawk.com/maven/", `With the identifier: \`${process.env.MAVEN_IDENTIFIER}:${mavenVersion}\``);
-            lines.push(`Javadoc available at: https://kneelawk.com/docs/${process.env.JAVADOC_NAME}/${mavenVersion}/${process.env.SUB_JAVADOC}/javadoc/index.html`);
+            lines.push("Available on Kneelawk's maven: https://maven.kneelawk.com/releases/", `With the identifier: \`${process.env.MAVEN_IDENTIFIER}:${mavenVersion}\``);
+            lines.push(`Javadoc available at: https://maven.kneelawk.com/javadoc/releases/${process.JAVADOC_DIR}/${mavenVersion}`);
             return lines.join('\n');
           result-encoding: string
       - name: Make Release Announcement
