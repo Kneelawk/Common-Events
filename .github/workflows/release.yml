@@ -55,7 +55,7 @@ jobs:
       - name: Make Gradle Wrapper Executable
         run: chmod +x ./gradlew
       - name: Build
-        run: ./gradlew build --no-daemon
+        run: ./gradlew build
         env:
           RELEASE_TAG: ${{ steps.tag_version.outputs.tag }}
       - name: Capture Build Directory
@@ -71,7 +71,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.PUBLISH_TOKEN }}
       - name: Maven Release
-        run: ./gradlew publish -PkneelawkUsername=${{ secrets.MAVEN_USERNAME }} -PkneelawkPassword=${{ secrets.MAVEN_PASSWORD }} --no-daemon
+        run: ./gradlew publish -PkneelawkUsername=${{ secrets.MAVEN_USERNAME }} -PkneelawkPassword=${{ secrets.MAVEN_PASSWORD }}
         env:
           RELEASE_TAG: ${{ steps.tag_version.outputs.tag }}
       # This is the mess that publishes discord notifications
