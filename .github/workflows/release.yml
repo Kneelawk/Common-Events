@@ -96,7 +96,7 @@ jobs:
             lines.splice(0, changesStart);
             lines.unshift(`# ${process.env.PROJECT_NAME} Release`, `**<@&${process.env.ROLE_ID}> ${process.env.PROJECT_NAME} ${versions[0]} has been released for Minecraft ${versions[1]}!**`, '', '__Changes:__');
             lines.push("Available on Kneelawk's maven: https://maven.kneelawk.com/releases/", `With the identifier: \`${process.env.MAVEN_IDENTIFIER}:${mavenVersion}\``);
-            lines.push(`Javadoc available at: https://maven.kneelawk.com/javadoc/releases/${process.JAVADOC_DIR}/${mavenVersion}`);
+            lines.push(`Javadoc available at: https://maven.kneelawk.com/javadoc/releases/${process.env.JAVADOC_DIR}/${mavenVersion}`);
             return lines.join('\n');
           result-encoding: string
       - name: Make Release Announcement

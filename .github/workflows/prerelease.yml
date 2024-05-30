@@ -75,7 +75,7 @@ jobs:
             lines.push(`# ${process.env.PROJECT_NAME} Prerelease`);
             lines.push(`**<@&${process.env.ROLE_ID}> ${process.env.PROJECT_NAME} prerelease ${versions[0]} has been published for Minecraft ${versions[1]}!**`);
             lines.push("Available on Kneelawk's maven: https://maven.kneelawk.com/releases/", `With the identifier: \`${process.env.MAVEN_IDENTIFIER}:${mavenVersion}\``);
-            lines.push(`Javadoc available at: https://maven.kneelawk.com/javadoc/releases/${process.JAVADOC_DIR}/${mavenVersion}`);
+            lines.push(`Javadoc available at: https://maven.kneelawk.com/javadoc/releases/${process.env.JAVADOC_DIR}/${mavenVersion}`);
             return lines.join('\n');
           result-encoding: string
       - name: Make Release Announcement
