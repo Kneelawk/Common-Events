@@ -50,12 +50,14 @@ class KPublishPlugin : Plugin<Project> {
             }
         }
 
-        publishingEx.repositories.maven {
-            name = "kneelawk"
-            url = project.uri("https://maven.kneelawk.com/releases")
-            credentials(PasswordCredentials::class)
-            authentication {
-                create<BasicAuthentication>("basic")
+        if (project.hasProperty("kneelawkUsername") && project.hasProperty("kneelawkPassword")) {
+            publishingEx.repositories.maven {
+                name = "kneelawk"
+                url = project.uri("https://maven.kneelawk.com/releases")
+                credentials(PasswordCredentials::class)
+                authentication {
+                    create<BasicAuthentication>("basic")
+                }
             }
         }
     }
