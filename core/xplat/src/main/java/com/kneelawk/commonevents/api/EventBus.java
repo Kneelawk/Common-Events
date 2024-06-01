@@ -520,7 +520,8 @@ public final class EventBus {
     @SuppressWarnings("unchecked")
     private void registerListeners(Object key, List<ListenerHolder> holders) {
         for (ListenerHolder holder : holders) {
-            ((Event<Object>) events.get(holder.key())).registerKeyed(key, holder.listener());
+            Event<Object> event = (Event<Object>) events.get(holder.key());
+            if (event != null) event.registerKeyed(key, holder.listener());
         }
     }
 }
