@@ -54,6 +54,11 @@ add(fabric, ":kotlin-fabric", "kotlin/fabric")
 add(neoforge, ":kotlin-neoforge", "kotlin/neoforge")
 add(mojmap, ":kotlin-xplat-mojmap", "kotlin/xplat-mojmap")
 
+add(xplat, ":events-xplat", "events/xplat")
+add(fabric, ":events-fabric", "events/fabric")
+add(neoforge, ":events-neoforge", "events/neoforge")
+add(mojmap, ":events-xplat-mojmap", "events/xplat-mojmap")
+
 add(xplat, ":example-xplat", "example/xplat")
 add(fabric, ":example-fabric", "example/fabric")
 add(neoforge, ":example-neoforge", "example/neoforge")

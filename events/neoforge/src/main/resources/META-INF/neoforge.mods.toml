@@ -1,0 +1,18 @@
+modLoader = "javafml"
+loaderVersion = "[1,)"
+license = "Apache-2.0"
+
+[[mods]]
+modId = "common_events_events"
+version = "${version}"
+displayName = "Common Events Events"
+authors = "Kneelawk"
+description = "Cross-platform Event Library Events."
+logoFile = "assets/common_events_events/icon.png"
+
+[[dependencies.common_events_events]]
+modId = "neoforge"
+type = "REQUIRED"
+versionRange = "[20.4.148-beta,)"
+ordering = "NONE"
+side = "BOTH"
