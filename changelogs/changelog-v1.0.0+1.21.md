@@ -5,3 +5,4 @@ Changes:
 * Added Kotlin Language Adapter.
 * Added builders for `Event`s.
 * Added `EventBus`es.
+* Added main event bus.
