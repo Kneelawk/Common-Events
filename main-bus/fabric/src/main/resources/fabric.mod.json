@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "id": "common_events_main_bus",
+  "version": "${version}",
+  "name": "Common Events Main Bus",
+  "description": "Cross-platform Event Library Main Bus.",
+  "authors": [
+    "Kneelawk"
+  ],
+  "contact": {
+    "homepage": "https://github.com/Kneelawk/Common-Events",
+    "issues": "https://github.com/Kneelawk/Common-Events/issues",
+    "sources": "https://github.com/Kneelawk/Common-Events"
+  },
+  "license": "Apache-2.0",
+  "icon": "assets/common_events_main_bus/icon.png",
+  "environment": "*",
+  "entrypoints": { },
+  "mixins": [ ],
+  "depends": {
+    "fabricloader": ">=0.15.0",
+    "fabric-api": "*",
+    "minecraft": ">=1.21- <1.22-",
+    "java": ">=21"
+  },
+  "custom": {
+    "modmenu": {
+      "badges": [ "library" ],
+      "parent": "common_events"
+    }
+  }
+}

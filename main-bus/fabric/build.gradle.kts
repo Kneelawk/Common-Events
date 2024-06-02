@@ -5,15 +5,14 @@ plugins {
 }
 
 submodule {
-    setRefmaps("common-events-events")
     applyFabricLoaderDependency()
-    forceRemap()
+    applyFabricApiDependency()
+    applyXplatConnection(":main-bus-xplat", "fabric")
     setupJavadoc()
-    xplatProjectDependency(":main-bus")
 }
 
 java.docsDir.set(rootProject.layout.buildDirectory.map { it.dir("docs").dir(project.name) })
 
 kpublish {
-    createPublication("intermediary")
+    createPublication()
 }

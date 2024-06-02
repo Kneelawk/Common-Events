@@ -5,15 +5,14 @@ plugins {
 }
 
 submodule {
-    setRefmaps("common-events-events")
-    applyFabricLoaderDependency()
-    forceRemap()
+    applyNeoforgeDependency()
+    applyXplatConnection(":main-bus-xplat", "neoforge")
     setupJavadoc()
-    xplatProjectDependency(":main-bus")
+    createDevExport()
 }
 
 java.docsDir.set(rootProject.layout.buildDirectory.map { it.dir("docs").dir(project.name) })
 
 kpublish {
-    createPublication("intermediary")
+    createPublication()
 }

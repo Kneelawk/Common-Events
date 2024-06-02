@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package com.kneelawk.commonevents.events.api;
+package com.kneelawk.commonevents.mainbus.api;
 
 import net.minecraft.resources.ResourceLocation;
 
 import com.kneelawk.commonevents.api.EventBus;
 
 /**
- * Common Events Events API Root Class.
+ * Common Events Main Bus API Root Class.
  */
-public final class CommonEventsEvents {
-    private CommonEventsEvents() {}
+public final class CommonEventsMainBus {
+    private CommonEventsMainBus() {}
 
     /**
      * The name of the main event bus.
@@ -32,7 +32,7 @@ public final class CommonEventsEvents {
      * This can be used in {@link com.kneelawk.commonevents.api.BusEvent}. Using this constant will not cause unwanted
      * class-loading, because the string will get baked into the annotation at compile time.
      */
-    public static final String MAIN_EVENT_BUS_NAME = "common_events_events:main";
+    public static final String NAME = "common_events:main_bus";
 
     /**
      * The main event bus.
@@ -40,5 +40,5 @@ public final class CommonEventsEvents {
      * If you want a bus that is easily accessible to add your events, this bus is the bus. This bus should not be used
      * for more special-purpose events.
      */
-    public static final EventBus MAIN_EVENT_BUS = EventBus.builder(ResourceLocation.parse(MAIN_EVENT_BUS_NAME)).build();
+    public static final EventBus BUS = EventBus.builder(ResourceLocation.parse(NAME)).build();
 }

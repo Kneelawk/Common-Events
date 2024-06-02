@@ -5,11 +5,11 @@ plugins {
 }
 
 submodule {
-    setRefmaps("common-events-events")
+    setRefmaps("common-events-main-bus")
     applyFabricLoaderDependency()
     forceRemap()
     setupJavadoc()
-    xplatProjectDependency(":main-bus")
+    xplatProjectDependency(":")
 }
 
 java.docsDir.set(rootProject.layout.buildDirectory.map { it.dir("docs").dir(project.name) })
