@@ -7,3 +7,4 @@ Changes:
 * Added simple `Event` factory methods that do not require an implementation.
 * Added `EventBus`es.
 * Added main event bus.
+* Added some common events as part of an optional `common-events-events` artifact.
