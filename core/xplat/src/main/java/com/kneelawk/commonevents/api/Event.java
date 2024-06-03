@@ -39,6 +39,7 @@ import com.kneelawk.commonevents.api.phase.PhaseSorting;
 import com.kneelawk.commonevents.impl.CEConstants;
 import com.kneelawk.commonevents.impl.CommonEventsImpl;
 import com.kneelawk.commonevents.impl.event.EventPhaseDataHolder;
+import com.kneelawk.commonevents.impl.gen.ImplementationGenerator;
 import com.kneelawk.commonevents.impl.scan.ScanManager;
 
 /**
@@ -261,6 +262,19 @@ public final class Event<T> {
     }
 
     /**
+     * Creates a simple event that calls all registered listeners with the given arguments.
+     * <p>
+     * This requires that the callback interface be a functional interface with a method that returns {@code void}.
+     *
+     * @param type the callback interface type.
+     * @param <T>  the callback interface type.
+     * @return the created event.
+     */
+    public static <T> Event<T> createSimple(Class<? super T> type) {
+        return new Event<>(type, DEFAULT_QUALIFIER, ImplementationGenerator.defineSimple(type), true, false);
+    }
+
+    /**
      * Creates an event builder with the given callback interface type.
      *
      * @param <T>            the type of the callback interface.
@@ -270,6 +284,19 @@ public final class Event<T> {
      */
     public static <T> Builder<T> builder(Class<? super T> type, Function<T[], T> implementation) {
         return new Builder<>(type, implementation);
+    }
+
+    /**
+     * Creates a simple event builder that calls all registered listeners with the given arguments.
+     * <p>
+     * This requires that the callback interface be a functional interface with a method that returns {@code void}.
+     *
+     * @param type the callback interface type.
+     * @param <T>  the callback interface type.
+     * @return the event builder.
+     */
+    public static <T> Builder<T> builderSimple(Class<? super T> type) {
+        return new Builder<>(type, ImplementationGenerator.defineSimple(type));
     }
 
     /**

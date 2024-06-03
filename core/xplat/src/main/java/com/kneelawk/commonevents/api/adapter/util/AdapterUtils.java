@@ -45,6 +45,11 @@ public final class AdapterUtils {
     public static final int API = Opcodes.ASM9;
 
     /**
+     * The Java version level recommended for adapters.
+     */
+    public static final int JAVA_VERSION = Opcodes.V21;
+
+    /**
      * The fully-qualified name of the {@link Scan} annotation.
      */
     public static final String SCAN_ANNOTATION_NAME = "Lcom/kneelawk/commonevents/api/Scan;";

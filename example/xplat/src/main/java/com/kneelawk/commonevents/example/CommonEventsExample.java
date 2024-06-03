@@ -47,6 +47,7 @@ public class CommonEventsExample {
         EventListener3 listener3 = new EventListener3();
         EVENT_BUS.registerListeners(listener3);
         EventHolder.init();
+        EventHolder2.init();
     }
 
     @Scan
@@ -76,6 +77,26 @@ public class CommonEventsExample {
     }
 
     @Scan
+    public static class EventHolder2 {
+        static {
+            LOGGER.info("# Creating SIMPLE_EVENT...");
+        }
+
+        @BusEvent("common_events_example:bus")
+        public static Event<MyCallback2> SIMPLE_EVENT = Event.createSimple(MyCallback2.class);
+
+        static {
+            LOGGER.info("# SIMPLE_EVENT created.");
+        }
+
+        public static void init() {
+            LOGGER.info("  Firing SIMPLE_EVENT...");
+            SIMPLE_EVENT.invoker().onOtherEvent("test", Long.MAX_VALUE);
+            LOGGER.info("  SIMPLE_EVENT fired.");
+        }
+    }
+
+    @Scan
     public static class EventListener {
         static {
             LOGGER.info("# EventListener statically initialized");
@@ -85,12 +106,22 @@ public class CommonEventsExample {
         public static void onEvent() {
             LOGGER.info("> onEvent received in EventListener");
         }
+
+        @Listen(MyCallback2.class)
+        public static void onOtherEvent(String str, long l) {
+            LOGGER.info("> onOtherEvent received in EventListener: {}, {}", str, l);
+        }
     }
 
     public static class EventListener2 {
         @Listen(MyCallback.class)
         public static void onEvent() {
             LOGGER.info("> onEvent received in EventListener 2");
+        }
+
+        @Listen(MyCallback2.class)
+        public static void onOtherEvent(String str, long l) {
+            LOGGER.info("> onOtherEvent received in EventListener 2: {}, {}", str, l);
         }
     }
 
@@ -99,10 +130,20 @@ public class CommonEventsExample {
         public void onEvent() {
             LOGGER.info("> onEvent received in EventListener 3");
         }
+
+        @Listen(MyCallback2.class)
+        public void onOtherEvent(String str, long l) {
+            LOGGER.info("> onOtherEvent received in EventListener 3: {}, {}", str, l);
+        }
     }
 
     @FunctionalInterface
     public interface MyCallback {
         void onEvent();
+    }
+
+    @FunctionalInterface
+    public interface MyCallback2 {
+        void onOtherEvent(String str, long l);
     }
 }
