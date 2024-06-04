@@ -51,6 +51,7 @@ import com.kneelawk.commonevents.api.adapter.ListenerHandle;
 import com.kneelawk.commonevents.api.adapter.mod.ModFileHolder;
 import com.kneelawk.commonevents.api.adapter.scan.ScanResult;
 import com.kneelawk.commonevents.api.adapter.util.AdapterUtils;
+import com.kneelawk.commonevents.impl.CEConstants;
 import com.kneelawk.commonevents.impl.CELog;
 import com.kneelawk.commonevents.impl.Platform;
 
@@ -65,7 +66,7 @@ public class ScanManager {
     public static final ExecutorService SCAN_EXECUTOR =
         new ThreadPoolExecutor(0, Runtime.getRuntime().availableProcessors(), 2, TimeUnit.SECONDS,
             new SynchronousQueue<>());
-    public static final int THREAD_CUTOFF = 5;
+    public static final int THREAD_CUTOFF = CEConstants.SCAN_MULTI_THREAD_THRESHOLD;
 
     public static void ensureInitialized() {
         initLock.lock();

@@ -24,6 +24,9 @@ public class CEConstants {
     public static final ResourceLocation DEFAULT_PHASE = rl("default");
 
     public static final String DEFAULT_QUALIFIER = "common_events_default";
+    
+    public static final int SCAN_MULTI_THREAD_THRESHOLD = Integer.getInteger("com.kneelawk.common_events.scan_multi_thread_threshold", 5);
+    public static final boolean EXPORT_GENERATED_CLASSES = Boolean.getBoolean("com.kneelawk.common_events.export_generated_classes");
 
     public static ResourceLocation rl(String path) {
         return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);

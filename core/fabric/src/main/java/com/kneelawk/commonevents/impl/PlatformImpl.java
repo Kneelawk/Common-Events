@@ -76,4 +76,9 @@ public class PlatformImpl extends Platform {
             return FabricLoader.getInstance().getAllMods().stream().map(ModFileHolderImpl::new).toList();
         }
     }
+
+    @Override
+    public Path getGameDirectory() {
+        return FabricLoader.getInstance().getGameDir();
+    }
 }

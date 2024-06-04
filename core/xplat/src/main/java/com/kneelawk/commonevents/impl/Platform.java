@@ -17,6 +17,7 @@
 package com.kneelawk.commonevents.impl;
 
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Path;
 import java.util.List;
 
 import com.kneelawk.commonevents.api.adapter.mod.ModFileHolder;
@@ -43,4 +44,6 @@ public abstract class Platform {
     public abstract String getModVersion();
     
     public abstract List<? extends ModFileHolder> getModFiles();
+    
+    public abstract Path getGameDirectory();
 }

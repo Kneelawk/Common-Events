@@ -16,7 +16,10 @@
 
 package com.kneelawk.commonevents.impl.gen;
 
+import java.io.IOException;
 import java.lang.reflect.InvocationTargetException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.function.Function;
 
 import org.objectweb.asm.ClassWriter;
@@ -28,9 +31,12 @@ import org.objectweb.asm.commons.GeneratorAdapter;
 import org.objectweb.asm.commons.Method;
 
 import com.kneelawk.commonevents.api.adapter.util.AdapterUtils;
+import com.kneelawk.commonevents.impl.CEConstants;
+import com.kneelawk.commonevents.impl.CELog;
+import com.kneelawk.commonevents.impl.Platform;
 
 public class ImplementationGenerator {
-    private static final String PREFIX = "com.kneelawk.commonevents.impl.gen.impl.$CommonEvents_Generated$";
+    private static final String PREFIX = "com.kneelawk.commonevents.impl.gen.impl.$CommonEvents_Generated$.";
     private static final Handle LMF_HANDLE =
         new Handle(Opcodes.H_INVOKESTATIC, "java/lang/invoke/LambdaMetafactory", "metafactory", //
             "(" + //
@@ -43,7 +49,7 @@ public class ImplementationGenerator {
                 "Ljava/lang/invoke/CallSite;", //
             false);
     private static final Loader LOADER =
-        new Loader("implementation-generator", ImplementationGenerator.class.getClassLoader());
+        new Loader("event-implementation-generator", ImplementationGenerator.class.getClassLoader());
 
     private static class Loader extends ClassLoader {
         public Loader(String name, ClassLoader parent) {
@@ -57,7 +63,22 @@ public class ImplementationGenerator {
             String interfaceName = name.substring(PREFIX.length());
             Class<?> interfaceClass = Class.forName(interfaceName);
 
-            byte[] bytes = generateClass(Type.getObjectType(name.replace('.', '/')), interfaceClass);
+            String internalName = name.replace('.', '/');
+            byte[] bytes = generateClass(Type.getObjectType(internalName), interfaceClass);
+
+            if (CEConstants.EXPORT_GENERATED_CLASSES) {
+                Path classPath =
+                    Platform.getInstance().getGameDirectory().resolve(".common-events/" + internalName + ".class");
+                try {
+                    Path parentPath = classPath.getParent();
+                    if (!Files.exists(parentPath)) {
+                        Files.createDirectories(parentPath);
+                    }
+                    Files.write(classPath, bytes);
+                } catch (IOException e) {
+                    CELog.LOGGER.warn("[Common Events] Unable to write exported generated class to {}", classPath, e);
+                }
+            }
 
             return defineClass(name, bytes, 0, bytes.length);
         }
@@ -102,7 +123,10 @@ public class ImplementationGenerator {
 
         Type objectType = Type.getType(Object.class);
 
-        writer.visit(AdapterUtils.JAVA_VERSION, Opcodes.ACC_PUBLIC, name.getInternalName(), null,
+        String signature = objectType.getDescriptor() + "L" + functionType.getInternalName() + "<" +
+            interfaceArrayType.getDescriptor() + interfaceType.getDescriptor() + ">;";
+
+        writer.visit(AdapterUtils.JAVA_VERSION, Opcodes.ACC_PUBLIC, name.getInternalName(), signature,
             objectType.getInternalName(), new String[]{functionType.getInternalName()});
         writer.visitInnerClass("java/lang/invoke/MethodHandles$Lookup", "java/lang/invoke/MethodHandles", "Lookup",
             Opcodes.ACC_PUBLIC | Opcodes.ACC_FINAL | Opcodes.ACC_STATIC);
