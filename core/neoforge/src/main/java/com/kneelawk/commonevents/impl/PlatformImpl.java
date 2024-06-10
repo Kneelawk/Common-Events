@@ -16,6 +16,7 @@
 
 package com.kneelawk.commonevents.impl;
 
+import java.nio.file.Path;
 import java.util.List;
 
 import net.neoforged.fml.loading.FMLLoader;
@@ -37,5 +38,10 @@ public class PlatformImpl extends Platform {
     @Override
     public List<? extends ModFileHolder> getModFiles() {
         return FMLLoader.getLoadingModList().getModFiles().stream().map(file -> new ModFileHolderImpl(file.getFile())).toList();
+    }
+
+    @Override
+    public Path getGameDirectory() {
+        return FMLLoader.getGamePath();
     }
 }

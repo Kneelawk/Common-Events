@@ -1,1 +1,2 @@
 -Werror
+--link-modularity-mismatch=info

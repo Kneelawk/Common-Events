@@ -42,7 +42,7 @@ rootProject.name = "common-events"
 val xplat = true
 val mojmap = true
 val fabric = true
-val neoforge = false
+val neoforge = true
 
 add(xplat, ":xplat", "core/xplat")
 add(fabric, ":fabric", "core/fabric")
