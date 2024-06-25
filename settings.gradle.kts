@@ -12,7 +12,7 @@ pluginManagement {
         maven("https://maven.neoforged.net/releases/") {
             name = "NeoForged"
         }
-        maven("https://kneelawk.com/maven/") {
+        maven("https://maven.kneelawk.com/releases/") {
             name = "Kneelawk"
         }
         gradlePluginPortal()
