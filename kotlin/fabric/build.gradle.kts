@@ -5,10 +5,8 @@ plugins {
 }
 
 submodule {
-    applyKotlin("fabric")
-    applyFabricLoaderDependency()
-    applyFabricApiDependency()
-    applyXplatConnection(":kotlin-xplat", "fabric")
+    setLibsDirectory()
+    applyXplatConnection(":kotlin-xplat")
 }
 
 kpublish {

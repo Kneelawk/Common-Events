@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "id": "common_events_events",
+  "id": "${mod_id}",
   "version": "${version}",
   "name": "Common Events Events",
   "description": "Cross-platform Event Library Events.",
@@ -13,7 +13,7 @@
     "sources": "https://github.com/Kneelawk/Common-Events"
   },
   "license": "Apache-2.0",
-  "icon": "assets/common_events_events/icon.png",
+  "icon": "assets/${mod_id}/icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [
@@ -24,6 +24,8 @@
   "depends": {
     "fabricloader": ">=0.15.0",
     "fabric-api": "*",
+    "common_events": "*",
+    "common_events_main_bus": "*",
     "minecraft": ">=1.21- <1.22-",
     "java": ">=21"
   },

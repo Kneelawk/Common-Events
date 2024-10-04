@@ -20,8 +20,12 @@ pluginManagement {
     plugins {
         val kotlin_version: String by settings
         kotlin("jvm") version kotlin_version
-        val architectury_loom_version: String by settings
-        id("dev.architectury.loom") version architectury_loom_version
+        val loom_version: String by settings
+        id("fabric-loom") version loom_version
+        val moddev_version: String by settings
+        id("net.neoforged.moddev") version moddev_version
+        val remapcheck_version: String by settings
+        id("com.kneelawk.remapcheck") version remapcheck_version
         val versioning_version: String by settings
         id("com.kneelawk.versioning") version versioning_version
         val kpublish_version: String by settings

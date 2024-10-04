@@ -3,16 +3,30 @@ loaderVersion = "[1,)"
 license = "Apache-2.0"
 
 [[mods]]
-modId = "common_events_events"
+modId = "${mod_id}"
 version = "${version}"
 displayName = "Common Events Events"
 authors = "Kneelawk"
 description = "Cross-platform Event Library Events."
-logoFile = "assets/common_events_events/icon.png"
+logoFile = "assets/${mod_id}/icon.png"
 
-[[dependencies.common_events_events]]
+[[dependencies.${mod_id}]]
 modId = "neoforge"
 type = "REQUIRED"
 versionRange = "[20.4.148-beta,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.${mod_id}]]
+modId = "common_events"
+type = "REQUIRED"
+versionRange = "[1,)"
+ordering = "NONE"
+side = "BOTH"
+
+[[dependencies.${mod_id}]]
+modId = "common_events_main_bus"
+type = "REQUIRED"
+versionRange = "[1,)"
 ordering = "NONE"
 side = "BOTH"

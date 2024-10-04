@@ -6,7 +6,5 @@ plugins {
 
 submodule {
     setRefmaps("common-events-example")
-    applyFabricLoaderDependency()
-    forceRemap()
     xplatProjectDependency(":")
 }

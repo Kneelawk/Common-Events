@@ -3,21 +3,21 @@ loaderVersion = "[1,)"
 license = "Apache-2.0"
 
 [[mods]]
-modId = "common_events_example"
+modId = "${mod_id}"
 version = "${version}"
 displayName = "Common Events Example"
 authors = "Kneelawk"
 description = "Common Events Example."
-logoFile = "assets/common_events_example/icon.png"
+logoFile = "assets/${mod_id}/icon.png"
 
-[[dependencies.common_events_example]]
+[[dependencies.${mod_id}]]
 modId = "neoforge"
 type = "REQUIRED"
 versionRange = "[20.4.148-beta,)"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.common_events_example]]
+[[dependencies.${mod_id}]]
 modId = "common_events"
 type = "REQUIRED"
 versionRange = "[0,)"

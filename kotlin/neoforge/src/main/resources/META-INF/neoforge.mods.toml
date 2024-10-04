@@ -3,21 +3,21 @@ loaderVersion = "[1,)"
 license = "Apache-2.0"
 
 [[mods]]
-modId = "common_events_kotlin"
+modId = "${mod_id}"
 version = "${version}"
 displayName = "Common Events Kotlin"
 authors = "Kneelawk"
 description = "Cross-platform Event Library Kotlin adapter."
-logoFile = "assets/common_events_kotlin/icon.png"
+logoFile = "assets/${mod_id}/icon.png"
 
-[[dependencies.common_events_kotlin]]
+[[dependencies.${mod_id}]]
 modId = "neoforge"
 type = "REQUIRED"
 versionRange = "[20.6.40-beta,)"
 ordering = "NONE"
 side = "BOTH"
 
-[[dependencies.common_events_kotlin]]
+[[dependencies.${mod_id}]]
 modId = "common_events"
 type = "REQUIRED"
 versionRange = "[0,)"
@@ -25,7 +25,7 @@ ordering = "NONE"
 side = "BOTH"
 
 # Kotlin for Forge still isn't being detected in my environment
-#[[dependencies.common_events_kotlin]]
+#[[dependencies.${mod_id}]]
 #modId = "kotlinforforge"
 #type = "REQUIRED"
 #versionRange = "[5,)"

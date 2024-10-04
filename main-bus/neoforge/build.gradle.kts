@@ -5,13 +5,10 @@ plugins {
 }
 
 submodule {
-    applyNeoforgeDependency()
-    applyXplatConnection(":main-bus-xplat", "neoforge")
+    setLibsDirectory()
+    applyXplatConnection(":main-bus-xplat")
     setupJavadoc()
-    createDevExport()
 }
-
-java.docsDir.set(rootProject.layout.buildDirectory.map { it.dir("docs").dir(project.name) })
 
 kpublish {
     createPublication()

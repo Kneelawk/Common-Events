@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "id": "common_events_example_kotlin",
+  "id": "${mod_id}",
   "version": "${version}",
   "name": "Common Events Example Kotlin",
   "description": "Common Events Kotlin Example.",
@@ -13,7 +13,7 @@
     "sources": "https://github.com/Kneelawk/Common-Events"
   },
   "license": "Apache-2.0",
-  "icon": "assets/common_events_example_kotlin/icon.png",
+  "icon": "assets/${mod_id}/icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [
@@ -25,6 +25,7 @@
   "mixins": [ ],
   "depends": {
     "common_events": "*",
+    "common_events_kotlin": "*",
     "fabricloader": ">=0.15.0",
     "fabric-api": "*",
     "fabric-language-kotlin": ">=1.10",

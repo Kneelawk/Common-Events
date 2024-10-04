@@ -5,13 +5,10 @@ plugins {
 }
 
 submodule {
-    applyFabricLoaderDependency()
-    applyFabricApiDependency()
-    applyXplatConnection(":events-xplat", "fabric")
+    setLibsDirectory()
+    applyXplatConnection(":events-xplat")
     setupJavadoc()
 }
-
-java.docsDir.set(rootProject.layout.buildDirectory.map { it.dir("docs").dir(project.name) })
 
 kpublish {
     createPublication()

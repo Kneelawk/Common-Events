@@ -5,10 +5,8 @@ plugins {
 }
 
 submodule {
-    applyKotlin("neoforge")
-    applyNeoforgeDependency()
-    applyXplatConnection(":kotlin-xplat", "neoforge")
-    createDevExport()
+    setLibsDirectory()
+    applyXplatConnection(":kotlin-xplat")
 }
 
 kpublish {

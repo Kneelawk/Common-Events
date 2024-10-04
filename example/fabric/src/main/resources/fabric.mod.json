@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "id": "common_events_example",
+  "id": "${mod_id}",
   "version": "${version}",
   "name": "Common Events Example",
   "description": "Common Events Example.",
@@ -13,7 +13,7 @@
     "sources": "https://github.com/Kneelawk/Common-Events"
   },
   "license": "Apache-2.0",
-  "icon": "assets/common_events_example/icon.png",
+  "icon": "assets/${mod_id}/icon.png",
   "environment": "*",
   "entrypoints": {
     "main": [

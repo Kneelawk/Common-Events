@@ -5,7 +5,6 @@ plugins {
 }
 
 submodule {
-    applyNeoforgeDependency()
-    applyXplatConnection(":example-xplat", "neoforge")
+    applyXplatConnection(":example-xplat")
     generateRuns()
 }

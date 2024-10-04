@@ -21,10 +21,7 @@ plugins {
 }
 
 submodule {
-    applyKotlin("mojmap")
-    applyFabricLoaderDependency()
-    applyXplatConnection(":kotlin-xplat", "mojmap")
-    disableRemap()
+    applyXplatConnection(":kotlin-xplat")
 }
 
 kpublish {

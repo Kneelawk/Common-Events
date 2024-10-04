@@ -21,10 +21,7 @@ plugins {
 }
 
 submodule {
-    applyFabricLoaderDependency()
-    applyXplatConnection(":main-bus-xplat", "mojmap")
-    setupJavadoc()
-    disableRemap()
+    applyXplatConnection(":main-bus-xplat")
 }
 
 kpublish {

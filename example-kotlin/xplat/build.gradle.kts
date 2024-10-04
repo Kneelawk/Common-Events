@@ -5,10 +5,7 @@ plugins {
 }
 
 submodule {
-    applyKotlin("xplat")
     setRefmaps("common-events-example-kotlin")
-    applyFabricLoaderDependency()
-    forceRemap()
     xplatProjectDependency(":")
     xplatProjectDependency(":kotlin")
 }

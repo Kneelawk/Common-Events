@@ -5,13 +5,10 @@ plugins {
 }
 
 submodule {
-    applyFabricLoaderDependency()
-    applyFabricApiDependency()
-    applyXplatConnection(":main-bus-xplat", "fabric")
+    setLibsDirectory()
+    applyXplatConnection(":main-bus-xplat")
     setupJavadoc()
 }
-
-java.docsDir.set(rootProject.layout.buildDirectory.map { it.dir("docs").dir(project.name) })
 
 kpublish {
     createPublication()
