@@ -17,3 +17,11 @@ dependencies {
         exclude(group = "net.fabricmc.fabric-api")
     }
 }
+
+loom {
+    runs {
+        named("client") {
+            property("com.kneelawk.common_events.export_generated_classes", "true")
+        }
+    }
+}

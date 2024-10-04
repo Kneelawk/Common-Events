@@ -83,7 +83,7 @@ public class CommonEventsExample {
         }
 
         @BusEvent("common_events_example:bus")
-        public static Event<MyCallback2> SIMPLE_EVENT = Event.createSimple(MyCallback2.class);
+        public static Event<MyCallback2> SIMPLE_EVENT = Event.createSimple(MyCallback2.class, e -> LOGGER.warn("Error", e));
 
         static {
             LOGGER.info("# SIMPLE_EVENT created.");
@@ -134,6 +134,14 @@ public class CommonEventsExample {
         @Listen(MyCallback2.class)
         public void onOtherEvent(String str, long l) {
             LOGGER.info("> onOtherEvent received in EventListener 3: {}, {}", str, l);
+        }
+    }
+    
+    @Scan
+    public static class EventListener4 {
+        @Listen(MyCallback2.class)
+        public static void onOtherEvent(String str, long l) {
+            throw new RuntimeException("Some exception");
         }
     }
 

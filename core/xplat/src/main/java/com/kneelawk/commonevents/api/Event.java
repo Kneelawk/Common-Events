@@ -27,6 +27,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 import org.jetbrains.annotations.Contract;
@@ -39,7 +40,7 @@ import com.kneelawk.commonevents.api.phase.PhaseSorting;
 import com.kneelawk.commonevents.impl.CEConstants;
 import com.kneelawk.commonevents.impl.CommonEventsImpl;
 import com.kneelawk.commonevents.impl.event.EventPhaseDataHolder;
-import com.kneelawk.commonevents.impl.gen.ImplementationGenerator;
+import com.kneelawk.commonevents.impl.gen.SimpleCallbackImplGenerator;
 import com.kneelawk.commonevents.impl.scan.ScanManager;
 
 /**
@@ -271,7 +272,22 @@ public final class Event<T> {
      * @return the created event.
      */
     public static <T> Event<T> createSimple(Class<? super T> type) {
-        return new Event<>(type, DEFAULT_QUALIFIER, ImplementationGenerator.defineSimple(type), true, false);
+        return new Event<>(type, DEFAULT_QUALIFIER, SimpleCallbackImplGenerator.defineSimple(type, null), true, false);
+    }
+
+    /**
+     * Creates a simple event that calls all registered listeners with the given arguments.
+     * <p>
+     * This requires that the callback interface be a functional interface with a method that returns {@code void}.
+     *
+     * @param type         the callback interface type.
+     * @param errorHandler a callback that is called if one of the callbacks throws an exception.
+     * @param <T>          the callback interface type.
+     * @return the created event.
+     */
+    public static <T> Event<T> createSimple(Class<? super T> type, @Nullable Consumer<Exception> errorHandler) {
+        return new Event<>(type, DEFAULT_QUALIFIER, SimpleCallbackImplGenerator.defineSimple(type, errorHandler), true,
+            false);
     }
 
     /**
@@ -296,7 +312,21 @@ public final class Event<T> {
      * @return the event builder.
      */
     public static <T> Builder<T> builderSimple(Class<? super T> type) {
-        return new Builder<>(type, ImplementationGenerator.defineSimple(type));
+        return new Builder<>(type, SimpleCallbackImplGenerator.defineSimple(type, null));
+    }
+
+    /**
+     * Creates a simple event build that calls all registered listeners with the given arguments.
+     * <p>
+     * This requires that the callback interface be a functional interface with a method that returns {@code void}.
+     *
+     * @param type         the callback interface type.
+     * @param errorHandler a callback that is called if one of the callbacks throws an exception.
+     * @param <T>          the callback interface type.
+     * @return the event builder.
+     */
+    public static <T> Builder<T> builderSimple(Class<? super T> type, @Nullable Consumer<Exception> errorHandler) {
+        return new Builder<>(type, SimpleCallbackImplGenerator.defineSimple(type, errorHandler));
     }
 
     /**
