@@ -18,6 +18,9 @@
   "entrypoints": {
     "main": [
       "com.kneelawk.commonevents.events.impl.CommonEventsEventsMod"
+    ],
+    "client": [
+      "com.kneelawk.commonevents.events.impl.client.CommonEventsEventsClient"
     ]
   },
   "mixins": [

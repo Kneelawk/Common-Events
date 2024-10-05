@@ -2,8 +2,10 @@ package com.kneelawk.commonevents.events.api.lifecycle;
 
 import net.minecraft.server.MinecraftServer;
 
+import com.kneelawk.commonevents.api.BusEvent;
 import com.kneelawk.commonevents.api.Event;
 import com.kneelawk.commonevents.api.Scan;
+import com.kneelawk.commonevents.mainbus.api.CommonEventsMainBus;
 
 /**
  * General purpose server lifecycle events.
@@ -17,6 +19,7 @@ public final class ServerLifecycleEvents {
      * <p>
      * This is called before the {@link net.minecraft.server.players.PlayerList player list} and any worlds are loaded.
      */
+    @BusEvent(CommonEventsMainBus.NAME)
     public static final Event<ServerStarting> SERVER_STARTING = Event.createSimple(ServerStarting.class);
 
     /**
@@ -24,22 +27,26 @@ public final class ServerLifecycleEvents {
      * <p>
      * This is called after the {@link net.minecraft.server.players.PlayerList player list} has loaded but before any worlds are loaded.
      */
+    @BusEvent(CommonEventsMainBus.NAME)
     public static final Event<ServerLoadingWorlds> SERVER_LOADING_WORLDS =
         Event.createSimple(ServerLoadingWorlds.class);
 
     /**
      * Called after the Minecraft server has finished loading worlds and started.
      */
+    @BusEvent(CommonEventsMainBus.NAME)
     public static final Event<ServerStarted> SERVER_STARTED = Event.createSimple(ServerStarted.class);
 
     /**
      * Called when the server is beginning its shutdown sequence.
      */
+    @BusEvent(CommonEventsMainBus.NAME)
     public static final Event<ServerStopping> SERVER_STOPPING = Event.createSimple(ServerStopping.class);
 
     /**
      * Called when the server has finished its shutdown sequence.
      */
+    @BusEvent(CommonEventsMainBus.NAME)
     public static final Event<ServerStopped> SERVER_STOPPED = Event.createSimple(ServerStopped.class);
 
     /**
