@@ -20,7 +20,9 @@
       "com.kneelawk.commonevents.events.impl.CommonEventsEventsMod"
     ]
   },
-  "mixins": [ ],
+  "mixins": [
+    "common_events_events.fabric.mixins.json"
+  ],
   "depends": {
     "fabricloader": ">=0.15.0",
     "fabric-api": "*",

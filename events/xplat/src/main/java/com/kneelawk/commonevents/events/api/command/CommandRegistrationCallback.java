@@ -26,11 +26,13 @@ import net.minecraft.commands.Commands;
 
 import com.kneelawk.commonevents.api.BusEvent;
 import com.kneelawk.commonevents.api.Event;
+import com.kneelawk.commonevents.api.Scan;
 import com.kneelawk.commonevents.mainbus.api.CommonEventsMainBus;
 
 /**
  * Callback for registering commands.
  */
+@Scan
 @FunctionalInterface
 public interface CommandRegistrationCallback {
     /**
@@ -54,16 +56,16 @@ public interface CommandRegistrationCallback {
         /**
          * {@return the command dispatcher for registering commands}
          */
-        CommandDispatcher<CommandSourceStack> dispatcher();
+        CommandDispatcher<CommandSourceStack> getDispatcher();
 
         /**
          * {@return the command environment}
          */
-        Commands.CommandSelection commandSelection();
+        Commands.CommandSelection getCommandSelection();
 
         /**
          * {@return the registry access}
          */
-        CommandBuildContext registryAccess();
+        CommandBuildContext getRegistryAccess();
     }
 }

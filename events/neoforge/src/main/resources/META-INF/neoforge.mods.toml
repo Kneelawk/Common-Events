@@ -2,6 +2,9 @@ modLoader = "javafml"
 loaderVersion = "[1,)"
 license = "Apache-2.0"
 
+[[mixins]]
+config = "common_events_events.neoforge.mixins.json"
+
 [[mods]]
 modId = "${mod_id}"
 version = "${version}"

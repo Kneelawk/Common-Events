@@ -18,13 +18,9 @@ package com.kneelawk.commonevents.events.impl;
 
 import net.fabricmc.api.ModInitializer;
 
-import com.mojang.brigadier.CommandDispatcher;
-
-import net.minecraft.commands.CommandBuildContext;
-import net.minecraft.commands.CommandSourceStack;
-import net.minecraft.commands.Commands;
-
 import com.kneelawk.commonevents.events.api.command.CommandRegistrationCallback;
+import com.kneelawk.commonevents.events.api.lifecycle.ServerLifecycleEvents;
+import com.kneelawk.commonevents.events.impl.command.CommandRegistrationContext;
 
 public class CommonEventsEventsMod implements ModInitializer {
     @Override
@@ -32,11 +28,12 @@ public class CommonEventsEventsMod implements ModInitializer {
         net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback.EVENT.register(
             (dispatcher, registryAccess, environment) -> CommandRegistrationCallback.EVENT.invoker()
                 .register(new CommandRegistrationContext(dispatcher, environment, registryAccess)));
-    }
 
-    private record CommandRegistrationContext(CommandDispatcher<CommandSourceStack> dispatcher,
-                                              Commands.CommandSelection commandSelection,
-                                              CommandBuildContext registryAccess)
-        implements CommandRegistrationCallback.Context {
+        net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STARTING.register(
+            ServerLifecycleEvents.SERVER_STARTING.invoker()::onServerStarting);
+        net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STARTED.register(
+            ServerLifecycleEvents.SERVER_STARTED.invoker()::onServerStarted);
+        net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents.SERVER_STOPPING.register(
+            ServerLifecycleEvents.SERVER_STOPPING.invoker()::onServerStopping);
     }
 }

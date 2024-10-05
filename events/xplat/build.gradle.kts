@@ -8,6 +8,7 @@ submodule {
     setRefmaps("common-events-events")
     setupJavadoc()
     xplatProjectDependency(":main-bus")
+    xplatProjectDependency(":", include = false)
 }
 
 kpublish {
