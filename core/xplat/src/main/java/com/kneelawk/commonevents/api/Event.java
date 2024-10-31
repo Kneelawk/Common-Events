@@ -1,6 +1,7 @@
 /*
  * Copyright 2016, 2017, 2018, 2019 FabricMC
  * Copyright 2021 The Quilt Project
+ * Copyright 2024 Cyan Kneelawk
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -601,8 +602,16 @@ public final class Event<T> {
      * @param key the key of the callback to unregister.
      */
     public void unregister(Object key) {
-        EventPhaseDataHolder<T> phaseData = keysInPhases.remove(key);
-        if (phaseData != null) phaseData.removeListener(key);
+        this.lock.lock();
+        try {
+            EventPhaseDataHolder<T> phaseData = keysInPhases.remove(key);
+            if (phaseData != null) {
+                phaseData.removeListener(key);
+                this.rebuildInvoker(this.callbacks.length - 1);
+            }
+        } finally {
+            this.lock.unlock();
+        }
     }
 
     /**
@@ -647,12 +656,15 @@ public final class Event<T> {
             throw new IllegalArgumentException("Tried to add a phase that depends on itself.");
         }
 
-        synchronized (this.lock) {
+        this.lock.lock();
+        try {
             var first = this.getOrCreatePhase(firstPhase, false);
             var second = this.getOrCreatePhase(secondPhase, false);
             PhaseData.link(first, second);
             PhaseSorting.sortPhases(this.sortedPhases);
             this.rebuildInvoker(this.callbacks.length);
+        } finally {
+            this.lock.unlock();
         }
     }
 
@@ -678,7 +690,7 @@ public final class Event<T> {
         // Rebuild handlers.
         if (this.sortedPhases.size() == 1) {
             // Special case with a single phase: use the array of the phase directly.
-            this.callbacks = this.sortedPhases.get(0).getData().getCallbacks();
+            this.callbacks = this.sortedPhases.getFirst().getData().getCallbacks();
         } else {
             @SuppressWarnings("unchecked")
             var newCallbacks = (T[]) Array.newInstance(this.callbacks.getClass().getComponentType(), newLength);
