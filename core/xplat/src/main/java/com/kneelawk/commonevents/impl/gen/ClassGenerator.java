@@ -15,11 +15,13 @@ import com.kneelawk.commonevents.impl.CELog;
 import com.kneelawk.commonevents.impl.Platform;
 
 /**
- * Abstract helper super-class for code-generator classes.
+ * Helper class for code-generator classes.
+ * <p>
+ * This class is responsible for memorizing and loading generated classes.
  *
  * @param <S> the spec type the code generator uses to define unique generated classes.
  */
-public abstract class AbstractCodeGenerator<S> {
+public final class ClassGenerator<S> {
     private static final Path EXPORT_GENERATED_PATH =
         Platform.getInstance().getGameDirectory().resolve(".common-events");
 
@@ -34,7 +36,7 @@ public abstract class AbstractCodeGenerator<S> {
             if (spec == null) throw new ClassNotFoundException(name);
 
             String internalName = name.replace('.', '/');
-            byte[] bytes = generateClass(spec, Type.getObjectType(internalName));
+            byte[] bytes = generator.generateClass(spec, Type.getObjectType(internalName));
 
             if (CEConstants.EXPORT_GENERATED_CLASSES) {
                 CELog.LOGGER.info("[Common Events] Exporting generated class {}", name);
@@ -49,7 +51,7 @@ public abstract class AbstractCodeGenerator<S> {
                     }
 
                     Files.write(classPath, bytes);
-                    Files.writeString(classInfoPath, getInfo(spec));
+                    Files.writeString(classInfoPath, generator.getInfo(spec));
                 } catch (IOException e) {
                     CELog.LOGGER.warn("[Common Events] Unable to write exported generated class to {}", classPath, e);
                 }
@@ -64,29 +66,32 @@ public abstract class AbstractCodeGenerator<S> {
     private final Map<String, S> classToKey = new HashMap<>();
     private final AtomicInteger index = new AtomicInteger(0);
     private final String prefix;
+    private final BytecodeGenerator<S> generator;
 
     private final Loader loader;
 
     /**
      * Initializes the code generator.
      *
-     * @param prefix the path prefix used for all generated classes.
-     * @param name   the name of the generating class loader.
+     * @param prefix    the path prefix used for all generated classes.
+     * @param name      the name of the generating class loader.
+     * @param generator the generator used to actually generate the bytecode for all requested classes.
      */
-    protected AbstractCodeGenerator(String prefix, String name) {
+    public ClassGenerator(String prefix, String name, BytecodeGenerator<S> generator) {
         this.prefix = prefix;
+        this.generator = generator;
 
         loader = new Loader(name, getClass().getClassLoader());
     }
 
     /**
-     * Generates and loads a class based on the implementation of {@link #generateClass(Object, Type)}.
+     * Generates and loads a class based on the implementation of {@link BytecodeGenerator#generateClass(Object, Type)}.
      *
      * @param spec the spec used to generate the class.
      * @return the loaded generated class.
      * @throws ClassNotFoundException if there was an error creating the class.
      */
-    protected Class<?> getOrCreateClass(S spec) throws ClassNotFoundException {
+    public Class<?> getOrCreateClass(S spec) throws ClassNotFoundException {
         String className;
         lock.readLock().lock();
         try {
@@ -114,22 +119,28 @@ public abstract class AbstractCodeGenerator<S> {
     }
 
     /**
-     * Implementors should use this to generate the actual code of the class.
-     *
-     * @param spec         the spec used to define the class.
-     * @param beingDefined the type of the class being defined.
-     * @return the bytecode for the class being defined.
+     * Generates the actual bytecode that is then used by a code generator to load into a class.
      */
-    protected abstract byte[] generateClass(S spec, Type beingDefined);
+    @FunctionalInterface
+    public interface BytecodeGenerator<S> {
+        /**
+         * Implementors should use this to generate the actual code of the class.
+         *
+         * @param spec         the spec used to define the class.
+         * @param beingDefined the type of the class being defined.
+         * @return the bytecode for the class being defined.
+         */
+        byte[] generateClass(S spec, Type beingDefined);
 
-    /**
-     * Implementors should use this to provide a custom string representation of a spec for use in debug exporting of
-     * generated classes.
-     *
-     * @param spec the spec used to define the class this debug info is associated with.
-     * @return the string representation of the spec.
-     */
-    protected String getInfo(S spec) {
-        return spec.toString();
+        /**
+         * Implementors should use this to provide a custom string representation of a spec for use in debug exporting of
+         * generated classes.
+         *
+         * @param spec the spec used to define the class this debug info is associated with.
+         * @return the string representation of the spec.
+         */
+        default String getInfo(S spec) {
+            return spec.toString();
+        }
     }
 }

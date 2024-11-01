@@ -19,6 +19,7 @@
 package com.kneelawk.commonevents.api;
 
 import java.lang.reflect.Array;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -36,6 +37,7 @@ import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.resources.ResourceLocation;
 
+import com.kneelawk.commonevents.api.adapter.util.AdapterUtils;
 import com.kneelawk.commonevents.api.phase.PhaseData;
 import com.kneelawk.commonevents.api.phase.PhaseSorting;
 import com.kneelawk.commonevents.impl.CEConstants;
@@ -142,6 +144,8 @@ import com.kneelawk.commonevents.impl.scan.ScanManager;
  * @param <T> the type of the invoker used to execute an event and the type of the callback
  */
 public final class Event<T> {
+    private static final Object NO_DEFAULT_RETURN = new Object();
+
     /**
      * The name of the default phase.
      * Have a look at {@link Event#createWithPhases} for an explanation of event phases.
@@ -169,7 +173,7 @@ public final class Event<T> {
      */
     public static <T> Event<T> create(Class<? super T> type, String qualifier,
                                       Function<T[], T> implementation) {
-        return new Event<>(type, qualifier, implementation, true, false);
+        return new Event<>(type, qualifier, implementation, true, false, NO_DEFAULT_RETURN);
     }
 
     /**
@@ -260,7 +264,7 @@ public final class Event<T> {
      */
     public static <T> Event<T> createUnscanned(Class<? super T> type,
                                                Function<T[], T> implementation) {
-        return new Event<>(type, DEFAULT_QUALIFIER, implementation, false, false);
+        return new Event<>(type, DEFAULT_QUALIFIER, implementation, false, false, NO_DEFAULT_RETURN);
     }
 
     /**
@@ -273,7 +277,8 @@ public final class Event<T> {
      * @return the created event.
      */
     public static <T> Event<T> createSimple(Class<? super T> type) {
-        return new Event<>(type, DEFAULT_QUALIFIER, SimpleCallbackImplGenerator.defineSimple(type, null), true, false);
+        return new Event<>(type, DEFAULT_QUALIFIER, SimpleCallbackImplGenerator.defineSimple(type, null), true, false,
+            NO_DEFAULT_RETURN);
     }
 
     /**
@@ -288,7 +293,7 @@ public final class Event<T> {
      */
     public static <T> Event<T> createSimple(Class<? super T> type, @Nullable Consumer<Exception> errorHandler) {
         return new Event<>(type, DEFAULT_QUALIFIER, SimpleCallbackImplGenerator.defineSimple(type, errorHandler), true,
-            false);
+            false, NO_DEFAULT_RETURN);
     }
 
     /**
@@ -343,6 +348,7 @@ public final class Event<T> {
         private boolean scanned = true;
         private ResourceLocation[] defaultPhases = new ResourceLocation[0];
         private boolean optimizeRemoval = false;
+        private @Nullable Object defaultReturn = NO_DEFAULT_RETURN;
 
         private Builder(Class<? super T> type, Function<T[], T> implementation) {
             this.type = type;
@@ -366,7 +372,7 @@ public final class Event<T> {
                 impl = implementation;
             }
 
-            Event<T> event = new Event<>(type, qualifier, impl, scanned, optimizeRemoval);
+            Event<T> event = new Event<>(type, qualifier, impl, scanned, optimizeRemoval, defaultReturn);
 
             for (int i = 1; i < defaultPhases.length; ++i) {
                 event.addPhaseOrdering(defaultPhases[i - 1], defaultPhases[i]);
@@ -458,6 +464,21 @@ public final class Event<T> {
             this.optimizeRemoval = optimizeRemoval;
             return this;
         }
+
+        /**
+         * Sets the default value returned by weak listeners when they are called but their implementation is no longer
+         * present.
+         * <p>
+         * This is only useful if the callback interface's abstract method has a non-void return type.
+         *
+         * @param defaultReturn the default value for weak listeners to return when their implementation is no longer
+         *                      present.
+         * @return this builder.
+         */
+        public Builder<T> defaultReturn(@Nullable Object defaultReturn) {
+            this.defaultReturn = defaultReturn;
+            return this;
+        }
     }
 
     /**
@@ -468,6 +489,7 @@ public final class Event<T> {
     private final Function<T[], T> implementation;
     private final boolean sortPhaseCallbacks;
     private final Lock lock = new ReentrantLock();
+    private final @Nullable Object defaultReturn;
     /**
      * The invoker field used to execute callbacks.
      */
@@ -491,7 +513,7 @@ public final class Event<T> {
 
     @SuppressWarnings("unchecked")
     private Event(Class<? super T> type, String qualifier, Function<T[], T> implementation, boolean addScanned,
-                  boolean sortPhaseCallbacks) {
+                  boolean sortPhaseCallbacks, @Nullable Object defaultReturn) {
         this.sortPhaseCallbacks = sortPhaseCallbacks;
         Objects.requireNonNull(type, "Class specifying the type of T in the event cannot be null");
         Objects.requireNonNull(implementation, "Function to generate invoker implementation for T cannot be null");
@@ -500,6 +522,14 @@ public final class Event<T> {
         this.key = EventKey.fromClass(type, qualifier);
         this.implementation = implementation;
         this.callbacks = (T[]) Array.newInstance(type, 0);
+
+        Method interfaceMethod = AdapterUtils.getSingularMethod(type);
+        if (interfaceMethod != null && interfaceMethod.getReturnType() != void.class) {
+            this.defaultReturn = defaultReturn;
+        } else {
+            this.defaultReturn = NO_DEFAULT_RETURN;
+        }
+
         this.update();
 
         if (addScanned) {
@@ -520,6 +550,26 @@ public final class Event<T> {
      */
     public EventKey getKey() {
         return this.key;
+    }
+
+    /**
+     * {@return whether a default return has been defined for this event}
+     * <p>
+     * This is generally used when registering weak listeners (i.e. listeners that do not prevent the object doing the
+     * listening from being garbage-collected).
+     */
+    public boolean hasDefaultReturn() {
+        return defaultReturn != NO_DEFAULT_RETURN;
+    }
+
+    /**
+     * {@return the default return value that has been defined for this event}
+     * <p>
+     * This is generally used when registering weak listeners (i.e. listeners that do not prevent the object doing the
+     * listening from being garbage-collected).
+     */
+    public @Nullable Object getDefaultReturn() {
+        return hasDefaultReturn() ? defaultReturn : null;
     }
 
     /**

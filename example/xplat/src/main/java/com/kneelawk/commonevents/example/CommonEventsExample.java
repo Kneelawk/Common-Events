@@ -26,6 +26,7 @@ import com.kneelawk.commonevents.api.Event;
 import com.kneelawk.commonevents.api.EventBus;
 import com.kneelawk.commonevents.api.Listen;
 import com.kneelawk.commonevents.api.Scan;
+import com.kneelawk.commonevents.impl.gen.WeakCallbackMethodWrapperGenerator;
 
 public class CommonEventsExample {
     public static final String MOD_ID = "common_events_example";
@@ -83,10 +84,23 @@ public class CommonEventsExample {
         }
 
         @BusEvent("common_events_example:bus")
-        public static Event<MyCallback2> SIMPLE_EVENT = Event.createSimple(MyCallback2.class, e -> LOGGER.warn("Error", e));
+        public static Event<MyCallback2> SIMPLE_EVENT =
+            Event.createSimple(MyCallback2.class, e -> LOGGER.warn("Error", e));
 
         static {
             LOGGER.info("# SIMPLE_EVENT created.");
+            var factory = WeakCallbackMethodWrapperGenerator.defineWrapper(MyCallback2.class);
+            for (int i = 0; i < 10000; i++) {
+                final int j = i;
+                MyCallback2 callback = (str, l) -> LOGGER.info("lambda {}: {}, {}", j, str, l);
+                SIMPLE_EVENT.register(
+                    factory.newInstance(callback,
+                        key -> {
+                            LOGGER.info("unregistering {}", j);
+                            SIMPLE_EVENT.unregister(key);
+                        },
+                        null));
+            }
         }
 
         public static void init() {
@@ -136,7 +150,7 @@ public class CommonEventsExample {
             LOGGER.info("> onOtherEvent received in EventListener 3: {}, {}", str, l);
         }
     }
-    
+
     @Scan
     public static class EventListener4 {
         @Listen(MyCallback2.class)

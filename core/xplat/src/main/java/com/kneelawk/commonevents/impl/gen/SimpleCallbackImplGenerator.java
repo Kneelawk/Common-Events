@@ -15,8 +15,12 @@ import org.objectweb.asm.commons.Method;
 
 import com.kneelawk.commonevents.api.adapter.util.AdapterUtils;
 
-public class SimpleCallbackImplGenerator extends AbstractCodeGenerator<SimpleCallbackImplGenerator.Spec> {
-    private static final SimpleCallbackImplGenerator INSTANCE = new SimpleCallbackImplGenerator();
+public class SimpleCallbackImplGenerator {
+    private static final ClassGenerator<Spec> GENERATOR =
+        new ClassGenerator<>("com.kneelawk.commonevents.impl.gen.impl.$CommonEvents_Generated$.SimpleCallbackImpl",
+            "event-simple-implementation-generator", SimpleCallbackImplGenerator::generateClass);
+
+    private record Spec(Class<?> interfaceClass, boolean catchErrors) {}
 
     private static final Handle LMF_HANDLE =
         new Handle(Opcodes.H_INVOKESTATIC, "java/lang/invoke/LambdaMetafactory", "metafactory", //
@@ -29,11 +33,6 @@ public class SimpleCallbackImplGenerator extends AbstractCodeGenerator<SimpleCal
                 ")" + //
                 "Ljava/lang/invoke/CallSite;", //
             false);
-
-    private SimpleCallbackImplGenerator() {
-        super("com.kneelawk.commonevents.impl.gen.impl.$CommonEvents_Generated$.SimpleCallbackImpl",
-            "event-simple-implementation-generator");
-    }
 
     @SuppressWarnings("unchecked")
     public static <T> Function<T[], T> defineSimple(Class<? super T> interfaceClass,
@@ -51,7 +50,7 @@ public class SimpleCallbackImplGenerator extends AbstractCodeGenerator<SimpleCal
 
         try {
             Class<Function<T[], T>> clazz =
-                (Class<Function<T[], T>>) INSTANCE.getOrCreateClass(new Spec(interfaceClass, catchErrors != null));
+                (Class<Function<T[], T>>) GENERATOR.getOrCreateClass(new Spec(interfaceClass, catchErrors != null));
 
             if (catchErrors != null) {
                 return clazz.getConstructor(Consumer.class).newInstance(catchErrors);
@@ -64,8 +63,7 @@ public class SimpleCallbackImplGenerator extends AbstractCodeGenerator<SimpleCal
         }
     }
 
-    @Override
-    protected byte[] generateClass(Spec spec, Type beingDefined) {
+    private static byte[] generateClass(Spec spec, Type beingDefined) {
         ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
 
         Type interfaceType = Type.getType(spec.interfaceClass());
@@ -224,6 +222,4 @@ public class SimpleCallbackImplGenerator extends AbstractCodeGenerator<SimpleCal
         System.arraycopy(types, 0, newTypes, 1, types.length);
         return newTypes;
     }
-
-    protected record Spec(Class<?> interfaceClass, boolean catchErrors) {}
 }
