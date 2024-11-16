@@ -523,7 +523,7 @@ public final class EventBus {
         }
     }
 
-    private void registerWeakListener(Event<?> event, ResourceLocation phase, Class<?> listenerClass,
+    private static void registerWeakListener(Event<?> event, ResourceLocation phase, Class<?> listenerClass,
                                       Method listenerMethod, @NotNull Object instance) {
         Class<?> callbackInterface = event.getType();
 
@@ -543,7 +543,7 @@ public final class EventBus {
             defaultReturn);
     }
 
-    private void registerWeakListener(Event<?> event, ResourceLocation phase, Class<?> listenerClass,
+    private static void registerWeakListener(Event<?> event, ResourceLocation phase, Class<?> listenerClass,
                                       Method listenerMethod, @NotNull Object instance, @Nullable Object defaultReturn) {
         Class<?> callbackInterface = event.getType();
 
@@ -554,7 +554,7 @@ public final class EventBus {
     }
 
     @SuppressWarnings("unchecked")
-    private void registerWeakListener(Event<?> event, ResourceLocation phase, Class<?> listenerClass,
+    private static void registerWeakListener(Event<?> event, ResourceLocation phase, Class<?> listenerClass,
                                       Method listenerMethod, @NotNull Object instance, Class<?> callbackInterface,
                                       Methods methods, @Nullable Object defaultReturn) {
         try {

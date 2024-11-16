@@ -43,6 +43,8 @@ import com.kneelawk.commonevents.api.phase.PhaseSorting;
 import com.kneelawk.commonevents.impl.CEConstants;
 import com.kneelawk.commonevents.impl.CommonEventsImpl;
 import com.kneelawk.commonevents.impl.event.EventPhaseDataHolder;
+import com.kneelawk.commonevents.impl.event.KeyHolder;
+import com.kneelawk.commonevents.impl.event.StrongKey;
 import com.kneelawk.commonevents.impl.gen.SimpleCallbackImplGenerator;
 import com.kneelawk.commonevents.impl.scan.ScanManager;
 
@@ -633,6 +635,10 @@ public final class Event<T> {
         Objects.requireNonNull(callback, "Tried to register a null callback!");
         Objects.requireNonNull(key, "Tried to register a callback with a null key!");
 
+        registerKeyedImpl(phase, new StrongKey(key), callback);
+    }
+
+    private void registerKeyedImpl(ResourceLocation phase, KeyHolder key, T callback) {
         this.lock.lock();
         try {
             if (keysInPhases.containsKey(key)) return;
@@ -654,9 +660,10 @@ public final class Event<T> {
     public void unregister(Object key) {
         this.lock.lock();
         try {
-            EventPhaseDataHolder<T> phaseData = keysInPhases.remove(key);
+            KeyHolder holder = new StrongKey(key);
+            EventPhaseDataHolder<T> phaseData = keysInPhases.remove(holder);
             if (phaseData != null) {
-                phaseData.removeListener(key);
+                phaseData.removeListener(holder);
                 this.rebuildInvoker(this.callbacks.length - 1);
             }
         } finally {
