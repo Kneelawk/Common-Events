@@ -485,7 +485,6 @@ public final class EventBus {
     public void unregisterListeners(Object key) {
         for (Event<?> event : events.values()) {
             event.unregister(key);
-            event.unregister(new WeakKey(key));
         }
     }
 

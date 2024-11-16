@@ -18,12 +18,10 @@ package com.kneelawk.commonevents.impl.event;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;
-import java.util.Comparator;
-import java.util.Objects;
+
+import com.kneelawk.commonevents.impl.ArrayUtils;
 
 public class SortedEventPhaseData<T> implements EventPhaseData<T> {
-    private static final Comparator<Object> HASH_COMPARATOR = Comparator.comparingInt(Objects::hashCode);
-
     private T[] callbacks;
     private Object[] keys;
 
@@ -36,16 +34,18 @@ public class SortedEventPhaseData<T> implements EventPhaseData<T> {
     @Override
     public void addListener(Object key, T listener) {
         int oldLength = callbacks.length;
-        callbacks = Arrays.copyOf(callbacks, oldLength + 1);
-        keys = Arrays.copyOf(keys, oldLength + 1);
 
         if (oldLength == 0) {
+            callbacks = Arrays.copyOf(callbacks, oldLength + 1);
+            keys = Arrays.copyOf(keys, oldLength + 1);
             callbacks[oldLength] = listener;
             keys[oldLength] = key;
         } else {
-            int index = -Arrays.binarySearch(keys, key, HASH_COMPARATOR) - 1;
+            int index = -ArrayUtils.binarySearch(keys, key) - 1;
             if (index < 0) throw new IllegalArgumentException("Listener key already registered: " + key);
 
+            callbacks = Arrays.copyOf(callbacks, oldLength + 1);
+            keys = Arrays.copyOf(keys, oldLength + 1);
             System.arraycopy(callbacks, index, callbacks, index + 1, oldLength - index);
             System.arraycopy(keys, index, keys, index + 1, oldLength - index);
             callbacks[index] = listener;
@@ -55,7 +55,7 @@ public class SortedEventPhaseData<T> implements EventPhaseData<T> {
 
     @Override
     public void removeListener(Object key) {
-        int index = Arrays.binarySearch(keys, key, HASH_COMPARATOR);
+        int index = ArrayUtils.binarySearch(keys, key);
         if (index < 0) throw new IllegalArgumentException("No listener key: " + key);
 
         T[] newCallbacks = Arrays.copyOf(callbacks, callbacks.length - 1);

@@ -19,7 +19,7 @@ package com.kneelawk.commonevents.impl.event;
 import java.lang.reflect.Array;
 import java.util.Arrays;
 
-import org.apache.commons.lang3.ArrayUtils;
+import com.kneelawk.commonevents.impl.ArrayUtils;
 
 public class UnsortedEventPhaseData<T> implements EventPhaseData<T> {
     private T[] callbacks;
@@ -42,7 +42,7 @@ public class UnsortedEventPhaseData<T> implements EventPhaseData<T> {
 
     @Override
     public void removeListener(Object key) {
-        int index = ArrayUtils.indexOf(keys, key);
+        int index = ArrayUtils.search(keys, key);
         if (index < 0) throw new IllegalArgumentException("No listener key: " + key);
 
         T[] newCallbacks = Arrays.copyOf(callbacks, callbacks.length - 1);
