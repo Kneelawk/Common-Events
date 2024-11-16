@@ -440,6 +440,15 @@ public final class EventBus {
         }
     }
 
+    /**
+     * Registers multiple listeners to this event bus, holding only a weak reference to the registered object.
+     * <p>
+     * Listeners are found by scanning the {@code listeners} parameter. Listener method are found by scanning the
+     * passed object for instance methods annotated with {@link Listen}. Instance scanning includes annotated methods
+     * in superclasses and implemented interfaces.
+     *
+     * @param listeners the instance to search for listener methods.
+     */
     public void registerWeakListeners(Object listeners) {
         if (listeners instanceof Class<?>)
             throw new IllegalArgumentException("Cannot register a class as a weak listener");
@@ -458,7 +467,19 @@ public final class EventBus {
         }
     }
 
+    /**
+     * Registers multiple listeners to this event bus, holding only a weak reference to the registered object.
+     * <p>
+     * Listeners are found by scanning the {@code listeners} parameter. Listener method are found by scanning the
+     * passed object for instance methods annotated with {@link Listen}. Instance scanning includes annotated methods
+     * in superclasses and implemented interfaces.
+     *
+     * @param listeners     the instance to search for listener methods.
+     * @param defaultReturn the default value returned by registered listeners if they are invoked after they have been
+     *                      garbage-collected.
+     */
     public void registerWeakListeners(Object listeners, @Nullable Object defaultReturn) {
+        // FIXME: should this method even exist? Maybe with a map of event-key to default-return?
         if (listeners instanceof Class<?>)
             throw new IllegalArgumentException("Cannot register a class as a weak listener");
 
@@ -524,7 +545,7 @@ public final class EventBus {
     }
 
     private static void registerWeakListener(Event<?> event, ResourceLocation phase, Class<?> listenerClass,
-                                      Method listenerMethod, @NotNull Object instance) {
+                                             Method listenerMethod, @NotNull Object instance) {
         Class<?> callbackInterface = event.getType();
 
         Methods methods = verifyMethods(listenerClass, listenerMethod, callbackInterface);
@@ -544,7 +565,8 @@ public final class EventBus {
     }
 
     private static void registerWeakListener(Event<?> event, ResourceLocation phase, Class<?> listenerClass,
-                                      Method listenerMethod, @NotNull Object instance, @Nullable Object defaultReturn) {
+                                             Method listenerMethod, @NotNull Object instance,
+                                             @Nullable Object defaultReturn) {
         Class<?> callbackInterface = event.getType();
 
         Methods methods = verifyMethods(listenerClass, listenerMethod, callbackInterface);
@@ -555,8 +577,9 @@ public final class EventBus {
 
     @SuppressWarnings("unchecked")
     private static void registerWeakListener(Event<?> event, ResourceLocation phase, Class<?> listenerClass,
-                                      Method listenerMethod, @NotNull Object instance, Class<?> callbackInterface,
-                                      Methods methods, @Nullable Object defaultReturn) {
+                                             Method listenerMethod, @NotNull Object instance,
+                                             Class<?> callbackInterface,
+                                             Methods methods, @Nullable Object defaultReturn) {
         try {
             final WeakKey key = new WeakKey(instance);
             Object listener =
