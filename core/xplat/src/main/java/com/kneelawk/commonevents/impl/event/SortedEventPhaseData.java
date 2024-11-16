@@ -41,8 +41,10 @@ public class SortedEventPhaseData<T> implements EventPhaseData<T> {
             callbacks[oldLength] = listener;
             keys[oldLength] = key;
         } else {
-            int index = -ArrayUtils.binarySearch(keys, key) - 1;
-            if (index < 0) throw new IllegalArgumentException("Listener key already registered: " + key);
+            int index = ArrayUtils.binarySearch(keys, key);
+            if (index < 0) {
+                index = -index - 1;
+            }
 
             callbacks = Arrays.copyOf(callbacks, oldLength + 1);
             keys = Arrays.copyOf(keys, oldLength + 1);
@@ -58,12 +60,18 @@ public class SortedEventPhaseData<T> implements EventPhaseData<T> {
         int index = ArrayUtils.binarySearch(keys, key);
         if (index < 0) throw new IllegalArgumentException("No listener key: " + key);
 
-        T[] newCallbacks = Arrays.copyOf(callbacks, callbacks.length - 1);
-        Object[] newKeys = Arrays.copyOf(keys, keys.length - 1);
+        int start = ArrayUtils.findEqualStart(keys, key, index);
+        int stop = ArrayUtils.findEqualEnd(keys, key, index) + 1;
+        int removeLen = stop - start;
 
-        if (index < callbacks.length - 1) {
-            System.arraycopy(callbacks, index + 1, newCallbacks, index, newCallbacks.length - index);
-            System.arraycopy(keys, index + 1, newKeys, index, newKeys.length - index);
+        int len = callbacks.length;
+        assert keys.length == len;
+        T[] newCallbacks = Arrays.copyOf(callbacks, len - removeLen);
+        Object[] newKeys = Arrays.copyOf(keys, len - removeLen);
+
+        if (start < len - removeLen) {
+            System.arraycopy(callbacks, stop, newCallbacks, start, newCallbacks.length - start);
+            System.arraycopy(keys, stop, newKeys, start, newKeys.length - start);
         }
 
         callbacks = newCallbacks;

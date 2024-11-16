@@ -1,5 +1,7 @@
 package com.kneelawk.commonevents.impl.event;
 
+import java.util.Objects;
+
 import org.jetbrains.annotations.Nullable;
 
 public sealed abstract class KeyHolder permits StrongKey, WeakKey {
@@ -13,13 +15,10 @@ public sealed abstract class KeyHolder permits StrongKey, WeakKey {
         if (this == o) return true;
         if (!(o instanceof KeyHolder holder)) return false;
 
+        // in the case of Events, we don't care whether we've lost our ref, because when removing an empty reference,
+        // we might as well remove everything else with an empty reference too
         Object o1 = get();
-        // null means we lost this ref, so we compare hashCodes because that's all we have left
-        if (o1 == null) {
-            return this instanceof WeakKey && o instanceof WeakKey && hashCode() == o.hashCode();
-        }
-
         Object o2 = holder.get();
-        return o1.equals(o2);
+        return Objects.equals(o1, o2);
     }
 }

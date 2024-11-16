@@ -7,9 +7,9 @@ import java.util.Objects;
 public class ArrayUtils {
     private static final Comparator<Object> HASH_COMPARATOR = Comparator.comparingInt(Objects::hashCode);
 
-    public static int search(Object[] a, Object key) {
+    public static int search(Object[] a, Object key, int start) {
         int len = a.length;
-        for (int i = 0; i < len; i++) {
+        for (int i = start; i < len; i++) {
             if (Objects.equals(a[i], key)) return i;
         }
         return -1;
@@ -35,5 +35,18 @@ public class ArrayUtils {
         }
 
         return -guess - 1;
+    }
+
+    public static int findEqualStart(Object[] a, Object key, int guess) {
+        int i = guess;
+        while (i > 0 && Objects.equals(a[i - 1], key)) i--;
+        return i;
+    }
+
+    public static int findEqualEnd(Object[] a, Object key, int guess) {
+        int i = guess;
+        int end = a.length - 1;
+        while (i < end && Objects.equals(a[i + 1], key)) i++;
+        return i;
     }
 }

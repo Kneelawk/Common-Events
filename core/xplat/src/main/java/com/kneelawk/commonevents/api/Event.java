@@ -24,9 +24,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
@@ -511,7 +513,7 @@ public final class Event<T> {
     /**
      * Map of phases by the keys they contain.
      */
-    private final Map<Object, EventPhaseDataHolder<T>> keysInPhases = new HashMap<>();
+    private final Map<KeyHolder, Set<EventPhaseDataHolder<T>>> keysInPhases = new HashMap<>();
 
     @SuppressWarnings("unchecked")
     private Event(Class<? super T> type, String qualifier, Function<T[], T> implementation, boolean addScanned,
@@ -591,7 +593,7 @@ public final class Event<T> {
     /**
      * Registers a callback to a specific phase of the event.
      * <p>
-     * this uses the callback object as its own key.
+     * This uses the callback object as its own key.
      *
      * @param phase    the phase name
      * @param callback the callback
@@ -606,7 +608,7 @@ public final class Event<T> {
     /**
      * Register a keyed callback to the event.
      * <p>
-     * The callback key is used for un-registering the callback. Only one callback can be registerd for a given key.
+     * The callback key is used for un-registering the callback.
      *
      * @param key      the callback's key
      * @param callback the callback
@@ -621,7 +623,7 @@ public final class Event<T> {
     /**
      * Registers a keyed callback to a specific phase of the event.
      * <p>
-     * The callback key is used for un-registering the callback. Only one callback can be registered for a given key.
+     * The callback key is used for un-registering the callback.
      *
      * @param key      the callback's key
      * @param phase    the phase name
@@ -641,11 +643,9 @@ public final class Event<T> {
     private void registerKeyedImpl(ResourceLocation phase, KeyHolder key, T callback) {
         this.lock.lock();
         try {
-            if (keysInPhases.containsKey(key)) return;
-
             EventPhaseDataHolder<T> phaseData = this.getOrCreatePhase(phase, true);
             phaseData.addListener(key, callback);
-            keysInPhases.put(key, phaseData);
+            keysInPhases.computeIfAbsent(key, k -> new LinkedHashSet<>()).add(phaseData);
             this.rebuildInvoker(this.callbacks.length + 1);
         } finally {
             this.lock.unlock();
@@ -661,10 +661,12 @@ public final class Event<T> {
         this.lock.lock();
         try {
             KeyHolder holder = new StrongKey(key);
-            EventPhaseDataHolder<T> phaseData = keysInPhases.remove(holder);
-            if (phaseData != null) {
-                phaseData.removeListener(holder);
-                this.rebuildInvoker(this.callbacks.length - 1);
+            Set<EventPhaseDataHolder<T>> phaseDatas = keysInPhases.remove(holder);
+            if (phaseDatas != null) {
+                for (EventPhaseDataHolder<T> phaseData : phaseDatas) {
+                    phaseData.removeListener(holder);
+                    this.rebuildInvoker(this.callbacks.length - 1);
+                }
             }
         } finally {
             this.lock.unlock();
@@ -678,7 +680,7 @@ public final class Event<T> {
      * @return whether the given callback key is registered.
      */
     public boolean isRegistered(Object key) {
-        return keysInPhases.containsKey(key);
+        return keysInPhases.containsKey(new StrongKey(key));
     }
 
     /**

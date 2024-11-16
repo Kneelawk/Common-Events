@@ -18,6 +18,7 @@ package com.kneelawk.commonevents.impl.event;
 
 import java.lang.reflect.Array;
 import java.util.Arrays;
+import java.util.Objects;
 
 import com.kneelawk.commonevents.impl.ArrayUtils;
 
@@ -42,18 +43,35 @@ public class UnsortedEventPhaseData<T> implements EventPhaseData<T> {
 
     @Override
     public void removeListener(Object key) {
-        int index = ArrayUtils.search(keys, key);
+        int index = ArrayUtils.search(keys, key, 0);
         if (index < 0) throw new IllegalArgumentException("No listener key: " + key);
 
-        T[] newCallbacks = Arrays.copyOf(callbacks, callbacks.length - 1);
-        Object[] newKeys = Arrays.copyOf(keys, keys.length - 1);
-        if (index < callbacks.length - 1) {
-            System.arraycopy(callbacks, index + 1, newCallbacks, index, newCallbacks.length - index);
-            System.arraycopy(keys, index + 1, newKeys, index, newKeys.length - index);
+        T[] callbacks = this.callbacks;
+        Object[] keys = this.keys;
+
+        while (index >= 0) {
+            int toRemove = 1;
+            int len = keys.length;
+            assert callbacks.length == len;
+
+            // chances are, if multiple listeners get registered for the same key, they'll all get registered at once
+            while (index + toRemove < len && Objects.equals(keys[index + toRemove], key)) toRemove++;
+
+            T[] newCallbacks = Arrays.copyOf(callbacks, len - toRemove);
+            Object[] newKeys = Arrays.copyOf(keys, len - toRemove);
+            if (index < len - toRemove) {
+                System.arraycopy(callbacks, index + toRemove, newCallbacks, index, newCallbacks.length - index);
+                System.arraycopy(keys, index + toRemove, newKeys, index, newKeys.length - index);
+            }
+
+            callbacks = newCallbacks;
+            keys = newKeys;
+
+            index = ArrayUtils.search(keys, key, index);
         }
 
-        callbacks = newCallbacks;
-        keys = newKeys;
+        this.callbacks = callbacks;
+        this.keys = keys;
     }
 
     @Override
