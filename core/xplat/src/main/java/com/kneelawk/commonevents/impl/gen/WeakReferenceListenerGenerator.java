@@ -1,10 +1,8 @@
 package com.kneelawk.commonevents.impl.gen;
 
-import java.lang.ref.Cleaner;
 import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
-import java.util.function.Consumer;
 
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
@@ -15,14 +13,10 @@ import org.objectweb.asm.commons.Method;
 
 import com.kneelawk.commonevents.api.adapter.util.AdapterUtils;
 
-public class WeakCallbackMethodWrapperGenerator {
+public class WeakReferenceListenerGenerator {
     private static final ClassGenerator<Spec> GENERATOR =
-        new ClassGenerator<>("com.kneelawk.commonevents.impl.gen.impl.$CommonEvents_Generated$.WeakCallbackWrapper",
-            "event-weak-callback-generator", WeakCallbackMethodWrapperGenerator::generateCode);
-
-    private static final Type cleanerHolderType =
-        Type.getObjectType("com/kneelawk/commonevents/impl/event/CleanerHolder");
-    private static final String cleanerName = "CLEANER";
+        new ClassGenerator<>("com.kneelawk.commonevents.impl.gen.impl.$CommonEvents_Generated$.WeakReferenceListener",
+            "event-weak-listener-generator", WeakReferenceListenerGenerator::generateCode);
 
     private record Spec(Class<?> interfaceClass, Type implType, Method implMethod, boolean ret) {}
 
@@ -46,21 +40,12 @@ public class WeakCallbackMethodWrapperGenerator {
         Method objectInit = Method.getMethod("void <init> ()");
 
         Type weakType = Type.getType(WeakReference.class);
-        Method weakInit = new Method("<init>", Type.VOID_TYPE, new Type[]{objectType});
         Method weakGet = new Method("get", objectType, new Type[0]);
-
-        Type runnableType = Type.getType(Runnable.class);
-        Type consumerType = Type.getType(Consumer.class);
-        Type cleanerType = Type.getType(Cleaner.class);
-        Type cleanableType = Type.getType(Cleaner.Cleanable.class);
-        Method cleanerRegister = new Method("register", cleanableType, new Type[]{objectType, runnableType});
-
-        Method cleanerHolderInit = new Method("<init>", Type.VOID_TYPE, new Type[]{consumerType, objectType});
 
         writer.visit(AdapterUtils.JAVA_VERSION, Opcodes.ACC_PUBLIC, beingDefined.getInternalName(), null,
             objectType.getInternalName(), new String[]{interfaceType.getInternalName()});
-        writer.visitField(Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL, "wrapped", weakType.getDescriptor(), null, null)
-            .visitEnd();
+        writer.visitField(Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL, "wrapped", weakType.getDescriptor(),
+            "L" + weakType.getInternalName() + "<" + spec.implType().getDescriptor() + ">;", null).visitEnd();
         if (spec.ret()) {
             writer.visitField(Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL, "defaultReturn",
                 interfaceMethodReturn.getDescriptor(),
@@ -69,35 +54,23 @@ public class WeakCallbackMethodWrapperGenerator {
 
         Type[] initArgs;
         if (spec.ret()) {
-            initArgs = new Type[]{interfaceType, consumerType, interfaceMethodReturn};
+            initArgs = new Type[]{weakType, interfaceMethodReturn};
         } else {
-            initArgs = new Type[]{interfaceType, consumerType};
+            initArgs = new Type[]{weakType};
         }
         Method initMethod = new Method("<init>", Type.VOID_TYPE, initArgs);
-        GeneratorAdapter constructor = new GeneratorAdapter(Opcodes.ACC_PUBLIC, initMethod, null, null, writer);
+        GeneratorAdapter constructor = new GeneratorAdapter(Opcodes.ACC_PUBLIC, initMethod,
+            "(L" + weakType.getInternalName() + "<" + spec.implType().getDescriptor() + ">;)V", null, writer);
         constructor.loadThis();
         constructor.invokeConstructor(objectType, objectInit);
 
         constructor.loadThis();
-        constructor.newInstance(weakType);
-        constructor.dup();
         constructor.loadArg(0);
-        constructor.invokeConstructor(weakType, weakInit);
         constructor.putField(beingDefined, "wrapped", weakType);
-
-        constructor.getStatic(cleanerHolderType, cleanerName, cleanerType);
-        constructor.loadArg(0);
-        constructor.newInstance(cleanerHolderType);
-        constructor.dup();
-        constructor.loadArg(1);
-        constructor.loadThis();
-        constructor.invokeConstructor(cleanerHolderType, cleanerHolderInit);
-        constructor.invokeVirtual(cleanerType, cleanerRegister);
-        constructor.pop();
 
         if (spec.ret()) {
             constructor.loadThis();
-            constructor.loadArg(2);
+            constructor.loadArg(1);
             constructor.putField(beingDefined, "defaultReturn", interfaceMethodReturn);
         }
 
@@ -109,8 +82,8 @@ public class WeakCallbackMethodWrapperGenerator {
         impl.loadThis();
         impl.getField(beingDefined, "wrapped", weakType);
         impl.invokeVirtual(weakType, weakGet);
-        impl.checkCast(interfaceType);
-        int local = impl.newLocal(interfaceType);
+        impl.checkCast(spec.implType());
+        int local = impl.newLocal(spec.implType());
         impl.storeLocal(local);
 
         Label after = impl.newLabel();
@@ -140,7 +113,7 @@ public class WeakCallbackMethodWrapperGenerator {
 
     @SuppressWarnings("unchecked")
     public static <T> T defineWrapper(Class<T> interfaceClass, Class<?> implClass, java.lang.reflect.Method implMethod,
-                                      Object impl, Consumer<Object> cleaner, Object defaultReturn) {
+                                      WeakReference<?> impl, Object defaultReturn) {
         if (!interfaceClass.isInterface())
             throw new IllegalArgumentException(interfaceClass.getName() + " is not a functional interface");
 
@@ -170,15 +143,14 @@ public class WeakCallbackMethodWrapperGenerator {
 
         try {
             Class<T> tClass = (Class<T>) GENERATOR.getOrCreateClass(
-                new Spec(interfaceClass, Type.getType(implClass), Method.getMethod(implMethod),
-                    !retVoid));
+                new Spec(interfaceClass, Type.getType(implClass), Method.getMethod(implMethod), !retVoid));
 
             if (retVoid) {
-                Constructor<T> constructor = tClass.getConstructor(interfaceClass, Consumer.class);
-                return constructor.newInstance(impl, cleaner);
+                Constructor<T> constructor = tClass.getConstructor(WeakReference.class);
+                return constructor.newInstance(impl);
             } else {
-                Constructor<T> constructor = tClass.getConstructor(interfaceClass, Consumer.class, retClass);
-                return constructor.newInstance(impl, cleaner, defaultReturn);
+                Constructor<T> constructor = tClass.getConstructor(WeakReference.class, retClass);
+                return constructor.newInstance(impl, defaultReturn);
             }
         } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | InstantiationException |
                  IllegalAccessException e) {

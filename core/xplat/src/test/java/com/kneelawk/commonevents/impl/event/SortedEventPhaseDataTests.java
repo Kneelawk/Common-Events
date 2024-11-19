@@ -52,7 +52,7 @@ public class SortedEventPhaseDataTests {
         phaseData.addListener(new Thing1(2), "2");
         assertArrayEquals(new String[]{"1", "2", "3"}, phaseData.getCallbacks());
 
-        phaseData.removeListener(new Thing1(1));
+        assertEquals(1, phaseData.removeListener(new Thing1(1)));
         assertArrayEquals(new String[]{"2", "3"}, phaseData.getCallbacks());
     }
 
@@ -102,7 +102,7 @@ public class SortedEventPhaseDataTests {
         assertTrue(callbacks[3].equals("32") || callbacks[3].equals("3"));
         assertEquals("4", callbacks[4]);
 
-        phaseData.removeListener(new Thing1(3));
+        assertEquals(2, phaseData.removeListener(new Thing1(3)));
         assertArrayEquals(new String[]{"1", "2", "4"}, phaseData.getCallbacks());
     }
 
@@ -124,12 +124,9 @@ public class SortedEventPhaseDataTests {
         assertTrue(callbacks[4].equals("32") || callbacks[4].equals("3"));
         assertEquals("4", callbacks[5]);
 
-        phaseData.removeListener(new Thing1(3));
+        assertEquals(2, phaseData.removeListener(new Thing1(3)));
+        assertEquals(1, phaseData.removeListener(new Thing1(2)));
 
-        callbacks = phaseData.getCallbacks();
-        assertEquals("1", callbacks[0]);
-        assertTrue(callbacks[1].equals("2") || callbacks[1].equals("22"));
-        assertTrue(callbacks[2].equals("22") || callbacks[2].equals("2"));
-        assertEquals("4", callbacks[3]);
+        assertArrayEquals(new String[]{"1", "22", "4"}, phaseData.getCallbacks());
     }
 }

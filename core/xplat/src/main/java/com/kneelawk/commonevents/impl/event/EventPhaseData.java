@@ -19,7 +19,7 @@ package com.kneelawk.commonevents.impl.event;
 public interface EventPhaseData<T> {
     void addListener(Object key, T listener);
     
-    void removeListener(Object key);
+    int removeListener(Object key);
     
     T[] getCallbacks();
 }

@@ -56,9 +56,9 @@ public class SortedEventPhaseData<T> implements EventPhaseData<T> {
     }
 
     @Override
-    public void removeListener(Object key) {
+    public int removeListener(Object key) {
         int index = ArrayUtils.binarySearch(keys, key);
-        if (index < 0) throw new IllegalArgumentException("No listener key: " + key);
+        if (index < 0) return 0;
 
         int start = ArrayUtils.findEqualStart(keys, key, index);
         int stop = ArrayUtils.findEqualEnd(keys, key, index) + 1;
@@ -76,6 +76,8 @@ public class SortedEventPhaseData<T> implements EventPhaseData<T> {
 
         callbacks = newCallbacks;
         keys = newKeys;
+        
+        return removeLen;
     }
 
     @Override

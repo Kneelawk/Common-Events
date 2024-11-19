@@ -18,8 +18,10 @@
 
 package com.kneelawk.commonevents.api;
 
+import java.lang.ref.WeakReference;
 import java.lang.reflect.Array;
 import java.lang.reflect.Method;
+import java.lang.reflect.Modifier;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -44,10 +46,14 @@ import com.kneelawk.commonevents.api.phase.PhaseData;
 import com.kneelawk.commonevents.api.phase.PhaseSorting;
 import com.kneelawk.commonevents.impl.CEConstants;
 import com.kneelawk.commonevents.impl.CommonEventsImpl;
+import com.kneelawk.commonevents.impl.event.CleanerHolder;
 import com.kneelawk.commonevents.impl.event.EventPhaseDataHolder;
 import com.kneelawk.commonevents.impl.event.KeyHolder;
 import com.kneelawk.commonevents.impl.event.StrongKey;
+import com.kneelawk.commonevents.impl.event.WeakKey;
 import com.kneelawk.commonevents.impl.gen.SimpleCallbackImplGenerator;
+import com.kneelawk.commonevents.impl.scan.ListenerBuilder;
+import com.kneelawk.commonevents.impl.scan.ReflectionScan;
 import com.kneelawk.commonevents.impl.scan.ScanManager;
 
 /**
@@ -489,6 +495,7 @@ public final class Event<T> {
      * The function used to generate the implementation of the invoker to execute events.
      */
     private final Class<? super T> type;
+    private final @Nullable Method callbackMethod;
     private final EventKey key;
     private final Function<T[], T> implementation;
     private final boolean sortPhaseCallbacks;
@@ -523,6 +530,7 @@ public final class Event<T> {
         Objects.requireNonNull(implementation, "Function to generate invoker implementation for T cannot be null");
 
         this.type = type;
+        this.callbackMethod = AdapterUtils.getSingularMethod(type);
         this.key = EventKey.fromClass(type, qualifier);
         this.implementation = implementation;
         this.callbacks = (T[]) Array.newInstance(type, 0);
@@ -574,6 +582,15 @@ public final class Event<T> {
      */
     public @Nullable Object getDefaultReturn() {
         return hasDefaultReturn() ? defaultReturn : null;
+    }
+
+    /**
+     * {@return a reflection of the singular functional interface method of the interface used by this event}
+     * <p>
+     * If this event does not use a functional interface, then this getter will return null.
+     */
+    public @Nullable Method getCallbackMethod() {
+        return callbackMethod;
     }
 
     /**
@@ -640,16 +657,235 @@ public final class Event<T> {
         registerKeyedImpl(phase, new StrongKey(key), callback);
     }
 
-    private void registerKeyedImpl(ResourceLocation phase, KeyHolder key, T callback) {
-        this.lock.lock();
-        try {
-            EventPhaseDataHolder<T> phaseData = this.getOrCreatePhase(phase, true);
-            phaseData.addListener(key, callback);
-            keysInPhases.computeIfAbsent(key, k -> new LinkedHashSet<>()).add(phaseData);
-            this.rebuildInvoker(this.callbacks.length + 1);
-        } finally {
-            this.lock.unlock();
+    /**
+     * Registers all methods on the given listener object that are annotated with a {@link Listen} annotation
+     * that refers to this event.
+     * <p>
+     * If the given listener object is a class object, then this method will scan and register static methods.
+     * Otherwise, this method will scan and register instance methods.
+     * <p>
+     * The given listener object can be used for un-registering all callback registered with this call.
+     * <p>
+     * Note: this method can only be called if this event's type is a functional interface.
+     *
+     * @param listenerObject the object referring to the methods to be registered
+     */
+    public void registerAll(Object listenerObject) {
+        Objects.requireNonNull(listenerObject, "Tried to register callbacks on a null object!");
+
+        registerAllKeyedImpl(listenerObject, listenerObject);
+    }
+
+    /**
+     * Registers all methods on the given listener object that are annotated with a {@link Listen} annotation
+     * that refers to this event.
+     * <p>
+     * If the given listener object is a class object, then this method will scan and register static methods.
+     * Otherwise, this method will scan and register instance methods.
+     * <p>
+     * The given key can be used for un-registering all callbacks registered with this call.
+     * <p>
+     * Note: this method can only be called if this event's type is a functional interface.
+     *
+     * @param key            the callback's key
+     * @param listenerObject the object referring to the methods to be registered
+     */
+    public void registerAllKeyed(Object key, Object listenerObject) {
+        Objects.requireNonNull(listenerObject, "Tried to register callbacks on a null object!");
+        Objects.requireNonNull(key, "Tried to register a callback with a null key!");
+
+        registerAllKeyedImpl(key, listenerObject);
+    }
+
+    /**
+     * Weak-registers all methods on the given listener object that are annotated with a {@link Listen} annotation
+     * that refers to this event.
+     * <p>
+     * Weak registration means that only a weak reference to the listener object is held and when that object gets
+     * garbage-collected, all listeners registered from the given object get unregistered.
+     * <p>
+     * The given listener object can also be used to manually un-register all its callbacks.
+     * <p>
+     * Note: this method can only be called if this event's type is a functional interface.
+     * <p>
+     * Note: if this event's functional interface has a non-void return type, then this method requires that this event
+     * has had a default return value specified when being built. This is because there is can be a short period of
+     * time after the registered object has been garbage-collected but before this event has removed the listener.
+     *
+     * @param listenerObject the object instance holding the methods to be registered
+     */
+    public void registerAllWeak(Object listenerObject) {
+        Objects.requireNonNull(listenerObject, "Tried to weak-register callbacks on a null object!");
+
+        if (callbackMethod == null) {
+            throw new UnsupportedOperationException(
+                "Weak listeners can only be registered on events with functional interfaces");
         }
+
+        Class<?> returnType = callbackMethod.getReturnType();
+        if (defaultReturn == NO_DEFAULT_RETURN && returnType != void.class) {
+            throw new IllegalArgumentException(
+                "This event requires that a default return value be specified when registering weak listeners. Expected return type: " +
+                    returnType);
+        }
+
+        registerAllWeakImpl(listenerObject, defaultReturn);
+    }
+
+    /**
+     * Weak-registers all methods on the given listener object that are annotated with a {@link Listen} annotation
+     * that refers to this event.
+     * <p>
+     * Weak registration means that only a weak reference to the listener object is held and when that object gets
+     * garbage-collected, all listeners registered from the given object get unregistered.
+     * <p>
+     * The given listener object can also be used to manually un-register all its callbacks.
+     * <p>
+     * Note: this method can only be called if this event's type is a functional interface.
+     *
+     * @param listenerObject the object instance holding the methods to be registered
+     * @param defaultReturn  the value returned by listeners that refer to an object that has been garbage-collected
+     *                       before they have been unregistered
+     */
+    public void registerAllWeak(Object listenerObject, @Nullable Object defaultReturn) {
+        Objects.requireNonNull(listenerObject, "Tried to weak-register callbacks on a null object!");
+
+        if (callbackMethod == null) {
+            throw new UnsupportedOperationException(
+                "Weak listeners can only be registered on events with functional interfaces");
+        }
+
+        registerAllWeakImpl(listenerObject, defaultReturn);
+    }
+
+    /**
+     * Registers the given method on the given listener object.
+     * <p>
+     * The given key can be used to un-register all this callback.
+     * <p>
+     * Note: this method can only be called if this event's type is a functional interface.
+     *
+     * @param phase          the phase to register the listener to
+     * @param key            the key that can be used to unregister this listener
+     * @param listenerObject the object instance on which to register the method of
+     * @param listenerMethod the method on the object instance to register
+     */
+    public void registerInstanceMethod(ResourceLocation phase, Object key, Object listenerObject,
+                                       Method listenerMethod) {
+        Objects.requireNonNull(phase, "Tried to register a callback for a null phase!");
+        Objects.requireNonNull(key, "Tried to register a callback with a null key!");
+        Objects.requireNonNull(listenerObject, "Tried to register a callback on a null object!");
+        Objects.requireNonNull(listenerMethod, "Tried to register a callback on a null method!");
+
+        if (!Modifier.isPublic(listenerMethod.getModifiers()))
+            throw new IllegalArgumentException("The given listener method is not public");
+        if (Modifier.isStatic(listenerMethod.getModifiers()))
+            throw new IllegalArgumentException("The given listener method is static");
+
+        if (!listenerMethod.getDeclaringClass().isAssignableFrom(listenerObject.getClass())) {
+            throw new IllegalArgumentException(
+                "The given listener method is not a method on the given listener object");
+        }
+
+        registerInstanceImpl(phase, new StrongKey(key), listenerObject, listenerMethod);
+    }
+
+    /**
+     * Registers the given static method on the given class object.
+     * <p>
+     * The given key can be used to un-register all this callback.
+     * <p>
+     * Note: this method can only be called if this event's type is a functional interface.
+     *
+     * @param phase          the phase to register the listener to
+     * @param key            the key that can be used to unregister this listener
+     * @param listenerClass  the class object on which to register the method of
+     * @param listenerMethod the static method on the class object to register
+     */
+    public void registerStaticMethod(ResourceLocation phase, Object key, Class<?> listenerClass,
+                                     Method listenerMethod) {
+        Objects.requireNonNull(phase, "Tried to register a callback for a null phase!");
+        Objects.requireNonNull(key, "Tried to register a callback with a null key!");
+        Objects.requireNonNull(listenerClass, "Tried to register a callback on a null class!");
+        Objects.requireNonNull(listenerMethod, "Tried to register a callback on a null method!");
+
+        if (!Modifier.isPublic(listenerMethod.getModifiers()))
+            throw new IllegalArgumentException("The given listener method is not public");
+        if (!Modifier.isStatic(listenerMethod.getModifiers()))
+            throw new IllegalArgumentException("The given listener method is not static");
+
+        if (!listenerMethod.getDeclaringClass().isAssignableFrom(listenerClass)) {
+            throw new IllegalArgumentException(
+                "The given listener method is not a method on the given listener object");
+        }
+
+        registerStaticImpl(phase, new StrongKey(key), listenerClass, listenerMethod);
+    }
+
+    /**
+     * Weak-registers the given method on the given listener object.
+     * <p>
+     * Weak registration means that only a weak reference to the listener object is held and when that object gets
+     * garbage-collected, all listeners registered from the given object get unregistered.
+     * <p>
+     * Note: this method can only be called if this event's type is a functional interface.
+     * <p>
+     * Note: if this event's functional interface has a non-void return type, then this method requires that this event
+     * has had a default return value specified when being built.
+     *
+     * @param phase          the phase to register the listener to
+     * @param listenerObject the object instance on which to register the method of
+     * @param listenerMethod the method on the object instance to register
+     */
+    public void registerWeakMethod(ResourceLocation phase, Object listenerObject, Method listenerMethod) {
+        Objects.requireNonNull(phase, "Tried to weak-register a callback for a null phase!");
+        Objects.requireNonNull(listenerObject, "Tried to weak-register a callback on a null object!");
+        Objects.requireNonNull(listenerMethod, "Tried to weak-register a callback on a null method!");
+
+        if (!Modifier.isPublic(listenerMethod.getModifiers()))
+            throw new IllegalArgumentException("The given listener method is not public");
+        if (Modifier.isStatic(listenerMethod.getModifiers()))
+            throw new IllegalArgumentException("The given listener method is static");
+
+        if (!listenerMethod.getDeclaringClass().isAssignableFrom(listenerObject.getClass())) {
+            throw new IllegalArgumentException(
+                "The given listener method is not a method on the given listener object");
+        }
+
+        registerWeakImpl(phase, listenerObject, listenerMethod);
+    }
+
+    /**
+     * Weak-registers the given method on the given listener object.
+     * <p>
+     * Weak registration means that only a weak reference to the listener object is held and when that object gets
+     * garbage-collected, all listeners registered from the given object get unregistered.
+     * <p>
+     * Note: this method can only be called if this event's type is a functional interface.
+     *
+     * @param phase          the phase to register the listener to
+     * @param listenerObject the object instance on which to register the method of
+     * @param listenerMethod the method on the object instance to register
+     * @param defaultReturn  the value returned by the listener if it refers to an object that has been
+     *                       garbage-collected before is has been unregistered
+     */
+    public void registerWeakMethod(ResourceLocation phase, Object listenerObject, Method listenerMethod,
+                                   @Nullable Object defaultReturn) {
+        Objects.requireNonNull(phase, "Tried to weak-register a callback for a null phase!");
+        Objects.requireNonNull(listenerObject, "Tried to weak-register a callback on a null object!");
+        Objects.requireNonNull(listenerMethod, "Tried to weak-register a callback on a null method!");
+
+        if (!Modifier.isPublic(listenerMethod.getModifiers()))
+            throw new IllegalArgumentException("The given listener method is not public");
+        if (Modifier.isStatic(listenerMethod.getModifiers()))
+            throw new IllegalArgumentException("The given listener method is static");
+
+        if (!listenerMethod.getDeclaringClass().isAssignableFrom(listenerObject.getClass())) {
+            throw new IllegalArgumentException(
+                "The given listener method is not a method on the given listener object");
+        }
+
+        registerWeakImpl(phase, listenerObject, listenerMethod, defaultReturn);
     }
 
     /**
@@ -658,19 +894,8 @@ public final class Event<T> {
      * @param key the key of the callback to unregister.
      */
     public void unregister(Object key) {
-        this.lock.lock();
-        try {
-            KeyHolder holder = new StrongKey(key);
-            Set<EventPhaseDataHolder<T>> phaseDatas = keysInPhases.remove(holder);
-            if (phaseDatas != null) {
-                for (EventPhaseDataHolder<T> phaseData : phaseDatas) {
-                    phaseData.removeListener(holder);
-                    this.rebuildInvoker(this.callbacks.length - 1);
-                }
-            }
-        } finally {
-            this.lock.unlock();
-        }
+        KeyHolder holder = new StrongKey(key);
+        unregisterImpl(holder);
     }
 
     /**
@@ -728,6 +953,104 @@ public final class Event<T> {
     }
 
     /* Implementation */
+
+    private void registerAllKeyedImpl(Object key, Object listenerObject) {
+        if (listenerObject instanceof Class<?> clazz) {
+            List<ReflectionScan> scanned = ReflectionScan.scanStatic(clazz);
+            for (ReflectionScan result : scanned) {
+                if (key.equals(result.key())) {
+                    registerStaticImpl(result.phase(), new StrongKey(key), clazz, result.method());
+                }
+            }
+        } else {
+            List<ReflectionScan> scanned = ReflectionScan.scanInstance(listenerObject);
+            for (ReflectionScan result : scanned) {
+                if (key.equals(result.key())) {
+                    registerInstanceImpl(result.phase(), new StrongKey(key), listenerObject,
+                        result.method());
+                }
+            }
+        }
+    }
+
+    private void registerAllWeakImpl(Object listenerObject, @Nullable Object defaultReturn) {
+        if (listenerObject instanceof Class<?>)
+            throw new UnsupportedOperationException("Cannot register a weak-reference to a class object");
+
+        List<ReflectionScan> scanned = ReflectionScan.scanInstance(listenerObject);
+        for (ReflectionScan result : scanned) {
+            if (key.equals(result.key())) {
+                registerWeakImpl(result.phase(), listenerObject, result.method(), defaultReturn);
+            }
+        }
+    }
+
+    private void registerInstanceImpl(ResourceLocation phase, KeyHolder key, Object listener, Method listenerMethod) {
+        T callback = ListenerBuilder.buildInstanceListener(type, listener, listenerMethod);
+        registerKeyedImpl(phase, key, callback);
+    }
+
+    private void registerStaticImpl(ResourceLocation phase, KeyHolder key, Class<?> listenerClass,
+                                    Method listenerMethod) {
+        T callback = ListenerBuilder.buildStaticListener(type, listenerClass, listenerMethod);
+        registerKeyedImpl(phase, key, callback);
+    }
+
+    private void registerWeakImpl(ResourceLocation phase, Object listener, Method listenerMethod) {
+        if (callbackMethod == null) {
+            throw new UnsupportedOperationException(
+                "Weak listeners can only be registered on events with functional interfaces");
+        }
+
+        Class<?> returnType = callbackMethod.getReturnType();
+        if (defaultReturn == NO_DEFAULT_RETURN && returnType != void.class) {
+            throw new IllegalArgumentException(
+                "This event requires that a default return value be specified when registering weak listeners. Expected return type: " +
+                    returnType);
+        }
+
+        registerWeakImpl(phase, listener, listenerMethod, defaultReturn);
+    }
+
+    private void registerWeakImpl(ResourceLocation phase, Object listener, Method listenerMethod,
+                                  @Nullable Object defaultReturn) {
+        Class<?> listenerClass = listener.getClass();
+        final WeakKey key = new WeakKey(listener);
+        CleanerHolder.CLEANER.register(listener, () -> unregisterImpl(key));
+        T callback =
+            ListenerBuilder.buildWeakListener(type, listenerClass, new WeakReference<>(listener), listenerMethod,
+                defaultReturn);
+
+        registerKeyedImpl(phase, key, callback);
+    }
+
+    private void registerKeyedImpl(ResourceLocation phase, KeyHolder key, T callback) {
+        this.lock.lock();
+        try {
+            EventPhaseDataHolder<T> phaseData = this.getOrCreatePhase(phase, true);
+            phaseData.addListener(key, callback);
+            keysInPhases.computeIfAbsent(key, k -> new LinkedHashSet<>()).add(phaseData);
+            this.rebuildInvoker(this.callbacks.length + 1);
+        } finally {
+            this.lock.unlock();
+        }
+    }
+
+    private void unregisterImpl(KeyHolder holder) {
+        this.lock.lock();
+        try {
+            Set<EventPhaseDataHolder<T>> phaseDatas = keysInPhases.remove(holder);
+            if (phaseDatas != null) {
+                int removed = 0;
+                for (EventPhaseDataHolder<T> phaseData : phaseDatas) {
+                    removed += phaseData.removeListener(holder);
+                }
+                this.rebuildInvoker(this.callbacks.length - removed);
+            }
+        } finally {
+            this.lock.unlock();
+        }
+    }
 
     private EventPhaseDataHolder<T> getOrCreatePhase(ResourceLocation id, boolean sortIfCreate) {
         var phase = this.phases.get(id);

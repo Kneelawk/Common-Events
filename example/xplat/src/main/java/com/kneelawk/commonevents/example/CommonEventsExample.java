@@ -46,6 +46,16 @@ public class CommonEventsExample {
         EVENT_BUS.registerListeners(EventListener2.class);
         EventListener3 listener3 = new EventListener3();
         EVENT_BUS.registerListeners(listener3);
+
+        // Register a ridiculous number of listeners, some of which should get garbage-collected.
+        // Note that, usually, only some of the weak event listener instances will receive the event, because the rest
+        // have been garbage collected.
+
+        // disabled for brevity
+//        for (int i = 0; i < 10000; i++) {
+//            EVENT_BUS.registerWeakListeners(new EventListener5("#" + i));
+//        }
+
         EventHolder.init();
         EventHolder2.init();
     }
@@ -59,11 +69,11 @@ public class CommonEventsExample {
         // This event is initialized when EVENT_BUS is constructed, to make sure this event can collect listeners
         // registered to the event bus.
         @BusEvent("common_events_example:bus")
-        public static Event<MyCallback> MY_EVENT = Event.createWithPhases(MyCallback.class, callbacks -> () -> {
+        public static Event<MyCallback> MY_EVENT = Event.builder(MyCallback.class, callbacks -> () -> {
             for (MyCallback callback : callbacks) {
                 callback.onEvent();
             }
-        }, ResourceLocation.fromNamespaceAndPath(MOD_ID, "my_phase"), Event.DEFAULT_PHASE);
+        }).defaultPhases(ResourceLocation.fromNamespaceAndPath(MOD_ID, "my_phase"), Event.DEFAULT_PHASE).build();
 
         static {
             LOGGER.info("# MY_EVENT created.");
@@ -139,6 +149,17 @@ public class CommonEventsExample {
         @Listen(MyCallback2.class)
         public static void onOtherEvent(String str, long l) {
             throw new RuntimeException("Some exception");
+        }
+    }
+
+    public static class EventListener5 {
+        private final String name;
+
+        public EventListener5(String name) {this.name = name;}
+
+        @Listen(MyCallback.class)
+        public void onEvent() {
+            LOGGER.info("> onEvent received in EventListener 5 [{}]", name);
         }
     }
 

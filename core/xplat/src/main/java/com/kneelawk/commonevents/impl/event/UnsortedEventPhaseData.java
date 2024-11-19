@@ -42,12 +42,13 @@ public class UnsortedEventPhaseData<T> implements EventPhaseData<T> {
     }
 
     @Override
-    public void removeListener(Object key) {
+    public int removeListener(Object key) {
         int index = ArrayUtils.search(keys, key, 0);
-        if (index < 0) throw new IllegalArgumentException("No listener key: " + key);
+        if (index < 0) return 0;
 
         T[] callbacks = this.callbacks;
         Object[] keys = this.keys;
+        int removed = 0;
 
         while (index >= 0) {
             int toRemove = 1;
@@ -67,11 +68,14 @@ public class UnsortedEventPhaseData<T> implements EventPhaseData<T> {
             callbacks = newCallbacks;
             keys = newKeys;
 
+            removed += toRemove;
             index = ArrayUtils.search(keys, key, index);
         }
 
         this.callbacks = callbacks;
         this.keys = keys;
+
+        return removed;
     }
 
     @Override

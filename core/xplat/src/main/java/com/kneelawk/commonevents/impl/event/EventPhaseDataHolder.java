@@ -33,7 +33,7 @@ public final class EventPhaseDataHolder<T> extends PhaseData<EventPhaseData<T>, 
         this.data.addListener(key, listener);
     }
 
-    public void removeListener(Object key) {
-        this.data.removeListener(key);
+    public int removeListener(Object key) {
+        return this.data.removeListener(key);
     }
 }

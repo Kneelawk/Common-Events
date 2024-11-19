@@ -16,26 +16,17 @@
 
 package com.kneelawk.commonevents.api;
 
-import java.lang.invoke.LambdaMetafactory;
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodType;
-import java.lang.reflect.Method;
-import java.lang.reflect.Modifier;
+import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.objectweb.asm.Type;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 
 import net.minecraft.resources.ResourceLocation;
 
-import com.kneelawk.commonevents.api.adapter.util.AdapterUtils;
-import com.kneelawk.commonevents.impl.CELog;
-import com.kneelawk.commonevents.impl.event.WeakKey;
-import com.kneelawk.commonevents.impl.gen.WeakCallbackMethodWrapperGenerator;
+import com.kneelawk.commonevents.impl.scan.ReflectionScan;
 import com.kneelawk.commonevents.impl.scan.ScanManager;
 
 /**
@@ -413,28 +404,19 @@ public final class EventBus {
      */
     public void registerKeyedListeners(Object key, Object listeners) {
         if (listeners instanceof Class<?> clazz) {
-            for (Method m : clazz.getDeclaredMethods()) {
-                if (Modifier.isPublic(m.getModifiers()) && Modifier.isStatic(m.getModifiers())) {
-                    Listen l = m.getAnnotation(Listen.class);
-                    if (l != null) {
-                        Event<?> event = events.get(EventKey.fromClass(l.value(), l.qualifier()));
-                        if (event != null) {
-                            registerListener(event, ResourceLocation.parse(l.phase()), clazz, m, key, null);
-                        }
-                    }
+            List<ReflectionScan> scanned = ReflectionScan.scanStatic(clazz);
+            for (ReflectionScan result : scanned) {
+                Event<?> event = events.get(result.key());
+                if (event != null) {
+                    event.registerStaticMethod(result.phase(), key, clazz, result.method());
                 }
             }
         } else {
-            Class<?> clazz = listeners.getClass();
-            for (Method m : clazz.getMethods()) {
-                if (Modifier.isPublic(m.getModifiers())) {
-                    Listen l = m.getAnnotation(Listen.class);
-                    if (l != null) {
-                        Event<?> event = events.get(EventKey.fromClass(l.value(), l.qualifier()));
-                        if (event != null) {
-                            registerListener(event, ResourceLocation.parse(l.phase()), clazz, m, key, listeners);
-                        }
-                    }
+            List<ReflectionScan> scanned = ReflectionScan.scanInstance(listeners);
+            for (ReflectionScan result : scanned) {
+                Event<?> event = events.get(result.key());
+                if (event != null) {
+                    event.registerInstanceMethod(result.phase(), key, listeners, result.method());
                 }
             }
         }
@@ -453,16 +435,11 @@ public final class EventBus {
         if (listeners instanceof Class<?>)
             throw new IllegalArgumentException("Cannot register a class as a weak listener");
 
-        Class<?> clazz = listeners.getClass();
-        for (Method m : clazz.getMethods()) {
-            if (Modifier.isPublic(m.getModifiers())) {
-                Listen l = m.getAnnotation(Listen.class);
-                if (l != null) {
-                    Event<?> event = events.get(EventKey.fromClass(l.value(), l.qualifier()));
-                    if (event != null) {
-                        registerWeakListener(event, ResourceLocation.parse(l.phase()), clazz, m, listeners);
-                    }
-                }
+        List<ReflectionScan> scanned = ReflectionScan.scanInstance(listeners);
+        for (ReflectionScan result : scanned) {
+            Event<?> event = events.get(result.key());
+            if (event != null) {
+                event.registerWeakMethod(result.phase(), listeners, result.method());
             }
         }
     }
@@ -474,25 +451,23 @@ public final class EventBus {
      * passed object for instance methods annotated with {@link Listen}. Instance scanning includes annotated methods
      * in superclasses and implemented interfaces.
      *
-     * @param listeners     the instance to search for listener methods.
-     * @param defaultReturn the default value returned by registered listeners if they are invoked after they have been
-     *                      garbage-collected.
+     * @param listeners      the instance to search for listener methods.
+     * @param defaultReturns the map of default values returned by registered listeners if they are invoked after they
+     *                       have been garbage-collected.
      */
-    public void registerWeakListeners(Object listeners, @Nullable Object defaultReturn) {
-        // FIXME: should this method even exist? Maybe with a map of event-key to default-return?
+    public void registerWeakListeners(Object listeners, Map<EventKey, @Nullable Object> defaultReturns) {
         if (listeners instanceof Class<?>)
             throw new IllegalArgumentException("Cannot register a class as a weak listener");
 
-        Class<?> clazz = listeners.getClass();
-        for (Method m : clazz.getMethods()) {
-            if (Modifier.isPublic(m.getModifiers())) {
-                Listen l = m.getAnnotation(Listen.class);
-                if (l != null) {
-                    Event<?> event = events.get(EventKey.fromClass(l.value(), l.qualifier()));
-                    if (event != null) {
-                        registerWeakListener(event, ResourceLocation.parse(l.phase()), clazz, m, listeners,
-                            defaultReturn);
-                    }
+        List<ReflectionScan> scanned = ReflectionScan.scanInstance(listeners);
+        for (ReflectionScan result : scanned) {
+            EventKey key = result.key();
+            Event<?> event = events.get(key);
+            if (event != null) {
+                if (defaultReturns.containsKey(key)) {
+                    event.registerWeakMethod(result.phase(), listeners, result.method(), defaultReturns.get(key));
+                } else {
+                    event.registerWeakMethod(result.phase(), listeners, result.method());
                 }
             }
         }
@@ -508,133 +483,4 @@ public final class EventBus {
             event.unregister(key);
         }
     }
-
-    @SuppressWarnings("unchecked")
-    private void registerListener(Event<?> event, ResourceLocation phase, Class<?> listenerClass, Method listenerMethod,
-                                  @NotNull Object key, @Nullable Object instance) {
-        Class<?> callbackInterface = event.getType();
-
-        Methods methods = verifyMethods(listenerClass, listenerMethod, callbackInterface);
-
-        try {
-            if (instance == null) {
-                MethodHandle handle =
-                    AdapterUtils.LOOKUP.findStatic(listenerClass, listenerMethod.getName(), methods.actualMethodType());
-
-                Object listener = callbackInterface.cast(
-                    LambdaMetafactory.metafactory(AdapterUtils.LOOKUP, methods.interfaceMethod().getName(),
-                        MethodType.methodType(callbackInterface), methods.expectedMethodType(), handle,
-                        methods.expectedMethodType()).getTarget().invoke());
-
-                ((Event<Object>) event).registerKeyed(phase, key, listener);
-            } else {
-                MethodHandle handle = AdapterUtils.LOOKUP.findVirtual(listenerClass, listenerMethod.getName(),
-                    methods.actualMethodType());
-
-                Object listener = callbackInterface.cast(
-                    LambdaMetafactory.metafactory(AdapterUtils.LOOKUP, methods.interfaceMethod().getName(),
-                        MethodType.methodType(callbackInterface, listenerClass), methods.expectedMethodType(), handle,
-                        methods.expectedMethodType()).getTarget().invoke(instance));
-
-                ((Event<Object>) event).registerKeyed(phase, key, listener);
-            }
-        } catch (Throwable e) {
-            throw handleError(callbackInterface, listenerClass, methods.interfaceMethod(), listenerMethod,
-                methods.expectedMethodType(), methods.actualMethodType(), e);
-        }
-    }
-
-    private static void registerWeakListener(Event<?> event, ResourceLocation phase, Class<?> listenerClass,
-                                             Method listenerMethod, @NotNull Object instance) {
-        Class<?> callbackInterface = event.getType();
-
-        Methods methods = verifyMethods(listenerClass, listenerMethod, callbackInterface);
-
-        Object defaultReturn = null;
-        if (methods.interfaceMethod().getReturnType() != void.class) {
-            if (!event.hasDefaultReturn()) {
-                throw new IllegalArgumentException("Attempted to create a weak listener for " + callbackInterface +
-                    " that requires a default return value but none was provided by either the event or the user.");
-            } else {
-                defaultReturn = event.getDefaultReturn();
-            }
-        }
-
-        registerWeakListener(event, phase, listenerClass, listenerMethod, instance, callbackInterface, methods,
-            defaultReturn);
-    }
-
-    private static void registerWeakListener(Event<?> event, ResourceLocation phase, Class<?> listenerClass,
-                                             Method listenerMethod, @NotNull Object instance,
-                                             @Nullable Object defaultReturn) {
-        Class<?> callbackInterface = event.getType();
-
-        Methods methods = verifyMethods(listenerClass, listenerMethod, callbackInterface);
-
-        registerWeakListener(event, phase, listenerClass, listenerMethod, instance, callbackInterface, methods,
-            defaultReturn);
-    }
-
-    @SuppressWarnings("unchecked")
-    private static void registerWeakListener(Event<?> event, ResourceLocation phase, Class<?> listenerClass,
-                                             Method listenerMethod, @NotNull Object instance,
-                                             Class<?> callbackInterface,
-                                             Methods methods, @Nullable Object defaultReturn) {
-        try {
-            final WeakKey key = new WeakKey(instance);
-            Object listener =
-                WeakCallbackMethodWrapperGenerator.defineWrapper(callbackInterface, listenerClass, listenerMethod,
-                    instance, o -> event.unregister(key), defaultReturn);
-            ((Event<Object>) event).registerKeyed(phase, key, listener);
-        } catch (Throwable t) {
-            throw handleError(callbackInterface, listenerClass, methods.interfaceMethod(), listenerMethod,
-                methods.expectedMethodType(), methods.actualMethodType(), t);
-        }
-    }
-
-    private static @NotNull Methods verifyMethods(Class<?> listenerClass, Method listenerMethod,
-                                                  Class<?> callbackInterface) {
-        Method interfaceMethod = AdapterUtils.getSingularMethod(callbackInterface);
-        if (interfaceMethod == null) throw new IllegalArgumentException(
-            "Tried to listen to callback interface " + callbackInterface + " which is not a functional interface");
-
-        MethodType expectedMethodType =
-            MethodType.methodType(interfaceMethod.getReturnType(), interfaceMethod.getParameterTypes());
-        MethodType actualMethodType =
-            MethodType.methodType(listenerMethod.getReturnType(), listenerMethod.getParameterTypes());
-
-        checkReturnTypes(callbackInterface, listenerClass, interfaceMethod, listenerMethod, expectedMethodType,
-            actualMethodType);
-        return new Methods(interfaceMethod, expectedMethodType, actualMethodType);
-    }
-
-    private static void checkReturnTypes(Class<?> callbackInterface, Class<?> listenerClass, Method interfaceMethod,
-                                         Method staticMethod, MethodType expectedMethodType,
-                                         MethodType actualMethodType) {
-        if (!expectedMethodType.returnType().isAssignableFrom(actualMethodType.returnType())) {
-            String callbackClassName = callbackInterface.getName().replace('.', '/');
-            String listenerClassName = listenerClass.getName().replace('.', '/');
-            Type expectedType = AdapterUtils.getMethodType(expectedMethodType);
-            Type actualType = AdapterUtils.getMethodType(actualMethodType);
-            CELog.LOGGER.warn(
-                "[Common Events] Callback listener {}.{}{} has return type that is incompatible with callback interface {}.{}{}. " +
-                    "The associated event may throw a ClassCastException when called.", listenerClassName,
-                staticMethod.getName(), actualType, callbackClassName, interfaceMethod.getName(), expectedType);
-        }
-    }
-
-    private static RuntimeException handleError(Class<?> callbackInterface, Class<?> listenerClass,
-                                                Method interfaceMethod, Method staticMethod,
-                                                MethodType expectedMethodType, MethodType actualMethodType,
-                                                Throwable e) {
-        String callbackClassName = callbackInterface.getName().replace('.', '/');
-        String listenerClassName = listenerClass.getName().replace('.', '/');
-        Type expectedType = AdapterUtils.getMethodType(expectedMethodType);
-        Type actualType = AdapterUtils.getMethodType(actualMethodType);
-        return new RuntimeException(
-            "Error connecting listener method " + listenerClassName + "." + staticMethod.getName() + actualType +
-                " with callback interface " + callbackClassName + "." + interfaceMethod.getName() + expectedType, e);
-    }
-
-    private record Methods(Method interfaceMethod, MethodType expectedMethodType, MethodType actualMethodType) {}
 }
