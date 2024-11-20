@@ -24,7 +24,6 @@ import com.kneelawk.commonevents.api.phase.PhaseData;
 
 @ApiStatus.Internal
 public final class EventPhaseDataHolder<T> extends PhaseData<EventPhaseData<T>, EventPhaseDataHolder<T>> {
-    @SuppressWarnings("unchecked")
     public EventPhaseDataHolder(ResourceLocation id, Class<?> listenerClass, boolean sorted) {
         super(id, sorted ? new SortedEventPhaseData<>(listenerClass) : new UnsortedEventPhaseData<>(listenerClass));
     }
