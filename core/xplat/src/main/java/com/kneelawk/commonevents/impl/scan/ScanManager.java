@@ -18,7 +18,6 @@ package com.kneelawk.commonevents.impl.scan;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -46,7 +45,9 @@ import net.minecraft.resources.ResourceLocation;
 import com.kneelawk.commonevents.api.Event;
 import com.kneelawk.commonevents.api.EventBus;
 import com.kneelawk.commonevents.api.EventKey;
+import com.kneelawk.commonevents.api.adapter.BuilderSettings;
 import com.kneelawk.commonevents.api.adapter.BusEventHandle;
+import com.kneelawk.commonevents.api.adapter.CallbackSettings;
 import com.kneelawk.commonevents.api.adapter.ListenerHandle;
 import com.kneelawk.commonevents.api.adapter.mod.ModFileHolder;
 import com.kneelawk.commonevents.api.adapter.scan.ScanResult;
@@ -95,15 +96,14 @@ public class ScanManager {
         // The type does not have a singular method
         if (singularMethod == null) return;
 
-        String singularMethodName = singularMethod.getName();
-        MethodType singularMethodType =
-            MethodType.methodType(singularMethod.getReturnType(), singularMethod.getParameterTypes());
+        CallbackSettings<? super T> settings =
+            new CallbackSettings<>(type, singularMethod, new BuilderSettings(event.isRequireAllArgs()));
 
         List<ListenerHandle> listeners = scannedListeners.get(event.getKey());
         if (listeners != null) {
             for (ListenerHandle handle : listeners) {
                 try {
-                    Object callback = handle.createCallback(type, singularMethodName, singularMethodType);
+                    Object callback = handle.createCallback(settings);
                     if (callback != null) {
                         ((Event<Object>) event).register(handle.getPhase(), callback);
                     }

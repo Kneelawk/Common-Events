@@ -28,13 +28,13 @@ public class WeakReferenceListenerGenerator {
         assert interfaceMethod != null;
         Method interfaceMethodName = Method.getMethod(interfaceMethod);
         Type interfaceMethodType = Type.getType(interfaceMethod);
-        Type[] interfaceMethodArgs = interfaceMethodType.getArgumentTypes();
         Type interfaceMethodReturn = interfaceMethodType.getReturnType();
         Class<?>[] interfaceMethodExceptionClasses = interfaceMethod.getExceptionTypes();
         Type[] interfaceMethodExceptions = new Type[interfaceMethodExceptionClasses.length];
         for (int i = 0; i < interfaceMethodExceptionClasses.length; i++) {
             interfaceMethodExceptions[i] = Type.getType(interfaceMethodExceptionClasses[i]);
         }
+        Type[] implMethodArgs = spec.implMethod().getArgumentTypes();
 
         Type objectType = Type.getType(Object.class);
         Method objectInit = Method.getMethod("void <init> ()");
@@ -91,7 +91,7 @@ public class WeakReferenceListenerGenerator {
         impl.ifNull(after);
 
         impl.loadLocal(local);
-        for (int i = 0; i < interfaceMethodArgs.length; i++) {
+        for (int i = 0; i < implMethodArgs.length; i++) {
             impl.loadArg(i);
         }
         impl.invokeVirtual(spec.implType(), spec.implMethod());
@@ -123,20 +123,6 @@ public class WeakReferenceListenerGenerator {
         Class<?> retClass = interfaceMethod.getReturnType();
         boolean retVoid = retClass == void.class;
 
-        Class<?>[] interfaceParams = interfaceMethod.getParameterTypes();
-        Class<?>[] implParams = implMethod.getParameterTypes();
-        if (interfaceParams.length != implParams.length) throw new IllegalArgumentException(
-            "Implementation method " + implMethod + " does not match callback interface method " + interfaceMethod);
-        for (int i = 0; i < interfaceParams.length; i++) {
-            if (!implParams[i].isAssignableFrom(interfaceParams[i])) throw new IllegalArgumentException(
-                "Implementation method " + implMethod + " does not match callback interface method " + interfaceMethod);
-        }
-        if (!retVoid && implMethod.getReturnType() == void.class) {
-            throw new IllegalArgumentException(
-                "Implementation method " + implMethod + " returns 'void' but callback interface method " +
-                    interfaceMethod + " does not.");
-        }
-
         if (!retVoid && defaultReturn == null && retClass.isPrimitive()) {
             defaultReturn = defaultValue(retClass);
         }
@@ -154,7 +140,7 @@ public class WeakReferenceListenerGenerator {
             }
         } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | InstantiationException |
                  IllegalAccessException e) {
-            throw new AssertionError(e);
+            throw new RuntimeException(e);
         }
     }
 

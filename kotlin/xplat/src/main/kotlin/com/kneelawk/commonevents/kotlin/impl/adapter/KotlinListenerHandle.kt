@@ -17,13 +17,12 @@
 package com.kneelawk.commonevents.kotlin.impl.adapter
 
 import com.kneelawk.commonevents.api.EventKey
+import com.kneelawk.commonevents.api.adapter.CallbackSettings
 import com.kneelawk.commonevents.api.adapter.ListenerHandle
 import com.kneelawk.commonevents.api.adapter.util.AdapterUtils
-import com.kneelawk.commonevents.impl.CELog
+import com.kneelawk.commonevents.api.adapter.util.ListenerBuilder
 import net.minecraft.resources.ResourceLocation
 import org.objectweb.asm.Type
-import java.lang.invoke.LambdaMetafactory
-import java.lang.invoke.MethodType
 
 class KotlinListenerHandle(
     private val key: EventKey, private val phase: ResourceLocation, private val listenerClass: Type,
@@ -34,40 +33,25 @@ class KotlinListenerHandle(
     override fun getPhase(): ResourceLocation = phase
 
     override fun <T : Any> createCallback(
-        callbackClass: Class<T>, singularMethodName: String, singularMethodType: MethodType
+        callbackSettings: CallbackSettings<T>
     ): T? {
         val listenerClazz = Class.forName(listenerClass.className)
-        val methodType = AdapterUtils.getMethodType(methodDescriptor)
-
-        if (!singularMethodType.returnType().isAssignableFrom(methodType.returnType())) {
-            val singularType = AdapterUtils.getMethodType(singularMethodType)
-            CELog.LOGGER.warn(
-                "[Common Events] Callback listener {}.{}{} has return type that is incompatible with callback interface {}.{}{}. " +
-                        "The associated event may throw a ClassCastException when called.",
-                listenerClass.internalName, methodName, methodDescriptor,
-                callbackClass.name.replace('.', '/'), singularMethodName, singularType
-            )
-        }
 
         if (static) {
-            val handle = AdapterUtils.LOOKUP.findStatic(listenerClazz, methodName, methodType)
-
-            return callbackClass.cast(
-                LambdaMetafactory.metafactory(
-                    AdapterUtils.LOOKUP, singularMethodName, MethodType.methodType(callbackClass), singularMethodType,
-                    handle, singularMethodType
-                ).target.invoke()
+            return ListenerBuilder.buildStaticListener(
+                callbackSettings.interfaceClass,
+                listenerClazz,
+                AdapterUtils.getDeclaredMethod(listenerClazz, methodName, methodDescriptor),
+                callbackSettings.builderSettings
             )
         } else {
-            val handle = AdapterUtils.LOOKUP.findVirtual(listenerClazz, methodName, methodType)
-
             val objectInstance = listenerClazz.kotlin.objectInstance ?: return null
 
-            return callbackClass.cast(
-                LambdaMetafactory.metafactory(
-                    AdapterUtils.LOOKUP, singularMethodName, MethodType.methodType(callbackClass, listenerClazz),
-                    singularMethodType, handle, singularMethodType
-                ).target.invoke(objectInstance)
+            return ListenerBuilder.buildInstanceListener(
+                callbackSettings.interfaceClass,
+                objectInstance,
+                AdapterUtils.getMethod(listenerClazz, methodName, methodDescriptor),
+                callbackSettings.builderSettings
             )
         }
     }

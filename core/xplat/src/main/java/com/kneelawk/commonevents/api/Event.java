@@ -41,7 +41,10 @@ import org.jetbrains.annotations.Nullable;
 
 import net.minecraft.resources.ResourceLocation;
 
+import com.kneelawk.commonevents.api.adapter.BuilderSettings;
+import com.kneelawk.commonevents.api.adapter.scan.BadListenerException;
 import com.kneelawk.commonevents.api.adapter.util.AdapterUtils;
+import com.kneelawk.commonevents.api.adapter.util.ListenerBuilder;
 import com.kneelawk.commonevents.api.phase.PhaseData;
 import com.kneelawk.commonevents.api.phase.PhaseSorting;
 import com.kneelawk.commonevents.impl.CEConstants;
@@ -52,7 +55,6 @@ import com.kneelawk.commonevents.impl.event.KeyHolder;
 import com.kneelawk.commonevents.impl.event.StrongKey;
 import com.kneelawk.commonevents.impl.event.WeakKey;
 import com.kneelawk.commonevents.impl.gen.SimpleCallbackImplGenerator;
-import com.kneelawk.commonevents.impl.scan.ListenerBuilder;
 import com.kneelawk.commonevents.impl.scan.ReflectionScan;
 import com.kneelawk.commonevents.impl.scan.ScanManager;
 
@@ -183,7 +185,7 @@ public final class Event<T> {
      */
     public static <T> Event<T> create(Class<? super T> type, String qualifier,
                                       Function<T[], T> implementation) {
-        return new Event<>(type, qualifier, implementation, true, false, NO_DEFAULT_RETURN);
+        return new Event<>(type, qualifier, implementation, true, false, NO_DEFAULT_RETURN, false);
     }
 
     /**
@@ -274,7 +276,7 @@ public final class Event<T> {
      */
     public static <T> Event<T> createUnscanned(Class<? super T> type,
                                                Function<T[], T> implementation) {
-        return new Event<>(type, DEFAULT_QUALIFIER, implementation, false, false, NO_DEFAULT_RETURN);
+        return new Event<>(type, DEFAULT_QUALIFIER, implementation, false, false, NO_DEFAULT_RETURN, false);
     }
 
     /**
@@ -288,7 +290,7 @@ public final class Event<T> {
      */
     public static <T> Event<T> createSimple(Class<? super T> type) {
         return new Event<>(type, DEFAULT_QUALIFIER, SimpleCallbackImplGenerator.defineSimple(type, null), true, false,
-            NO_DEFAULT_RETURN);
+            NO_DEFAULT_RETURN, false);
     }
 
     /**
@@ -303,7 +305,7 @@ public final class Event<T> {
      */
     public static <T> Event<T> createSimple(Class<? super T> type, @Nullable Consumer<Exception> errorHandler) {
         return new Event<>(type, DEFAULT_QUALIFIER, SimpleCallbackImplGenerator.defineSimple(type, errorHandler), true,
-            false, NO_DEFAULT_RETURN);
+            false, NO_DEFAULT_RETURN, false);
     }
 
     /**
@@ -359,6 +361,7 @@ public final class Event<T> {
         private ResourceLocation[] defaultPhases = new ResourceLocation[0];
         private boolean optimizeRemoval = false;
         private @Nullable Object defaultReturn = NO_DEFAULT_RETURN;
+        private boolean requireAllArgs = false;
 
         private Builder(Class<? super T> type, Function<T[], T> implementation) {
             this.type = type;
@@ -382,7 +385,8 @@ public final class Event<T> {
                 impl = implementation;
             }
 
-            Event<T> event = new Event<>(type, qualifier, impl, scanned, optimizeRemoval, defaultReturn);
+            Event<T> event =
+                new Event<>(type, qualifier, impl, scanned, optimizeRemoval, defaultReturn, requireAllArgs);
 
             for (int i = 1; i < defaultPhases.length; ++i) {
                 event.addPhaseOrdering(defaultPhases[i - 1], defaultPhases[i]);
@@ -393,6 +397,8 @@ public final class Event<T> {
 
         /**
          * Sets the implementation to use when there are no callback registrations.
+         * <p>
+         * Without this, the provided implementation will simply be run with an empty array of callbacks.
          *
          * @param emptyImplementation the implementation of T to use when there are no callback registrations.
          * @return this builder.
@@ -406,6 +412,8 @@ public final class Event<T> {
          * Sets the event qualifier.
          * <p>
          * Event qualifiers are used for differentiating between otherwise indistinguishable events when scanning.
+         * <p>
+         * This defaults to {@link #DEFAULT_QUALIFIER}.
          *
          * @param qualifier the new event qualifier.
          * @return this builder.
@@ -417,6 +425,8 @@ public final class Event<T> {
 
         /**
          * Sets whether this event uses scanned {@link Listen} annotations.
+         * <p>
+         * This defaults to {@code true}.
          *
          * @param scanned whether the created event should use scanned annotations.
          * @return this builder.
@@ -441,6 +451,8 @@ public final class Event<T> {
          * If more phases are necessary, discussion with the author of the event is encouraged.
          * <p>
          * Refer to {@link Event#addPhaseOrdering} for an explanation of event phases.
+         * <p>
+         * Without this, there will be no explicit ordering for phases.
          *
          * @param defaultPhases the new default phases to append.
          * @return this builder.
@@ -466,6 +478,8 @@ public final class Event<T> {
          * {@code O(n)} complexity but {@link #register(Object)} will have {@code O(1)} complexity. However, if
          * {@code optimizeRemoval} is {@code true} then both {@link #unregister(Object)} and {@link #register(Object)}
          * will have {@code O(log(n))} complexity.
+         * <p>
+         * This defaults to {@code false}.
          *
          * @param optimizeRemoval whether removals should have improved performance at the cost of registration performance.
          * @return this builder.
@@ -480,6 +494,8 @@ public final class Event<T> {
          * present.
          * <p>
          * This is only useful if the callback interface's abstract method has a non-void return type.
+         * <p>
+         * Without this, weak listeners are required to provide a default return value themselves.
          *
          * @param defaultReturn the default value for weak listeners to return when their implementation is no longer
          *                      present.
@@ -487,6 +503,26 @@ public final class Event<T> {
          */
         public Builder<T> defaultReturn(@Nullable Object defaultReturn) {
             this.defaultReturn = defaultReturn;
+            return this;
+        }
+
+        /**
+         * Sets whether listener methods being registered to this event are required to have all the arguments of this
+         * event's callback interface.
+         * <p>
+         * If this is {@code false} then a method may be registered to this event using the {@link Listen} annotation,
+         * but only have some (from left to right) or none of the args provided in the callback interface. Otherwise,
+         * methods registered to this event are required to have all arguments of the callback interface's singular
+         * method.
+         * <p>
+         * This defaults to {@code false}.
+         *
+         * @param requireAllArgs whether listener methods registered to this event are required to have all the
+         *                       arguments of the callback interface's singular method.
+         * @return this builder.
+         */
+        public Builder<T> requireAllArgs(boolean requireAllArgs) {
+            this.requireAllArgs = requireAllArgs;
             return this;
         }
     }
@@ -501,6 +537,7 @@ public final class Event<T> {
     private final boolean sortPhaseCallbacks;
     private final Lock lock = new ReentrantLock();
     private final @Nullable Object defaultReturn;
+    private final boolean requireAllArgs;
     /**
      * The invoker field used to execute callbacks.
      */
@@ -524,7 +561,7 @@ public final class Event<T> {
 
     @SuppressWarnings("unchecked")
     private Event(Class<? super T> type, String qualifier, Function<T[], T> implementation, boolean addScanned,
-                  boolean sortPhaseCallbacks, @Nullable Object defaultReturn) {
+                  boolean sortPhaseCallbacks, @Nullable Object defaultReturn, boolean requireAllArgs) {
         this.sortPhaseCallbacks = sortPhaseCallbacks;
         Objects.requireNonNull(type, "Class specifying the type of T in the event cannot be null");
         Objects.requireNonNull(implementation, "Function to generate invoker implementation for T cannot be null");
@@ -534,6 +571,7 @@ public final class Event<T> {
         this.key = EventKey.fromClass(type, qualifier);
         this.implementation = implementation;
         this.callbacks = (T[]) Array.newInstance(type, 0);
+        this.requireAllArgs = requireAllArgs;
 
         Method interfaceMethod = AdapterUtils.getSingularMethod(type);
         if (interfaceMethod != null && interfaceMethod.getReturnType() != void.class) {
@@ -591,6 +629,16 @@ public final class Event<T> {
      */
     public @Nullable Method getCallbackMethod() {
         return callbackMethod;
+    }
+
+    /**
+     * {@return whether this event requires that all arguments of its functional interface's singular method must be
+     * specified in listener implementation methods}
+     * <p>
+     * This is meaningless if this event does not use a functional interface.
+     */
+    public boolean isRequireAllArgs() {
+        return requireAllArgs;
     }
 
     /**
@@ -985,14 +1033,28 @@ public final class Event<T> {
         }
     }
 
+    @SuppressWarnings("unchecked")
     private void registerInstanceImpl(ResourceLocation phase, KeyHolder key, Object listener, Method listenerMethod) {
-        T callback = ListenerBuilder.buildInstanceListener(type, listener, listenerMethod);
+        T callback;
+        try {
+            callback = (T) ListenerBuilder.buildInstanceListener(type, listener, listenerMethod,
+                new BuilderSettings(requireAllArgs));
+        } catch (BadListenerException e) {
+            throw new RuntimeException("Error registering instance method listener on event " + getKey(), e);
+        }
         registerKeyedImpl(phase, key, callback);
     }
 
+    @SuppressWarnings("unchecked")
     private void registerStaticImpl(ResourceLocation phase, KeyHolder key, Class<?> listenerClass,
                                     Method listenerMethod) {
-        T callback = ListenerBuilder.buildStaticListener(type, listenerClass, listenerMethod);
+        T callback;
+        try {
+            callback = (T) ListenerBuilder.buildStaticListener(type, listenerClass, listenerMethod,
+                new BuilderSettings(requireAllArgs));
+        } catch (BadListenerException e) {
+            throw new RuntimeException("Error registering static method listener on event " + getKey(), e);
+        }
         registerKeyedImpl(phase, key, callback);
     }
 
@@ -1012,14 +1074,20 @@ public final class Event<T> {
         registerWeakImpl(phase, listener, listenerMethod, defaultReturn);
     }
 
+    @SuppressWarnings("unchecked")
     private void registerWeakImpl(ResourceLocation phase, Object listener, Method listenerMethod,
                                   @Nullable Object defaultReturn) {
         Class<?> listenerClass = listener.getClass();
         final WeakKey key = new WeakKey(listener);
         CleanerHolder.CLEANER.register(listener, () -> unregisterImpl(key));
-        T callback =
-            ListenerBuilder.buildWeakListener(type, listenerClass, new WeakReference<>(listener), listenerMethod,
-                defaultReturn);
+
+        T callback;
+        try {
+            callback = (T) ListenerBuilder.buildWeakListener(type, listenerClass, new WeakReference<>(listener),
+                listenerMethod, defaultReturn, new BuilderSettings(requireAllArgs));
+        } catch (BadListenerException e) {
+            throw new RuntimeException("Error registering weak method listener on event " + getKey(), e);
+        }
 
         registerKeyedImpl(phase, key, callback);
     }

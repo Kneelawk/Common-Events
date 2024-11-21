@@ -16,19 +16,18 @@
 
 package com.kneelawk.commonevents.impl.scan.java;
 
-import java.lang.invoke.LambdaMetafactory;
-import java.lang.invoke.MethodHandle;
-import java.lang.invoke.MethodType;
+import java.lang.reflect.Method;
 
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.Type;
 
 import net.minecraft.resources.ResourceLocation;
 
-import com.kneelawk.commonevents.api.adapter.ListenerHandle;
 import com.kneelawk.commonevents.api.EventKey;
+import com.kneelawk.commonevents.api.adapter.CallbackSettings;
+import com.kneelawk.commonevents.api.adapter.ListenerHandle;
 import com.kneelawk.commonevents.api.adapter.util.AdapterUtils;
-import com.kneelawk.commonevents.impl.CELog;
+import com.kneelawk.commonevents.api.adapter.util.ListenerBuilder;
 
 public class JavaListenerHandle implements ListenerHandle {
     private final EventKey key;
@@ -57,26 +56,12 @@ public class JavaListenerHandle implements ListenerHandle {
     }
 
     @Override
-    public <T> @NotNull T createCallback(@NotNull Class<T> callbackClass, @NotNull String singularMethodName,
-                                         @NotNull MethodType singularMethodType)
+    public <T> @NotNull T createCallback(@NotNull CallbackSettings<T> settings)
         throws Throwable {
         Class<?> listenerClazz = Class.forName(listenerClass.getClassName());
-        MethodType methodType = AdapterUtils.getMethodType(methodDescriptor);
-
-        if (!singularMethodType.returnType().isAssignableFrom(methodType.returnType())) {
-            Type singularType = AdapterUtils.getMethodType(singularMethodType);
-            CELog.LOGGER.warn(
-                "[Common Events] Callback listener {}.{}{} has return type that is incompatible with callback interface {}.{}{}. " +
-                    "The associated event may throw a ClassCastException when called.",
-                listenerClass.getInternalName(), methodName, methodDescriptor,
-                callbackClass.getName().replace('.', '/'), singularMethodName, singularType);
-        }
-
-        MethodHandle handle = AdapterUtils.LOOKUP.findStatic(listenerClazz, methodName, methodType);
-
-        return callbackClass.cast(LambdaMetafactory.metafactory(AdapterUtils.LOOKUP, singularMethodName,
-                MethodType.methodType(callbackClass), singularMethodType, handle, singularMethodType).getTarget()
-            .invoke());
+        Method listenerMethod = AdapterUtils.getDeclaredMethod(listenerClazz, methodName, methodDescriptor);
+        return ListenerBuilder.buildStaticListener(settings.interfaceClass(), listenerClazz, listenerMethod,
+            settings.builderSettings());
     }
 
     @Override

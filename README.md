@@ -85,6 +85,19 @@ public class MyListener {
 }
 ```
 
+Since version `1.2.0`, scanned listener methods are not required to have all or any of the arguments in the callback
+interface's method. This means you can create simple event listeners like so:
+
+```java
+@Scan
+public class MyOtherListener {
+    @Listen(MyCallback.class)
+    public static void onDoThing() {
+        System.out.println("Doing thing without arguments!");
+    }
+}
+```
+
 This will insert the `onDoThing` method into the `MY_CALLBACK_EVENT` event as a lambda method reference. Note that the
 listener method does not have to have the same name as the callback interface method.
 
@@ -183,6 +196,10 @@ public class MyListener {
     }
 }
 ```
+
+**Note:** since version `1.2.0`, events will accept scanned listener methods that have fewer arguments than the callback
+interface method, meaning that you can add arguments to your callback interface without breaking scanned listener
+methods, but it will still break manually-registered listeners.
 
 ## Event Buses
 

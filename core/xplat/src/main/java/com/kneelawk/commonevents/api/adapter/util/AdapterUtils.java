@@ -139,6 +139,57 @@ public final class AdapterUtils {
     }
 
     /**
+     * Gets the {@link Method} via {@link Class#getMethod(String, Class[])} on the given class described by a name and
+     * a method {@link Type}.
+     * <p>
+     * Note: this does load all mentioned classes.
+     *
+     * @param owner      the class that the method belongs to.
+     * @param name       the name of the method.
+     * @param descriptor the method type.
+     * @return the method reflection described.
+     * @throws ClassNotFoundException if any of the classes described could not be found.
+     * @throws NoSuchMethodException  if the method described could not be found.
+     */
+    public static Method getMethod(Class<?> owner, String name, Type descriptor)
+        throws ClassNotFoundException, NoSuchMethodException {
+        Type[] argTypes = descriptor.getArgumentTypes();
+        Class<?>[] argClasses = new Class[argTypes.length];
+
+        for (int i = 0; i < argTypes.length; i++) {
+            argClasses[i] = getClass(argTypes[i]);
+        }
+
+        return owner.getMethod(name, argClasses);
+    }
+
+
+    /**
+     * Gets the {@link Method} via {@link Class#getDeclaredMethod(String, Class[])} on the given class described by a
+     * name and a method {@link Type}.
+     * <p>
+     * Note: this does load all mentioned classes.
+     *
+     * @param owner      the class that the method belongs to.
+     * @param name       the name of the method.
+     * @param descriptor the method type.
+     * @return the method reflection described.
+     * @throws ClassNotFoundException if any of the classes described could not be found.
+     * @throws NoSuchMethodException  if the method described could not be found.
+     */
+    public static Method getDeclaredMethod(Class<?> owner, String name, Type descriptor)
+        throws ClassNotFoundException, NoSuchMethodException {
+        Type[] argTypes = descriptor.getArgumentTypes();
+        Class<?>[] argClasses = new Class[argTypes.length];
+
+        for (int i = 0; i < argTypes.length; i++) {
+            argClasses[i] = getClass(argTypes[i]);
+        }
+
+        return owner.getDeclaredMethod(name, argClasses);
+    }
+
+    /**
      * Gets the class described by a {@link Type}.
      * <p>
      * Note: this does load the associated class.
