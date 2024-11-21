@@ -31,10 +31,9 @@ versionRange = "[0,)"
 ordering = "NONE"
 side = "BOTH"
 
-# Kotlin for Forge still isn't being detected in my environment
-#[[dependencies.${mod_id}]]
-#modId = "kotlinforforge"
-#type = "REQUIRED"
-#versionRange = "[5,)"
-#ordering = "NONE"
-#side = "BOTH"
+[[dependencies.${mod_id}]]
+modId = "kotlinforforge"
+type = "REQUIRED"
+versionRange = "[5,)"
+ordering = "NONE"
+side = "BOTH"
