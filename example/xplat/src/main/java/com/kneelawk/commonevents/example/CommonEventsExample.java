@@ -142,6 +142,11 @@ public class CommonEventsExample {
         public void onOtherEvent(String str, long l) {
             LOGGER.info("> onOtherEvent received in EventListener 3: {}, {}", str, l);
         }
+
+        @Listen(MyCallback.class)
+        public static void onEvent2() {
+            LOGGER.error("This should never be called.");
+        }
     }
 
     @Scan
