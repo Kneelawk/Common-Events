@@ -4,6 +4,7 @@ import java.lang.ref.WeakReference;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
 
+import org.jetbrains.annotations.Nullable;
 import org.objectweb.asm.ClassWriter;
 import org.objectweb.asm.Label;
 import org.objectweb.asm.Opcodes;
@@ -18,7 +19,7 @@ public class WeakReferenceListenerGenerator {
         new ClassGenerator<>("com.kneelawk.commonevents.impl.gen.impl.$CommonEvents_Generated$.WeakReferenceListener",
             "event-weak-listener-generator", WeakReferenceListenerGenerator::generateCode);
 
-    private record Spec(Class<?> interfaceClass, Type implType, Method implMethod, boolean ret) {}
+    private record Spec(Class<?> interfaceClass, Type implType, Method implMethod, boolean defaultImpl) {}
 
     private static byte[] generateCode(Spec spec, Type beingDefined) {
         ClassWriter writer = new ClassWriter(ClassWriter.COMPUTE_MAXS | ClassWriter.COMPUTE_FRAMES);
@@ -46,15 +47,14 @@ public class WeakReferenceListenerGenerator {
             objectType.getInternalName(), new String[]{interfaceType.getInternalName()});
         writer.visitField(Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL, "wrapped", weakType.getDescriptor(),
             "L" + weakType.getInternalName() + "<" + spec.implType().getDescriptor() + ">;", null).visitEnd();
-        if (spec.ret()) {
-            writer.visitField(Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL, "defaultReturn",
-                interfaceMethodReturn.getDescriptor(),
-                null, null).visitEnd();
+        if (spec.defaultImpl()) {
+            writer.visitField(Opcodes.ACC_PRIVATE | Opcodes.ACC_FINAL, "defaultImpl",
+                interfaceType.getDescriptor(), null, null).visitEnd();
         }
 
         Type[] initArgs;
-        if (spec.ret()) {
-            initArgs = new Type[]{weakType, interfaceMethodReturn};
+        if (spec.defaultImpl()) {
+            initArgs = new Type[]{weakType, interfaceType};
         } else {
             initArgs = new Type[]{weakType};
         }
@@ -68,10 +68,10 @@ public class WeakReferenceListenerGenerator {
         constructor.loadArg(0);
         constructor.putField(beingDefined, "wrapped", weakType);
 
-        if (spec.ret()) {
+        if (spec.defaultImpl()) {
             constructor.loadThis();
             constructor.loadArg(1);
-            constructor.putField(beingDefined, "defaultReturn", interfaceMethodReturn);
+            constructor.putField(beingDefined, "defaultImpl", interfaceType);
         }
 
         constructor.returnValue();
@@ -95,15 +95,23 @@ public class WeakReferenceListenerGenerator {
             impl.loadArg(i);
         }
         impl.invokeVirtual(spec.implType(), spec.implMethod());
-        if (spec.ret()) {
+        if (interfaceMethodReturn != Type.VOID_TYPE) {
             impl.checkCast(interfaceMethodReturn);
-            impl.returnValue();
         }
+        impl.returnValue();
 
         impl.mark(after);
-        if (spec.ret()) {
+        if (spec.defaultImpl()) {
             impl.loadThis();
-            impl.getField(beingDefined, "defaultReturn", interfaceMethodReturn);
+            impl.getField(beingDefined, "defaultImpl", interfaceType);
+            int interfaceMethodArgCount = interfaceMethodName.getArgumentTypes().length;
+            for (int i = 0; i < interfaceMethodArgCount; i++) {
+                impl.loadArg(i);
+            }
+            impl.invokeVirtual(interfaceType, interfaceMethodName);
+            if (interfaceMethodReturn != Type.VOID_TYPE) {
+                impl.checkCast(interfaceMethodReturn);
+            }
         }
         impl.returnValue();
         impl.endMethod();
@@ -113,55 +121,28 @@ public class WeakReferenceListenerGenerator {
 
     @SuppressWarnings("unchecked")
     public static <T> T defineWrapper(Class<T> interfaceClass, Class<?> implClass, java.lang.reflect.Method implMethod,
-                                      WeakReference<?> impl, Object defaultReturn) {
+                                      WeakReference<?> impl, @Nullable T defaultImpl) {
         if (!interfaceClass.isInterface())
             throw new IllegalArgumentException(interfaceClass.getName() + " is not a functional interface");
 
         java.lang.reflect.Method interfaceMethod = AdapterUtils.getSingularMethod(interfaceClass);
         if (interfaceMethod == null)
             throw new IllegalArgumentException(interfaceClass.getName() + " is not a functional interface");
-        Class<?> retClass = interfaceMethod.getReturnType();
-        boolean retVoid = retClass == void.class;
-
-        if (!retVoid && defaultReturn == null && retClass.isPrimitive()) {
-            defaultReturn = defaultValue(retClass);
-        }
 
         try {
             Class<T> tClass = (Class<T>) GENERATOR.getOrCreateClass(
-                new Spec(interfaceClass, Type.getType(implClass), Method.getMethod(implMethod), !retVoid));
+                new Spec(interfaceClass, Type.getType(implClass), Method.getMethod(implMethod), defaultImpl != null));
 
-            if (retVoid) {
+            if (defaultImpl != null) {
+                Constructor<T> constructor = tClass.getConstructor(WeakReference.class, interfaceClass);
+                return constructor.newInstance(impl, defaultImpl);
+            } else {
                 Constructor<T> constructor = tClass.getConstructor(WeakReference.class);
                 return constructor.newInstance(impl);
-            } else {
-                Constructor<T> constructor = tClass.getConstructor(WeakReference.class, retClass);
-                return constructor.newInstance(impl, defaultReturn);
             }
         } catch (ClassNotFoundException | NoSuchMethodException | InvocationTargetException | InstantiationException |
                  IllegalAccessException e) {
             throw new RuntimeException(e);
         }
-    }
-
-    private static Object defaultValue(Class<?> clazz) {
-        if (clazz == boolean.class) {
-            return false;
-        } else if (clazz == char.class) {
-            return '\0';
-        } else if (clazz == byte.class) {
-            return 0;
-        } else if (clazz == short.class) {
-            return 0;
-        } else if (clazz == int.class) {
-            return 0;
-        } else if (clazz == float.class) {
-            return 0f;
-        } else if (clazz == long.class) {
-            return 0;
-        } else if (clazz == double.class) {
-            return 0d;
-        }
-        return null;
     }
 }
