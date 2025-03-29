@@ -103,8 +103,8 @@ public final class ListenerBuilder {
      * @param listener          the weak reference to the listener object which holds the method that will implement
      *                          the callback interface.
      * @param listenerMethod    the reference to the method that will implement the callback interface.
-     * @param defaultReturn     the default value returned by the interface instance if the referenced object has been
-     *                          garbage-collected before this instance has been unregistered.
+     * @param defaultImpl       the default implementation called by the interface instance if the referenced object
+     *                          has been garbage-collected before this instance has been unregistered.
      * @param settings          additional settings for how the interface instance should be implemented.
      * @param <T>               the type of callback interface returned.
      * @return the newly created callback interface.
@@ -112,13 +112,13 @@ public final class ListenerBuilder {
      *                              implementation.
      */
     public static <T> T buildWeakListener(Class<T> callbackInterface, Class<?> listenerClass, WeakReference<?> listener,
-                                          Method listenerMethod, @Nullable Object defaultReturn,
+                                          Method listenerMethod, @Nullable T defaultImpl,
                                           BuilderSettings settings) throws BadListenerException {
         Methods methods = verifyMethods(listenerClass, listenerMethod, callbackInterface, settings);
 
         try {
             return WeakReferenceListenerGenerator.defineWrapper(callbackInterface, listenerClass, listenerMethod,
-                listener, defaultReturn);
+                listener, defaultImpl);
         } catch (Throwable t) {
             throw handleError(callbackInterface, listenerClass, listenerMethod, methods, t);
         }

@@ -454,8 +454,26 @@ public final class EventBus {
      * @param listeners      the instance to search for listener methods.
      * @param defaultReturns the map of default values returned by registered listeners if they are invoked after they
      *                       have been garbage-collected.
+     * @deprecated naming ambiguous, use {@link #registerWeakListenersWithDefaultReturns(Object, Map)}
      */
+    @Deprecated
     public void registerWeakListeners(Object listeners, Map<EventKey, @Nullable Object> defaultReturns) {
+        registerWeakListenersWithDefaultReturns(listeners, defaultReturns);
+    }
+
+    /**
+     * Registers multiple listeners to this event bus, holding only a weak reference to the registered object.
+     * <p>
+     * Listeners are found by scanning the {@code listeners} parameter. Listener method are found by scanning the
+     * passed object for instance methods annotated with {@link Listen}. Instance scanning includes annotated methods
+     * in superclasses and implemented interfaces.
+     *
+     * @param listeners      the instance to search for listener methods.
+     * @param defaultReturns the map of default values returned by registered listeners if they are invoked after they
+     *                       have been garbage-collected.
+     */
+    public void registerWeakListenersWithDefaultReturns(Object listeners,
+                                                        Map<EventKey, @Nullable Object> defaultReturns) {
         if (listeners instanceof Class<?>)
             throw new IllegalArgumentException("Cannot register a class as a weak listener");
 
@@ -465,7 +483,39 @@ public final class EventBus {
             Event<?> event = events.get(key);
             if (event != null) {
                 if (defaultReturns.containsKey(key)) {
-                    event.registerWeakMethod(result.phase(), listeners, result.method(), defaultReturns.get(key));
+                    event.registerWeakMethodWithDefaultReturn(result.phase(), listeners, result.method(),
+                        defaultReturns.get(key));
+                } else {
+                    event.registerWeakMethod(result.phase(), listeners, result.method());
+                }
+            }
+        }
+    }
+
+    /**
+     * Registers multiple listeners to this event bus, holding only a weak reference to the registered object.
+     * <p>
+     * Listeners are found by scanning the {@code listeners} parameter. Listener method are found by scanning the
+     * passed object for instance methods annotated with {@link Listen}. Instance scanning includes annotated methods
+     * in superclasses and implemented interfaces.
+     *
+     * @param listeners    the instance to search for listener methods.
+     * @param defaultImpls the map of default values returned by registered listeners if they are invoked after they
+     *                     have been garbage-collected.
+     */
+    @SuppressWarnings("unchecked")
+    public void registerWeakListenersWithDefaultImpls(Object listeners, Map<EventKey, @Nullable Object> defaultImpls) {
+        if (listeners instanceof Class<?>)
+            throw new IllegalArgumentException("Cannot register a class as a weak listener");
+
+        List<ReflectionScan> scanned = ReflectionScan.scanInstance(listeners);
+        for (ReflectionScan result : scanned) {
+            EventKey key = result.key();
+            Event<?> event = events.get(key);
+            if (event != null) {
+                if (defaultImpls.containsKey(key)) {
+                    ((Event<Object>) event).registerWeakMethodWithDefaultImpl(result.phase(), listeners,
+                        result.method(), defaultImpls.get(key));
                 } else {
                     event.registerWeakMethod(result.phase(), listeners, result.method());
                 }

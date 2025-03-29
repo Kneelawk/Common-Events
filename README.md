@@ -22,7 +22,7 @@
 
 [Ko-fi]: https://ko-fi.com/kneelawk
 
-Cross-platform Minecraft event library
+Fully-featured, cross-platform Minecraft event library
 
 This library is based on [QSL]'s event system, but makes use of class scanning like forge uses, to allow for easy
 registration of event listeners.
