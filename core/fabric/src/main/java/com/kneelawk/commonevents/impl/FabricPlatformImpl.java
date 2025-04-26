@@ -28,7 +28,7 @@ import net.fabricmc.loader.api.ModContainer;
 import com.kneelawk.commonevents.api.adapter.mod.ModFileHolder;
 import com.kneelawk.commonevents.impl.mod.ModFileHolderImpl;
 
-public class PlatformImpl extends Platform {
+public class FabricPlatformImpl implements Platform {
     @Override
     public boolean isPhysicalClient() {
         return FabricLoader.getInstance().getEnvironmentType() == EnvType.CLIENT;
