@@ -14,26 +14,16 @@
  * limitations under the License.
  */
 
-package com.kneelawk.commonevents.impl;
+plugins {
+    id("com.kneelawk.submodule")
+    id("com.kneelawk.versioning")
+    id("com.kneelawk.kpublish")
+}
 
-import java.nio.file.Path;
-import java.util.List;
-import java.util.ServiceLoader;
+submodule {
+    applyXplatConnection(":test-xplat")
+}
 
-import com.kneelawk.commonevents.api.adapter.mod.ModFileHolder;
-
-public interface Platform {
-    Platform INSTANCE = ServiceLoader.load(Platform.class).findFirst().orElseThrow();
-
-    static Platform getInstance() {
-        return INSTANCE;
-    }
-
-    boolean isPhysicalClient();
-
-    String getModVersion();
-
-    List<? extends ModFileHolder> getModFiles();
-
-    Path getGameDirectory();
+kpublish {
+    createPublication()
 }
