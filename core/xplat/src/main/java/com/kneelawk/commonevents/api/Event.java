@@ -186,7 +186,7 @@ public final class Event<T> {
      */
     public static <T> Event<T> create(Class<? super T> type, String qualifier,
                                       Function<T[], T> implementation) {
-        return new Event<>(type, qualifier, implementation, true, false, NO_DEFAULT_RETURN, null, false);
+        return new Event<>(type, qualifier, implementation, true, false, null, false);
     }
 
     /**
@@ -277,7 +277,7 @@ public final class Event<T> {
      */
     public static <T> Event<T> createUnscanned(Class<? super T> type,
                                                Function<T[], T> implementation) {
-        return new Event<>(type, DEFAULT_QUALIFIER, implementation, false, false, NO_DEFAULT_RETURN, null, false);
+        return new Event<>(type, DEFAULT_QUALIFIER, implementation, false, false, null, false);
     }
 
     /**
@@ -291,7 +291,7 @@ public final class Event<T> {
      */
     public static <T> Event<T> createSimple(Class<? super T> type) {
         return new Event<>(type, DEFAULT_QUALIFIER, SimpleCallbackImplGenerator.defineSimple(type, null), true, false,
-            NO_DEFAULT_RETURN, null, false);
+            null, false);
     }
 
     /**
@@ -306,7 +306,7 @@ public final class Event<T> {
      */
     public static <T> Event<T> createSimple(Class<? super T> type, @Nullable Consumer<Exception> errorHandler) {
         return new Event<>(type, DEFAULT_QUALIFIER, SimpleCallbackImplGenerator.defineSimple(type, errorHandler), true,
-            false, NO_DEFAULT_RETURN, null, false);
+            false, null, false);
     }
 
     /**
@@ -361,7 +361,6 @@ public final class Event<T> {
         private boolean scanned = true;
         private ResourceLocation[] defaultPhases = new ResourceLocation[0];
         private boolean optimizeRemoval = false;
-        private @Nullable Object defaultReturn = NO_DEFAULT_RETURN;
         private @Nullable T defaultImplementation;
         private boolean requireAllArgs = false;
 
@@ -388,8 +387,7 @@ public final class Event<T> {
             }
 
             Event<T> event =
-                new Event<>(type, qualifier, impl, scanned, optimizeRemoval, defaultReturn, defaultImplementation,
-                    requireAllArgs);
+                new Event<>(type, qualifier, impl, scanned, optimizeRemoval, defaultImplementation, requireAllArgs);
 
             for (int i = 1; i < defaultPhases.length; ++i) {
                 event.addPhaseOrdering(defaultPhases[i - 1], defaultPhases[i]);
@@ -516,7 +514,6 @@ public final class Event<T> {
          */
         @SuppressWarnings("unchecked")
         public Builder<T> defaultReturn(@Nullable Object defaultReturn) {
-            this.defaultReturn = defaultReturn;
             defaultImplementation((T) DefaultReturnGenerator.defineImpl(type, defaultReturn));
             return this;
         }
@@ -566,7 +563,6 @@ public final class Event<T> {
     private final Function<T[], T> implementation;
     private final boolean sortPhaseCallbacks;
     private final Lock lock = new ReentrantLock();
-    private final @Nullable Object defaultReturn;
     private final @Nullable T defaultImplementation;
     private final boolean requireAllArgs;
     /**
@@ -592,7 +588,7 @@ public final class Event<T> {
 
     @SuppressWarnings("unchecked")
     private Event(Class<? super T> type, String qualifier, Function<T[], T> implementation, boolean addScanned,
-                  boolean sortPhaseCallbacks, @Nullable Object defaultReturn, @Nullable T defaultImplementation,
+                  boolean sortPhaseCallbacks, @Nullable T defaultImplementation,
                   boolean requireAllArgs) {
         this.sortPhaseCallbacks = sortPhaseCallbacks;
         Objects.requireNonNull(type, "Class specifying the type of T in the event cannot be null");
@@ -604,12 +600,6 @@ public final class Event<T> {
         this.implementation = implementation;
         this.callbacks = (T[]) Array.newInstance(type, 0);
         this.requireAllArgs = requireAllArgs;
-
-        if (this.callbackMethod != null && this.callbackMethod.getReturnType() != void.class) {
-            this.defaultReturn = defaultReturn;
-        } else {
-            this.defaultReturn = NO_DEFAULT_RETURN;
-        }
 
         this.defaultImplementation = defaultImplementation;
 
@@ -633,32 +623,6 @@ public final class Event<T> {
      */
     public EventKey getKey() {
         return this.key;
-    }
-
-    /**
-     * {@return whether a default return has been defined for this event}
-     * <p>
-     * This is generally used when registering weak listeners (i.e. listeners that do not prevent the object doing the
-     * listening from being garbage-collected).
-     *
-     * @deprecated Use {@link #getDefaultImplementation()} instead, as not all events that have a default function will have a default return.
-     */
-    @Deprecated(since = "1.3", forRemoval = true)
-    public boolean hasDefaultReturn() {
-        return defaultReturn != NO_DEFAULT_RETURN;
-    }
-
-    /**
-     * {@return the default return value that has been defined for this event}
-     * <p>
-     * This is generally used when registering weak listeners (i.e. listeners that do not prevent the object doing the
-     * listening from being garbage-collected).
-     *
-     * @deprecated Use {@link #getDefaultImplementation()} instead, as not all events that have a default function will have a default return.
-     */
-    @Deprecated
-    public @Nullable Object getDefaultReturn() {
-        return hasDefaultReturn() ? defaultReturn : null;
     }
 
     /**
@@ -843,27 +807,6 @@ public final class Event<T> {
      * @param listenerObject the object instance holding the methods to be registered
      * @param defaultReturn  the value returned by listeners that refer to an object that has been garbage-collected
      *                       before they have been unregistered
-     * @deprecated naming ambiguous, use
-     */
-    @Deprecated
-    public void registerAllWeak(Object listenerObject, @Nullable Object defaultReturn) {
-        registerAllWeakWithDefaultReturn(listenerObject, defaultReturn);
-    }
-
-    /**
-     * Weak-registers all methods on the given listener object that are annotated with a {@link Listen} annotation
-     * that refers to this event.
-     * <p>
-     * Weak registration means that only a weak reference to the listener object is held and when that object gets
-     * garbage-collected, all listeners registered from the given object get unregistered.
-     * <p>
-     * The given listener object can also be used to manually un-register all its callbacks.
-     * <p>
-     * Note: this method can only be called if this event's type is a functional interface.
-     *
-     * @param listenerObject the object instance holding the methods to be registered
-     * @param defaultReturn  the value returned by listeners that refer to an object that has been garbage-collected
-     *                       before they have been unregistered
      */
     @SuppressWarnings("unchecked")
     public void registerAllWeakWithDefaultReturn(Object listenerObject, @Nullable Object defaultReturn) {
@@ -991,27 +934,6 @@ public final class Event<T> {
         }
 
         registerWeakImpl(phase, listenerObject, listenerMethod);
-    }
-
-    /**
-     * Weak-registers the given method on the given listener object.
-     * <p>
-     * Weak registration means that only a weak reference to the listener object is held and when that object gets
-     * garbage-collected, all listeners registered from the given object get unregistered.
-     * <p>
-     * Note: this method can only be called if this event's type is a functional interface.
-     *
-     * @param phase          the phase to register the listener to
-     * @param listenerObject the object instance on which to register the method of
-     * @param listenerMethod the method on the object instance to register
-     * @param defaultReturn  the value returned by the listener if it refers to an object that has been
-     *                       garbage-collected before is has been unregistered
-     * @deprecated naming ambiguous, use {@link #registerWeakMethodWithDefaultReturn(ResourceLocation, Object, Method, Object)}
-     */
-    @Deprecated
-    public void registerWeakMethod(ResourceLocation phase, Object listenerObject, Method listenerMethod,
-                                   @Nullable Object defaultReturn) {
-        registerWeakMethodWithDefaultReturn(phase, listenerObject, listenerMethod, defaultReturn);
     }
 
     /**
@@ -1208,7 +1130,7 @@ public final class Event<T> {
                 "This event requires that a default implementation or return value be specified when registering weak listeners. Expected return type: " +
                     returnType);
         }
-        
+
         Class<?> listenerClass = listener.getClass();
         final WeakKey key = new WeakKey(listener);
         CleanerHolder.CLEANER.register(listener, () -> unregisterImpl(key));

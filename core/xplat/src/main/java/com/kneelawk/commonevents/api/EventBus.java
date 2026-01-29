@@ -381,18 +381,6 @@ public final class EventBus {
 
     /**
      * Registers multiple listeners to this event bus, using the given removal key.
-     *
-     * @param key       the removal key to associate all found listeners with.
-     * @param listeners the class or instance to search for listener methods.
-     * @deprecated Use {@link #registerKeyedListeners(Object, Object)} instead.
-     */
-    @Deprecated
-    public void registerListeners(Object key, Object listeners) {
-        registerKeyedListeners(key, listeners);
-    }
-
-    /**
-     * Registers multiple listeners to this event bus, using the given removal key.
      * <p>
      * Listeners are found by scanning the {@code listeners} parameter. If the parameter is a {@link Class}, then
      * listener methods are found by scanning the given class for static methods annotated with {@link Listen}.
@@ -442,23 +430,6 @@ public final class EventBus {
                 event.registerWeakMethod(result.phase(), listeners, result.method());
             }
         }
-    }
-
-    /**
-     * Registers multiple listeners to this event bus, holding only a weak reference to the registered object.
-     * <p>
-     * Listeners are found by scanning the {@code listeners} parameter. Listener method are found by scanning the
-     * passed object for instance methods annotated with {@link Listen}. Instance scanning includes annotated methods
-     * in superclasses and implemented interfaces.
-     *
-     * @param listeners      the instance to search for listener methods.
-     * @param defaultReturns the map of default values returned by registered listeners if they are invoked after they
-     *                       have been garbage-collected.
-     * @deprecated naming ambiguous, use {@link #registerWeakListenersWithDefaultReturns(Object, Map)}
-     */
-    @Deprecated
-    public void registerWeakListeners(Object listeners, Map<EventKey, @Nullable Object> defaultReturns) {
-        registerWeakListenersWithDefaultReturns(listeners, defaultReturns);
     }
 
     /**

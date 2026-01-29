@@ -51,37 +51,10 @@ public interface ListenerHandle {
      * This should return {@code null} to indicate that the callback interface could not be created but no error
      * occurred.
      *
-     * @param <T>                the type of the callback interface.
-     * @param callbackClass      the class of the callback interface that the handle should be converted into.
-     * @param singularMethodName the name of the callback interface's singular method.
-     * @param singularMethodType the type of the callback interface's singular method.
-     * @return an instance of the specified callback interface or {@code null} if not appropriate.
-     * @throws ClassNotFoundException if the class this handle references does not exist.
-     * @deprecated use {@link #createCallback(CallbackSettings)} instead.
-     */
-    @Deprecated
-    default <T> @Nullable T createCallback(Class<T> callbackClass, String singularMethodName,
-                                           MethodType singularMethodType) throws Throwable {
-        throw new UnsupportedOperationException(
-            getClass() + " can only create callbacks using a full callback-settings object");
-    }
-
-    /**
-     * Creates a callback instance that can actually be registered with the event.
-     * <p>
-     * This should return {@code null} to indicate that the callback interface could not be created but no error
-     * occurred.
-     *
      * @param settings the settings used to describe how the callback implementation should be created.
      * @param <T>      the type of the callback interface.
      * @return an instance of the specified callback interface or {@code null} if not appropriate.
      * @throws Throwable if an error occurs while crating the callback interface implementation.
      */
-    default <T> @Nullable T createCallback(CallbackSettings<T> settings) throws Throwable {
-        Method callbackMethod = settings.interfaceMethod();
-
-        MethodType methodType =
-            MethodType.methodType(callbackMethod.getReturnType(), callbackMethod.getParameterTypes());
-        return createCallback(settings.interfaceClass(), callbackMethod.getName(), methodType);
-    }
+    <T> @Nullable T createCallback(CallbackSettings<T> settings) throws Throwable;
 }
