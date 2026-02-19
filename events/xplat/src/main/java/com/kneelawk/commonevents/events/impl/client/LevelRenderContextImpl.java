@@ -2,7 +2,6 @@ package com.kneelawk.commonevents.events.impl.client;
 
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
-import net.minecraft.client.renderer.chunk.ChunkSectionsToRender;
 import net.minecraft.client.renderer.chunk.SectionRenderDispatcher;
 import net.minecraft.client.renderer.state.LevelRenderState;
 
@@ -12,11 +11,8 @@ import org.joml.Matrix4f;
 
 import com.mojang.blaze3d.vertex.PoseStack;
 
-import net.minecraft.client.Camera;
-import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.renderer.LevelRenderer;
 import net.minecraft.client.renderer.MultiBufferSource;
-import net.minecraft.client.renderer.culling.Frustum;
 
 import com.kneelawk.commonevents.events.api.client.rendering.LevelRenderContext;
 
@@ -41,7 +37,7 @@ public record LevelRenderContextImpl(LevelRenderer levelRenderer, @Nullable Pose
     }
 
     @Override
-    public Iterable<SectionRenderDispatcher.RenderSection> getRenderSections() {
+    public ObjectArrayList<SectionRenderDispatcher.RenderSection> getRenderSections() {
         return renderSections;
     }
 
