@@ -221,7 +221,7 @@ An event bus can be created like so:
 
 ```java
 public static final EventBus MY_BUS =
-        EventBus.builder(ResourceLocation.fromNamespaceAndPath("mod_id", "bus_name")).build();
+        EventBus.builder(Identifier.fromNamespaceAndPath("mod_id", "bus_name")).build();
 ```
 
 ### Adding Events
@@ -247,7 +247,7 @@ an event by the time listeners get registed to it:
 ```java
 @Listen(EventBus.Created)
 public static void onBusCreated(EventBus bus) {
-    if (bus.getName().equals(ResourceLocation.fromNamespaceAndPath("mod_id", "bus_name"))) {
+    if (bus.getName().equals(Identifier.fromNamespaceAndPath("mod_id", "bus_name"))) {
         bus.addEvent(MY_EVENT);
     }
 }
