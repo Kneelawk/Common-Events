@@ -38,6 +38,6 @@ public class CommonEventsEventsClient implements ClientModInitializer {
 
     private static LevelRenderContext convertRender(WorldRenderContext ctx) {
         return new LevelRenderContextImpl(ctx.worldRenderer(), ctx.matrices(), RenderSystem.getModelViewMatrix(),
-            ctx.worldState(), ctx.worldRenderer().getVisibleSections(), ctx.consumers());
+            ctx.worldState(), ctx.consumers());
     }
 }

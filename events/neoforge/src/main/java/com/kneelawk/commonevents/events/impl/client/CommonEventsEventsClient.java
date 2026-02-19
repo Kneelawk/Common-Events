@@ -59,16 +59,6 @@ public class CommonEventsEventsClient {
 
     private static LevelRenderContext convertRender(RenderLevelStageEvent event) {
         return new LevelRenderContextImpl(event.getLevelRenderer(), event.getPoseStack(), event.getModelViewMatrix(),
-            event.getLevelRenderState(), convertRenderSections(event.getRenderableSections()), Minecraft.getInstance().renderBuffers().bufferSource());
-    }
-
-    private static ObjectArrayList<SectionRenderDispatcher.RenderSection> convertRenderSections(Iterable<? extends IRenderableSection> sections) {
-        ObjectArrayList<SectionRenderDispatcher.RenderSection> renderSections = new ObjectArrayList<>();
-        for (IRenderableSection section : sections) {
-            if (section instanceof SectionRenderDispatcher.RenderSection renderSection) {
-                renderSections.add(renderSection);
-            }
-        }
-        return renderSections;
+            event.getLevelRenderState(), Minecraft.getInstance().renderBuffers().bufferSource());
     }
 }

@@ -1,8 +1,5 @@
 package com.kneelawk.commonevents.events.impl.client;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-
-import net.minecraft.client.renderer.chunk.SectionRenderDispatcher;
 import net.minecraft.client.renderer.state.LevelRenderState;
 
 import org.jetbrains.annotations.Nullable;
@@ -16,29 +13,25 @@ import net.minecraft.client.renderer.MultiBufferSource;
 
 import com.kneelawk.commonevents.events.api.client.rendering.LevelRenderContext;
 
+import org.jspecify.annotations.NonNull;
+
 public record LevelRenderContextImpl(LevelRenderer levelRenderer, @Nullable PoseStack poseStack,
                                      Matrix4f modelViewMatrix, LevelRenderState levelState,
-                                     ObjectArrayList<SectionRenderDispatcher.RenderSection> renderSections,
                                      @Nullable MultiBufferSource bufferSource)
     implements LevelRenderContext {
     @Override
-    public LevelRenderer getLevelRenderer() {
+    public @NonNull LevelRenderer getLevelRenderer() {
         return levelRenderer;
     }
 
     @Override
-    public PoseStack getPoseStack() {
+    public @Nullable PoseStack getPoseStack() {
         return poseStack;
     }
 
     @Override
-    public LevelRenderState getLevelState() {
+    public @NonNull LevelRenderState getLevelState() {
         return levelState;
-    }
-
-    @Override
-    public ObjectArrayList<SectionRenderDispatcher.RenderSection> getRenderSections() {
-        return renderSections;
     }
 
     @Override
