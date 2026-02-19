@@ -12,6 +12,12 @@ import com.kneelawk.commonevents.mainbus.api.CommonEventsMainBus;
 public final class LevelRenderingEvents {
     private LevelRenderingEvents() {}
 
+     /**
+     * Event fired after the level has been extracted into a render state.
+     */
+    @BusEvent(CommonEventsMainBus.NAME)
+    public static final Event<Extraction> EXTRACTION = Event.createSimple(Extraction.class);
+
     /**
      * Event fired before entities are rendered.
      */
@@ -35,6 +41,19 @@ public final class LevelRenderingEvents {
      */
     @BusEvent(CommonEventsMainBus.NAME)
     public static final Event<End> END = Event.createSimple(End.class);
+
+    /**
+     * Fired after the level has been extracted into a render state.
+     */
+    @FunctionalInterface
+    public interface Extraction {
+        /**
+         * Called after the level has been extracted into a render state.
+         *
+         * @param ctx the current extraction context.
+         */
+        void onExtract(LevelExtractionContext ctx);
+    }
 
     /**
      * Fired before entities are rendered.

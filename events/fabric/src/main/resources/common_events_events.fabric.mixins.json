@@ -7,6 +7,12 @@
   "injectors": {
     "defaultRequire": 1
   },
-  "client": [ "Mixin_IntegratedServer" ],
-  "mixins": [ "Mixin_DedicatedServer", "Mixin_GameTestServer", "Mixin_MinecraftServer" ]
+  "client": [
+    "Mixin_IntegratedServer",
+    "client.Invoker_GameRenderer"
+  ],
+  "mixins": [
+    "Mixin_DedicatedServer",
+    "Mixin_GameTestServer",
+    "Mixin_MinecraftServer" ]
 }
