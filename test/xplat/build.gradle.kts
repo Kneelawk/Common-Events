@@ -17,5 +17,5 @@ tasks.processResources {
 }
 
 kpublish {
-    createPublication("intermediary")
+    createPublication("mojmap")
 }

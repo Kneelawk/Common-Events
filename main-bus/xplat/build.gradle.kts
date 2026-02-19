@@ -11,5 +11,5 @@ submodule {
 }
 
 kpublish {
-    createPublication("intermediary")
+    createPublication("mojmap")
 }
