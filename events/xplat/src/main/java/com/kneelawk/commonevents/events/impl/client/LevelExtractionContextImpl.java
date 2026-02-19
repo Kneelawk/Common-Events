@@ -7,26 +7,28 @@ import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.renderer.culling.Frustum;
 import net.minecraft.client.renderer.state.LevelRenderState;
 
+import org.jspecify.annotations.NonNull;
+
 public record LevelExtractionContextImpl(LevelRenderState levelRenderState, Camera camera,
                                          Frustum frustum, DeltaTracker deltaTracker)
     implements LevelExtractionContext {
     @Override
-    public LevelRenderState getLevelState() {
+    public @NonNull LevelRenderState getLevelState() {
         return levelRenderState;
     }
 
     @Override
-    public Camera getCamera() {
+    public @NonNull Camera getCamera() {
         return camera;
     }
 
     @Override
-    public Frustum getFrustum() {
+    public @NonNull Frustum getFrustum() {
         return frustum;
     }
 
     @Override
-    public DeltaTracker getDeltaTracker() {
+    public @NonNull DeltaTracker getDeltaTracker() {
         return deltaTracker;
     }
 }
