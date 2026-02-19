@@ -18,7 +18,7 @@ package com.kneelawk.commonevents.impl;
 
 import java.util.function.Function;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import com.kneelawk.commonevents.api.Event;
 import com.kneelawk.commonevents.impl.scan.ScanManager;
@@ -49,7 +49,7 @@ public class CommonEventsImpl {
      * limitations under the License.
      */
 
-    public static void ensureContainsDefaultPhase(ResourceLocation[] defaultPhases) {
+    public static void ensureContainsDefaultPhase(Identifier[] defaultPhases) {
         for (var id : defaultPhases) {
             if (id.equals(Event.DEFAULT_PHASE)) {
                 return;

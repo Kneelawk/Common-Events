@@ -22,8 +22,8 @@ import com.kneelawk.commonevents.api.adapter.ListenerHandle
 import com.kneelawk.commonevents.api.adapter.util.AdapterUtils.*
 import com.kneelawk.commonevents.impl.CEConstants
 import com.kneelawk.commonevents.impl.CELog
-import net.minecraft.ResourceLocationException
-import net.minecraft.resources.ResourceLocation
+import net.minecraft.IdentifierException
+import net.minecraft.resources.Identifier
 import org.objectweb.asm.*
 import java.io.BufferedInputStream
 import java.net.URL
@@ -62,7 +62,7 @@ class KotlinClassScanner(
                     }
                 }
             } catch (e: Exception) {
-                CELog.LOGGER.warn("[Common Events] Error scanning class {} in mod {}", classUrl, modIds, e);
+                CELog.LOGGER.warn("[Common Events] Error scanning class {} in mod {}", classUrl, modIds, e)
             }
         }
 
@@ -161,8 +161,8 @@ class KotlinClassScanner(
         }
 
         private inner class FieldAnnotationScanner : AnnotationVisitor(API) {
-            val eventBusNames = mutableListOf<ResourceLocation>()
-            val eventBusSet = mutableSetOf<ResourceLocation>()
+            val eventBusNames = mutableListOf<Identifier>()
+            val eventBusSet = mutableSetOf<Identifier>()
 
             override fun visitArray(name: String): AnnotationVisitor? {
                 if (BUS_EVENT_VALUE_FIELD_NAME == name) {
@@ -175,8 +175,8 @@ class KotlinClassScanner(
                 override fun visit(name: String?, value: Any) {
                     if (value is String) {
                         val busName = try {
-                            ResourceLocation.parse(value)
-                        } catch (e: ResourceLocationException) {
+                            Identifier.parse(value)
+                        } catch (e: IdentifierException) {
                             CELog.LOGGER.warn(
                                 "[Common Events] Encountered invalid event bus name '{}' in {}.{} annotation",
                                 value, visitingClass!!.internalName, fieldName, e
@@ -246,8 +246,8 @@ class KotlinClassScanner(
                     qualifier = value
                 } else if (LISTEN_PHASE_FIELD_NAME == name && value is String) {
                     try {
-                        phase = ResourceLocation.parse(value)
-                    } catch (e: ResourceLocationException) {
+                        phase = Identifier.parse(value)
+                    } catch (e: IdentifierException) {
                         CELog.LOGGER.warn(
                             "[Common Events] Encountered invalid phase '{}' in {}.{}{}",
                             value, visitingClass!!.internalName, name, descriptor, e

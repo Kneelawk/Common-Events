@@ -25,7 +25,7 @@ import com.kneelawk.commonevents.api.adapter.scan.ScanRequest
 import com.kneelawk.commonevents.api.adapter.scan.ScanResult
 import com.kneelawk.commonevents.api.adapter.scan.ScannableInfo
 import com.kneelawk.commonevents.impl.CELog
-import net.minecraft.resources.ResourceLocation
+import net.minecraft.resources.Identifier
 import org.objectweb.asm.Type
 import java.nio.file.Files
 
@@ -39,7 +39,7 @@ class KotlinLanguageAdapter : LanguageAdapter {
         val info = mod.info
 
         val listeners = mutableMapOf<EventKey, MutableList<ListenerHandle>>()
-        val busEvents = mutableMapOf<ResourceLocation, MutableList<BusEventHandle>>()
+        val busEvents = mutableMapOf<Identifier, MutableList<BusEventHandle>>()
         val scanned = mutableSetOf<Type>()
         val queued = mutableListOf<Type>()
 
@@ -53,7 +53,7 @@ class KotlinLanguageAdapter : LanguageAdapter {
         val loader = javaClass.classLoader
 
         if (info is ScannableInfo.All) {
-            val classesToScan = modFile.getAnnotatedClasses(Scan::class.java);
+            val classesToScan = modFile.getAnnotatedClasses(Scan::class.java)
             if (classesToScan == null) {
                 for (root in modFile.rootPaths) {
                     try {

@@ -5,12 +5,12 @@ plugins {
 }
 
 submodule {
-    setRefmaps("common-events-events")
+    applyMixinExpansions()
     setupJavadoc()
     xplatProjectDependency(":main-bus")
     xplatProjectDependency(":", include = false)
 }
 
 kpublish {
-    createPublication("intermediary")
+    createPublication("mojmap")
 }

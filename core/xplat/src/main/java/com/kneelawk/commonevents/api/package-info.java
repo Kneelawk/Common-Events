@@ -1,12 +1,10 @@
 /**
  * General Common-Events public API.
  */
-@FieldsAreNonnullByDefault
-@MethodsReturnNonnullByDefault
+@NullMarked
 @ParametersAreNonnullByDefault
 package com.kneelawk.commonevents.api;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
-import net.minecraft.FieldsAreNonnullByDefault;
-import net.minecraft.MethodsReturnNonnullByDefault;
+import org.jspecify.annotations.NullMarked;

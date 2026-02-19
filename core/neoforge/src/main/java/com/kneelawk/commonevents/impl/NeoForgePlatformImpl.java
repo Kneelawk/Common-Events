@@ -27,21 +27,21 @@ import com.kneelawk.commonevents.impl.mod.ModFileHolderImpl;
 public class NeoForgePlatformImpl implements Platform {
     @Override
     public boolean isPhysicalClient() {
-        return FMLLoader.getDist().isClient();
+        return FMLLoader.getCurrent().getDist().isClient();
     }
 
     @Override
     public String getModVersion() {
-        return FMLLoader.getLoadingModList().getModFileById(CEConstants.MOD_ID).versionString();
+        return FMLLoader.getCurrent().getLoadingModList().getModFileById(CEConstants.MOD_ID).versionString();
     }
 
     @Override
     public List<? extends ModFileHolder> getModFiles() {
-        return FMLLoader.getLoadingModList().getModFiles().stream().map(file -> new ModFileHolderImpl(file.getFile())).toList();
+        return FMLLoader.getCurrent().getLoadingModList().getModFiles().stream().map(file -> new ModFileHolderImpl(file.getFile())).toList();
     }
 
     @Override
     public Path getGameDirectory() {
-        return FMLLoader.getGamePath();
+        return FMLLoader.getCurrent().getGameDir();
     }
 }

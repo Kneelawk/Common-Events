@@ -19,15 +19,15 @@ package com.kneelawk.commonevents.kotlin.impl.adapter
 import com.kneelawk.commonevents.api.Event
 import com.kneelawk.commonevents.api.adapter.BusEventHandle
 import com.kneelawk.commonevents.api.adapter.scan.BadEventException
-import net.minecraft.resources.ResourceLocation
+import net.minecraft.resources.Identifier
 import org.objectweb.asm.Type
 import kotlin.reflect.full.companionObjectInstance
 import kotlin.reflect.jvm.kotlinProperty
 
 class KotlinBusEventHandle(
-    private val busNames: Array<ResourceLocation>, private val holderClass: Type, private val fieldName: String
+    private val busNames: Array<Identifier>, private val holderClass: Type, private val fieldName: String
 ) : BusEventHandle {
-    override fun getBusNames(): Array<ResourceLocation> = busNames
+    override fun getBusNames(): Array<Identifier> = busNames
 
     override fun getEvent(): Event<*> {
         val holderClazz = Class.forName(holderClass.className)

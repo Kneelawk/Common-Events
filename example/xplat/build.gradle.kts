@@ -5,6 +5,5 @@ plugins {
 }
 
 submodule {
-    setRefmaps("common-events-example")
     xplatProjectDependency(":")
 }

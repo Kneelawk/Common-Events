@@ -16,12 +16,9 @@
 
 package com.kneelawk.commonevents.api.adapter;
 
-import java.lang.invoke.MethodType;
-import java.lang.reflect.Method;
-
 import org.jetbrains.annotations.Nullable;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import com.kneelawk.commonevents.api.EventKey;
 
@@ -43,7 +40,7 @@ public interface ListenerHandle {
      *
      * @return the phase of this handle's listener.
      */
-    ResourceLocation getPhase();
+    Identifier getPhase();
 
     /**
      * Creates a callback instance that can actually be registered with the event.

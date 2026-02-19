@@ -19,7 +19,7 @@ package com.kneelawk.commonevents.api.adapter.scan;
 import java.util.List;
 import java.util.Map;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import com.kneelawk.commonevents.api.EventKey;
 import com.kneelawk.commonevents.api.adapter.BusEventHandle;
@@ -32,5 +32,5 @@ import com.kneelawk.commonevents.api.adapter.ListenerHandle;
  * @param events    the bus events found while scanning a mod.
  */
 public record ScanResult(Map<EventKey, List<ListenerHandle>> listeners,
-                         Map<ResourceLocation, List<BusEventHandle>> events) {
+                         Map<Identifier, List<BusEventHandle>> events) {
 }
