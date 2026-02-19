@@ -9,12 +9,12 @@ import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 import com.google.common.collect.ImmutableList;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import com.kneelawk.commonevents.api.EventKey;
 import com.kneelawk.commonevents.api.Listen;
 
-public record ReflectionScan(EventKey key, ResourceLocation phase, Method method) {
+public record ReflectionScan(EventKey key, Identifier phase, Method method) {
     private static final Cache<Class<?>, List<ReflectionScan>> instanceMethods =
         CacheBuilder.newBuilder().concurrencyLevel(8).build();
     private static final Cache<Class<?>, List<ReflectionScan>> staticMethods =
@@ -32,7 +32,7 @@ public record ReflectionScan(EventKey key, ResourceLocation phase, Method method
                         Listen l = m.getAnnotation(Listen.class);
                         if (l != null) {
                             builder.add(new ReflectionScan(EventKey.fromClass(l.value(), l.qualifier()),
-                                ResourceLocation.parse(l.phase()), m));
+                                Identifier.parse(l.phase()), m));
                         }
                     }
                 }
@@ -55,7 +55,7 @@ public record ReflectionScan(EventKey key, ResourceLocation phase, Method method
                         Listen l = m.getAnnotation(Listen.class);
                         if (l != null) {
                             builder.add(new ReflectionScan(EventKey.fromClass(l.value(), l.qualifier()),
-                                ResourceLocation.parse(l.phase()), m));
+                                Identifier.parse(l.phase()), m));
                         }
                     }
                 }

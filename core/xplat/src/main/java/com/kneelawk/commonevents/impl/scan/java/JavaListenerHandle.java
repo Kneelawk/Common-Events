@@ -21,7 +21,7 @@ import java.lang.reflect.Method;
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.Type;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import com.kneelawk.commonevents.api.EventKey;
 import com.kneelawk.commonevents.api.adapter.CallbackSettings;
@@ -31,12 +31,12 @@ import com.kneelawk.commonevents.api.adapter.util.ListenerBuilder;
 
 public class JavaListenerHandle implements ListenerHandle {
     private final EventKey key;
-    private final ResourceLocation phase;
+    private final Identifier phase;
     private final Type listenerClass;
     private final String methodName;
     private final Type methodDescriptor;
 
-    public JavaListenerHandle(EventKey key, ResourceLocation phase, Type listenerClass, String methodName,
+    public JavaListenerHandle(EventKey key, Identifier phase, Type listenerClass, String methodName,
                               Type methodDescriptor) {
         this.key = key;
         this.phase = phase;
@@ -51,7 +51,7 @@ public class JavaListenerHandle implements ListenerHandle {
     }
 
     @Override
-    public @NotNull ResourceLocation getPhase() {
+    public @NotNull Identifier getPhase() {
         return phase;
     }
 

@@ -18,7 +18,7 @@ package com.kneelawk.commonevents.api.adapter;
 
 import org.jetbrains.annotations.Nullable;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import com.kneelawk.commonevents.api.Event;
 
@@ -31,7 +31,7 @@ public interface BusEventHandle {
      *
      * @return all buses this event should be added to.
      */
-    ResourceLocation[] getBusNames();
+    Identifier[] getBusNames();
 
     /**
      * Gets the referenced event, so it can be added to an event bus.

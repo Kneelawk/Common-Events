@@ -49,12 +49,12 @@ public class ModFileHolderImpl implements ModFileHolder {
 
     @Override
     public @Nullable Path getResource(@NotNull String path) {
-        return mod.findResource(path);
+        return mod.getContents().getPrimaryPath().resolve(path);
     }
 
     @Override
     public @NotNull List<Path> getRootPaths() {
-        return List.of(mod.getSecureJar().getRootPath());
+        return List.of(mod.getFilePath());
     }
 
     @Override

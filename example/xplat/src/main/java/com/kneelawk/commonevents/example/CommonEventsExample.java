@@ -19,7 +19,7 @@ package com.kneelawk.commonevents.example;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import com.kneelawk.commonevents.api.BusEvent;
 import com.kneelawk.commonevents.api.Event;
@@ -36,7 +36,7 @@ public class CommonEventsExample {
     }
 
     public static final EventBus EVENT_BUS =
-        EventBus.builder(ResourceLocation.fromNamespaceAndPath(MOD_ID, "bus")).build();
+        EventBus.builder(Identifier.fromNamespaceAndPath(MOD_ID, "bus")).build();
 
     static {
         LOGGER.info("# EVENT_BUS created.");
@@ -73,7 +73,7 @@ public class CommonEventsExample {
             for (MyCallback callback : callbacks) {
                 callback.onEvent();
             }
-        }).defaultPhases(ResourceLocation.fromNamespaceAndPath(MOD_ID, "my_phase"), Event.DEFAULT_PHASE).build();
+        }).defaultPhases(Identifier.fromNamespaceAndPath(MOD_ID, "my_phase"), Event.DEFAULT_PHASE).build();
 
         static {
             LOGGER.info("# MY_EVENT created.");

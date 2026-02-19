@@ -21,16 +21,16 @@ import com.kneelawk.commonevents.api.adapter.CallbackSettings
 import com.kneelawk.commonevents.api.adapter.ListenerHandle
 import com.kneelawk.commonevents.api.adapter.util.AdapterUtils
 import com.kneelawk.commonevents.api.adapter.util.ListenerBuilder
-import net.minecraft.resources.ResourceLocation
+import net.minecraft.resources.Identifier
 import org.objectweb.asm.Type
 
 class KotlinListenerHandle(
-    private val key: EventKey, private val phase: ResourceLocation, private val listenerClass: Type,
+    private val key: EventKey, private val phase: Identifier, private val listenerClass: Type,
     private val methodName: String, private val methodDescriptor: Type, private val static: Boolean
 ) : ListenerHandle {
     override fun getKey(): EventKey = key
 
-    override fun getPhase(): ResourceLocation = phase
+    override fun getPhase(): Identifier = phase
 
     override fun <T : Any> createCallback(
         callbackSettings: CallbackSettings<T>

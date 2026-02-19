@@ -39,7 +39,7 @@ import java.util.function.Function;
 import org.jetbrains.annotations.Contract;
 import org.jetbrains.annotations.Nullable;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import com.kneelawk.commonevents.api.adapter.BuilderSettings;
 import com.kneelawk.commonevents.api.adapter.scan.BadListenerException;
@@ -80,9 +80,9 @@ import com.kneelawk.commonevents.impl.scan.ScanManager;
  * created with that type to call the same annotation-based callbacks.
  * <p>
  * An Event can have phases, each callback is attributed to a phase ({@link Event#DEFAULT_PHASE} if unspecified),
- * and each phase can have a defined ordering. Each event phase is identified by a {@link ResourceLocation}, ordering is done
+ * and each phase can have a defined ordering. Each event phase is identified by a {@link Identifier}, ordering is done
  * by explicitly stating that event phase A will run before event phase B, for example.
- * See {@link Event#addPhaseOrdering(ResourceLocation, ResourceLocation)} for more information.
+ * See {@link Event#addPhaseOrdering(Identifier, Identifier)} for more information.
  *
  * <h2>Example: Registering callbacks</h2>
  * <p>
@@ -163,7 +163,7 @@ public final class Event<T> {
      * The name of the default phase.
      * Have a look at {@link Event#createWithPhases} for an explanation of event phases.
      */
-    public static final ResourceLocation DEFAULT_PHASE = CEConstants.DEFAULT_PHASE;
+    public static final Identifier DEFAULT_PHASE = CEConstants.DEFAULT_PHASE;
 
     /**
      * The default qualifier used if no specific qualifier is specified.
@@ -229,7 +229,7 @@ public final class Event<T> {
 
     /**
      * Create a new instance of {@link Event} with a list of default phases that get invoked in order.
-     * Exposing the {@link ResourceLocation} of the default phases as {@code public static final} constants is encouraged.
+     * Exposing the {@link Identifier} of the default phases as {@code public static final} constants is encouraged.
      * <p>
      * An event phase is a named group of callbacks, which may be ordered before or after other groups of callbacks.
      * This allows some callbacks to take priority over other callbacks.
@@ -249,7 +249,7 @@ public final class Event<T> {
      */
     public static <T> Event<T> createWithPhases(Class<? super T> type,
                                                 Function<T[], T> implementation,
-                                                ResourceLocation... defaultPhases) {
+                                                Identifier... defaultPhases) {
         CommonEventsImpl.ensureContainsDefaultPhase(defaultPhases);
         CommonEventsImpl.ensureNoDuplicates(defaultPhases,
             id -> new IllegalArgumentException("Duplicate event phase: " + id));
@@ -359,7 +359,7 @@ public final class Event<T> {
         private @Nullable T emptyImplementation;
         private String qualifier = DEFAULT_QUALIFIER;
         private boolean scanned = true;
-        private ResourceLocation[] defaultPhases = new ResourceLocation[0];
+        private Identifier[] defaultPhases = new Identifier[0];
         private boolean optimizeRemoval = false;
         private @Nullable Object defaultReturn = NO_DEFAULT_RETURN;
         private @Nullable T defaultImplementation;
@@ -450,7 +450,7 @@ public final class Event<T> {
         /**
          * Appends default phases to this builder that the created event will invoke in order.
          * <p>
-         * Exposing the {@link ResourceLocation} of the default phases as {@code public static final} constants is encouraged.
+         * Exposing the {@link Identifier} of the default phases as {@code public static final} constants is encouraged.
          * <p>
          * An event phase is a named group of callbacks, which may be ordered before or after other groups of callbacks.
          * This allows some callbacks to take priority over other callbacks.
@@ -467,9 +467,9 @@ public final class Event<T> {
          * @param defaultPhases the new default phases to append.
          * @return this builder.
          */
-        public Builder<T> defaultPhases(ResourceLocation... defaultPhases) {
+        public Builder<T> defaultPhases(Identifier... defaultPhases) {
             if (this.defaultPhases.length > 0 && defaultPhases.length > 0) {
-                ResourceLocation[] newPhases = new ResourceLocation[this.defaultPhases.length + defaultPhases.length];
+                Identifier[] newPhases = new Identifier[this.defaultPhases.length + defaultPhases.length];
                 System.arraycopy(this.defaultPhases, 0, newPhases, 0, this.defaultPhases.length);
                 System.arraycopy(defaultPhases, 0, newPhases, this.defaultPhases.length, defaultPhases.length);
                 this.defaultPhases = newPhases;
@@ -580,7 +580,7 @@ public final class Event<T> {
     /**
      * Registered event phases.
      */
-    private final Map<ResourceLocation, EventPhaseDataHolder<T>> phases = new LinkedHashMap<>();
+    private final Map<Identifier, EventPhaseDataHolder<T>> phases = new LinkedHashMap<>();
     /**
      * Phases sorted in the correct dependency order.
      */
@@ -696,9 +696,9 @@ public final class Event<T> {
      * This uses the callback object as its own key.
      *
      * @param callback the callback
-     * @see #register(ResourceLocation, Object)
+     * @see #register(Identifier, Object)
      * @see #registerKeyed(Object, Object)
-     * @see #registerKeyed(ResourceLocation, Object, Object)
+     * @see #registerKeyed(Identifier, Object, Object)
      */
     public void register(T callback) {
         this.registerKeyed(callback, callback);
@@ -712,10 +712,10 @@ public final class Event<T> {
      * @param phase    the phase name
      * @param callback the callback
      * @see #register(Object)
-     * @see #register(ResourceLocation, Object)
-     * @see #registerKeyed(ResourceLocation, Object, Object)
+     * @see #register(Identifier, Object)
+     * @see #registerKeyed(Identifier, Object, Object)
      */
-    public void register(ResourceLocation phase, T callback) {
+    public void register(Identifier phase, T callback) {
         this.registerKeyed(phase, callback, callback);
     }
 
@@ -727,8 +727,8 @@ public final class Event<T> {
      * @param key      the callback's key
      * @param callback the callback
      * @see #register(Object)
-     * @see #register(ResourceLocation, Object)
-     * @see #registerKeyed(ResourceLocation, Object, Object)
+     * @see #register(Identifier, Object)
+     * @see #registerKeyed(Identifier, Object, Object)
      */
     public void registerKeyed(Object key, T callback) {
         this.registerKeyed(DEFAULT_PHASE, key, callback);
@@ -743,10 +743,10 @@ public final class Event<T> {
      * @param phase    the phase name
      * @param callback the callback
      * @see #register(Object)
-     * @see #register(ResourceLocation, Object)
+     * @see #register(Identifier, Object)
      * @see #registerKeyed(Object, Object)
      */
-    public void registerKeyed(ResourceLocation phase, Object key, T callback) {
+    public void registerKeyed(Identifier phase, Object key, T callback) {
         Objects.requireNonNull(phase, "Tried to register a callback for a null phase!");
         Objects.requireNonNull(callback, "Tried to register a null callback!");
         Objects.requireNonNull(key, "Tried to register a callback with a null key!");
@@ -908,7 +908,7 @@ public final class Event<T> {
      * @param listenerObject the object instance on which to register the method of
      * @param listenerMethod the method on the object instance to register
      */
-    public void registerInstanceMethod(ResourceLocation phase, Object key, Object listenerObject,
+    public void registerInstanceMethod(Identifier phase, Object key, Object listenerObject,
                                        Method listenerMethod) {
         Objects.requireNonNull(phase, "Tried to register a callback for a null phase!");
         Objects.requireNonNull(key, "Tried to register a callback with a null key!");
@@ -940,7 +940,7 @@ public final class Event<T> {
      * @param listenerClass  the class object on which to register the method of
      * @param listenerMethod the static method on the class object to register
      */
-    public void registerStaticMethod(ResourceLocation phase, Object key, Class<?> listenerClass,
+    public void registerStaticMethod(Identifier phase, Object key, Class<?> listenerClass,
                                      Method listenerMethod) {
         Objects.requireNonNull(phase, "Tried to register a callback for a null phase!");
         Objects.requireNonNull(key, "Tried to register a callback with a null key!");
@@ -975,7 +975,7 @@ public final class Event<T> {
      * @param listenerObject the object instance on which to register the method of
      * @param listenerMethod the method on the object instance to register
      */
-    public void registerWeakMethod(ResourceLocation phase, Object listenerObject, Method listenerMethod) {
+    public void registerWeakMethod(Identifier phase, Object listenerObject, Method listenerMethod) {
         Objects.requireNonNull(phase, "Tried to weak-register a callback for a null phase!");
         Objects.requireNonNull(listenerObject, "Tried to weak-register a callback on a null object!");
         Objects.requireNonNull(listenerMethod, "Tried to weak-register a callback on a null method!");
@@ -1006,10 +1006,10 @@ public final class Event<T> {
      * @param listenerMethod the method on the object instance to register
      * @param defaultReturn  the value returned by the listener if it refers to an object that has been
      *                       garbage-collected before is has been unregistered
-     * @deprecated naming ambiguous, use {@link #registerWeakMethodWithDefaultReturn(ResourceLocation, Object, Method, Object)}
+     * @deprecated naming ambiguous, use {@link #registerWeakMethodWithDefaultReturn(Identifier, Object, Method, Object)}
      */
     @Deprecated
-    public void registerWeakMethod(ResourceLocation phase, Object listenerObject, Method listenerMethod,
+    public void registerWeakMethod(Identifier phase, Object listenerObject, Method listenerMethod,
                                    @Nullable Object defaultReturn) {
         registerWeakMethodWithDefaultReturn(phase, listenerObject, listenerMethod, defaultReturn);
     }
@@ -1029,7 +1029,7 @@ public final class Event<T> {
      *                       garbage-collected before is has been unregistered
      */
     @SuppressWarnings("unchecked")
-    public void registerWeakMethodWithDefaultReturn(ResourceLocation phase, Object listenerObject,
+    public void registerWeakMethodWithDefaultReturn(Identifier phase, Object listenerObject,
                                                     Method listenerMethod, @Nullable Object defaultReturn) {
         registerWeakMethodWithDefaultImpl(phase, listenerObject, listenerMethod,
             (T) DefaultReturnGenerator.defineImpl(type, defaultReturn));
@@ -1049,7 +1049,7 @@ public final class Event<T> {
      * @param defaultImpl    the implementation called by the listener if it refers to an object that has been
      *                       garbage-collected before is has been unregistered
      */
-    public void registerWeakMethodWithDefaultImpl(ResourceLocation phase, Object listenerObject, Method listenerMethod,
+    public void registerWeakMethodWithDefaultImpl(Identifier phase, Object listenerObject, Method listenerMethod,
                                                   @Nullable T defaultImpl) {
         Objects.requireNonNull(phase, "Tried to weak-register a callback for a null phase!");
         Objects.requireNonNull(listenerObject, "Tried to weak-register a callback on a null object!");
@@ -1112,7 +1112,7 @@ public final class Event<T> {
      * @param firstPhase  the name of the phase that should run before the other. It will be created if it didn't exist yet
      * @param secondPhase the name of the phase that should run after the other. It will be created if it didn't exist yet
      */
-    public void addPhaseOrdering(ResourceLocation firstPhase, ResourceLocation secondPhase) {
+    public void addPhaseOrdering(Identifier firstPhase, Identifier secondPhase) {
         Objects.requireNonNull(firstPhase, "Tried to add an ordering for a null phase.");
         Objects.requireNonNull(secondPhase, "Tried to add an ordering for a null phase.");
 
@@ -1166,7 +1166,7 @@ public final class Event<T> {
     }
 
     @SuppressWarnings("unchecked")
-    private void registerInstanceImpl(ResourceLocation phase, KeyHolder key, Object listener, Method listenerMethod) {
+    private void registerInstanceImpl(Identifier phase, KeyHolder key, Object listener, Method listenerMethod) {
         T callback;
         try {
             callback = (T) ListenerBuilder.buildInstanceListener(type, listener, listenerMethod,
@@ -1178,7 +1178,7 @@ public final class Event<T> {
     }
 
     @SuppressWarnings("unchecked")
-    private void registerStaticImpl(ResourceLocation phase, KeyHolder key, Class<?> listenerClass,
+    private void registerStaticImpl(Identifier phase, KeyHolder key, Class<?> listenerClass,
                                     Method listenerMethod) {
         T callback;
         try {
@@ -1190,12 +1190,12 @@ public final class Event<T> {
         registerKeyedImpl(phase, key, callback);
     }
 
-    private void registerWeakImpl(ResourceLocation phase, Object listener, Method listenerMethod) {
+    private void registerWeakImpl(Identifier phase, Object listener, Method listenerMethod) {
         registerWeakImpl(phase, listener, listenerMethod, defaultImplementation);
     }
 
     @SuppressWarnings("unchecked")
-    private void registerWeakImpl(ResourceLocation phase, Object listener, Method listenerMethod,
+    private void registerWeakImpl(Identifier phase, Object listener, Method listenerMethod,
                                   @Nullable T defaultImpl) {
         if (callbackMethod == null) {
             throw new UnsupportedOperationException(
@@ -1224,7 +1224,7 @@ public final class Event<T> {
         registerKeyedImpl(phase, key, callback);
     }
 
-    private void registerKeyedImpl(ResourceLocation phase, KeyHolder key, T callback) {
+    private void registerKeyedImpl(Identifier phase, KeyHolder key, T callback) {
         this.lock.lock();
         try {
             EventPhaseDataHolder<T> phaseData = this.getOrCreatePhase(phase, true);
@@ -1252,7 +1252,7 @@ public final class Event<T> {
         }
     }
 
-    private EventPhaseDataHolder<T> getOrCreatePhase(ResourceLocation id, boolean sortIfCreate) {
+    private EventPhaseDataHolder<T> getOrCreatePhase(Identifier id, boolean sortIfCreate) {
         var phase = this.phases.get(id);
 
         if (phase == null) {

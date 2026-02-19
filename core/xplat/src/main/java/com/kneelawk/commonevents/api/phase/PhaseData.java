@@ -23,7 +23,7 @@ import java.util.Objects;
 
 import org.jetbrains.annotations.Contract;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /**
  * Data of a phase.
@@ -32,7 +32,7 @@ import net.minecraft.resources.ResourceLocation;
  * @param <P> the type of the phase data
  */
 public class PhaseData<T, P extends PhaseData<T, P>> {
-    final ResourceLocation name;
+    final Identifier name;
     /**
      * The data held within this phase.
      */
@@ -53,7 +53,7 @@ public class PhaseData<T, P extends PhaseData<T, P>> {
      * @param name the name of this phase.
      * @param data the data held within this phase.
      */
-    public PhaseData(ResourceLocation name, T data) {
+    public PhaseData(Identifier name, T data) {
         Objects.requireNonNull(name);
 
         this.name = name;
@@ -64,7 +64,7 @@ public class PhaseData<T, P extends PhaseData<T, P>> {
      * {@return the identifier of this phase}
      */
     @Contract(pure = true)
-    public ResourceLocation getName() {
+    public Identifier getName() {
         return this.name;
     }
 

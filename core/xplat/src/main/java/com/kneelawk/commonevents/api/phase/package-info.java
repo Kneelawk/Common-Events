@@ -1,12 +1,10 @@
 /**
  * Phase sorting API, used by events.
  */
-@FieldsAreNonnullByDefault
-@MethodsReturnNonnullByDefault
+@NullMarked
 @ParametersAreNonnullByDefault
 package com.kneelawk.commonevents.api.phase;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
-import net.minecraft.FieldsAreNonnullByDefault;
-import net.minecraft.MethodsReturnNonnullByDefault;
+import org.jspecify.annotations.NullMarked;

@@ -22,25 +22,25 @@ import java.util.Arrays;
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.Type;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import com.kneelawk.commonevents.api.Event;
 import com.kneelawk.commonevents.api.adapter.BusEventHandle;
 import com.kneelawk.commonevents.api.adapter.scan.BadEventException;
 
 public class JavaBusEventHandle implements BusEventHandle {
-    private final ResourceLocation[] busNames;
+    private final Identifier[] busNames;
     private final Type holderClass;
     private final String fieldName;
 
-    public JavaBusEventHandle(ResourceLocation[] busNames, Type holderClass, String fieldName) {
+    public JavaBusEventHandle(Identifier[] busNames, Type holderClass, String fieldName) {
         this.busNames = busNames;
         this.holderClass = holderClass;
         this.fieldName = fieldName;
     }
 
     @Override
-    public ResourceLocation @NotNull [] getBusNames() {
+    public Identifier @NotNull [] getBusNames() {
         return busNames;
     }
 

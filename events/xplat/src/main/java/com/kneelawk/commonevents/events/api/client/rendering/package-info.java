@@ -1,12 +1,10 @@
 /**
  * Common-Events level-rendering API.
  */
-@FieldsAreNonnullByDefault
-@MethodsReturnNonnullByDefault
+@NullMarked
 @ParametersAreNonnullByDefault
 package com.kneelawk.commonevents.events.api.client.rendering;
 
 import javax.annotation.ParametersAreNonnullByDefault;
 
-import net.minecraft.FieldsAreNonnullByDefault;
-import net.minecraft.MethodsReturnNonnullByDefault;
+import org.jspecify.annotations.NullMarked;

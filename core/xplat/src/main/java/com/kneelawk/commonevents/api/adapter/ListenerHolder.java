@@ -16,7 +16,7 @@
 
 package com.kneelawk.commonevents.api.adapter;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import com.kneelawk.commonevents.api.EventKey;
 
@@ -29,5 +29,5 @@ import com.kneelawk.commonevents.api.EventKey;
  * @param phase    the event phase the listener is listening to.
  * @param listener the listener implementing the event's callback interface.
  */
-public record ListenerHolder(EventKey key, ResourceLocation phase, Object listener) {
+public record ListenerHolder(EventKey key, Identifier phase, Object listener) {
 }

@@ -16,7 +16,7 @@
 
 package com.kneelawk.commonevents.mainbus.api;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import com.kneelawk.commonevents.api.EventBus;
 
@@ -40,5 +40,5 @@ public final class CommonEventsMainBus {
      * If you want a bus that is easily accessible to add your events, this bus is the bus. This bus should not be used
      * for more special-purpose events.
      */
-    public static final EventBus BUS = EventBus.builder(ResourceLocation.parse(NAME)).build();
+    public static final EventBus BUS = EventBus.builder(Identifier.parse(NAME)).build();
 }

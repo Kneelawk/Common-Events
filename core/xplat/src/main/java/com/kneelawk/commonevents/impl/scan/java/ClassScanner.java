@@ -36,8 +36,8 @@ import org.objectweb.asm.MethodVisitor;
 import org.objectweb.asm.Opcodes;
 import org.objectweb.asm.Type;
 
-import net.minecraft.ResourceLocationException;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.IdentifierException;
+import net.minecraft.resources.Identifier;
 
 import com.kneelawk.commonevents.api.EventKey;
 import com.kneelawk.commonevents.api.adapter.BusEventHandle;
@@ -163,7 +163,7 @@ public class ClassScanner extends ClassVisitor {
         private class MethodAnnotationScanner extends AnnotationVisitor {
             private Type keyType = null;
             private String qualifier = CEConstants.DEFAULT_QUALIFIER;
-            private ResourceLocation phase = CEConstants.DEFAULT_PHASE;
+            private Identifier phase = CEConstants.DEFAULT_PHASE;
 
             protected MethodAnnotationScanner() {
                 super(AdapterUtils.API);
@@ -177,8 +177,8 @@ public class ClassScanner extends ClassVisitor {
                     qualifier = str;
                 } else if (AdapterUtils.LISTEN_PHASE_FIELD_NAME.equals(name) && value instanceof String str) {
                     try {
-                        phase = ResourceLocation.parse(str);
-                    } catch (ResourceLocationException e) {
+                        phase = Identifier.parse(str);
+                    } catch (IdentifierException e) {
                         CELog.LOGGER.warn("[Common Events] Encountered invalid phase '{}' in {}.{}{}", str,
                             visitingClass.getInternalName(), name, descriptor, e);
                     }
@@ -225,8 +225,8 @@ public class ClassScanner extends ClassVisitor {
         }
 
         private class FieldAnnotationScanner extends AnnotationVisitor {
-            private final List<ResourceLocation> eventBusNames = new ArrayList<>();
-            private final Set<ResourceLocation> eventBusSet = new HashSet<>();
+            private final List<Identifier> eventBusNames = new ArrayList<>();
+            private final Set<Identifier> eventBusSet = new HashSet<>();
 
             protected FieldAnnotationScanner() {
                 super(AdapterUtils.API);
@@ -249,10 +249,10 @@ public class ClassScanner extends ClassVisitor {
                 @Override
                 public void visit(String name, Object value) {
                     if (value instanceof String str) {
-                        ResourceLocation busName;
+                        Identifier busName;
                         try {
-                            busName = ResourceLocation.parse(str);
-                        } catch (ResourceLocationException e) {
+                            busName = Identifier.parse(str);
+                        } catch (IdentifierException e) {
                             CELog.LOGGER.warn(
                                 "[Common Events] Encountered invalid event bus name '{}' in {}.{} annotation", str,
                                 visitingClass.getInternalName(), fieldName, e);
@@ -275,7 +275,7 @@ public class ClassScanner extends ClassVisitor {
             public void visitEnd() {
                 if (!eventBusNames.isEmpty()) {
                     busEventFound.accept(
-                        new JavaBusEventHandle(eventBusNames.toArray(ResourceLocation[]::new), visitingClass,
+                        new JavaBusEventHandle(eventBusNames.toArray(Identifier[]::new), visitingClass,
                             fieldName));
                 } else {
                     CELog.LOGGER.warn("[Common Events] No bus names present in {}.{} annotation. Ignoring...",

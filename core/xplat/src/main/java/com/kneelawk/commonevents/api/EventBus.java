@@ -24,7 +24,7 @@ import org.jetbrains.annotations.Nullable;
 
 import it.unimi.dsi.fastutil.objects.Object2ObjectLinkedOpenHashMap;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import com.kneelawk.commonevents.impl.scan.ReflectionScan;
 import com.kneelawk.commonevents.impl.scan.ScanManager;
@@ -38,7 +38,7 @@ import com.kneelawk.commonevents.impl.scan.ScanManager;
  * annotated with.
  */
 public final class EventBus {
-    private final ResourceLocation name;
+    private final Identifier name;
     private final Map<EventKey, Event<?>> events = new Object2ObjectLinkedOpenHashMap<>();
 
     /**
@@ -69,19 +69,19 @@ public final class EventBus {
      * @param name the name for the event bus to be built.
      * @return the event bus builder.
      */
-    public static Builder builder(ResourceLocation name) {
+    public static Builder builder(Identifier name) {
         return new Builder(name);
     }
 
     /**
-     * {@link EventBus} builder. Use {@link #builder(ResourceLocation)} to create new builders.
+     * {@link EventBus} builder. Use {@link #builder(Identifier)} to create new builders.
      */
     public static class Builder {
-        private final ResourceLocation name;
+        private final Identifier name;
         private boolean scanned = true;
         private boolean fireEvent = true;
 
-        private Builder(ResourceLocation name) {
+        private Builder(Identifier name) {
             this.name = name;
         }
 
@@ -117,7 +117,7 @@ public final class EventBus {
         }
     }
 
-    private EventBus(ResourceLocation name, boolean scanned, boolean fireEvent) {
+    private EventBus(Identifier name, boolean scanned, boolean fireEvent) {
         this.name = name;
 
         if (scanned) {
@@ -132,7 +132,7 @@ public final class EventBus {
     /**
      * {@return this event bus's name}
      */
-    public ResourceLocation getName() {
+    public Identifier getName() {
         return name;
     }
 
@@ -257,7 +257,7 @@ public final class EventBus {
      * @throws IllegalArgumentException if the specified callback interface and qualifier do not match any events in
      *                                  this bus.
      */
-    public <T> void registerListener(Class<T> callbackInterface, ResourceLocation phase, T listener) {
+    public <T> void registerListener(Class<T> callbackInterface, Identifier phase, T listener) {
         registerKeyedListener(callbackInterface, Event.DEFAULT_QUALIFIER, phase, listener, listener);
     }
 
@@ -286,7 +286,7 @@ public final class EventBus {
      * @throws IllegalArgumentException if the specified callback interface and qualifier do not match any events in
      *                                  this bus.
      */
-    public <T> void registerListener(Class<T> callbackInterface, String qualifier, ResourceLocation phase, T listener) {
+    public <T> void registerListener(Class<T> callbackInterface, String qualifier, Identifier phase, T listener) {
         registerKeyedListener(callbackInterface, qualifier, phase, listener, listener);
     }
 
@@ -315,7 +315,7 @@ public final class EventBus {
      * @throws IllegalArgumentException if the specified callback interface and qualifier do not match any events in
      *                                  this bus.
      */
-    public <T> void registerKeyedListener(Class<T> callbackInterface, ResourceLocation phase, Object key, T listener) {
+    public <T> void registerKeyedListener(Class<T> callbackInterface, Identifier phase, Object key, T listener) {
         registerKeyedListener(callbackInterface, Event.DEFAULT_QUALIFIER, phase, key, listener);
     }
 
@@ -347,7 +347,7 @@ public final class EventBus {
      *                                  this bus.
      */
     @SuppressWarnings("unchecked")
-    public <T> void registerKeyedListener(Class<T> callbackInterface, String qualifier, ResourceLocation phase,
+    public <T> void registerKeyedListener(Class<T> callbackInterface, String qualifier, Identifier phase,
                                           Object key, T listener) {
         Objects.requireNonNull(callbackInterface, "Tried to register a listener with a null callback interface class!");
         Objects.requireNonNull(qualifier, "Tried to register a listener with a null event qualifier!");

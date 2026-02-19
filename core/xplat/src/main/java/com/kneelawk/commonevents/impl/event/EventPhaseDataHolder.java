@@ -18,13 +18,13 @@ package com.kneelawk.commonevents.impl.event;
 
 import org.jetbrains.annotations.ApiStatus;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import com.kneelawk.commonevents.api.phase.PhaseData;
 
 @ApiStatus.Internal
 public final class EventPhaseDataHolder<T> extends PhaseData<EventPhaseData<T>, EventPhaseDataHolder<T>> {
-    public EventPhaseDataHolder(ResourceLocation id, Class<?> listenerClass, boolean sorted) {
+    public EventPhaseDataHolder(Identifier id, Class<?> listenerClass, boolean sorted) {
         super(id, sorted ? new SortedEventPhaseData<>(listenerClass) : new UnsortedEventPhaseData<>(listenerClass));
     }
 

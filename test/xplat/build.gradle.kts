@@ -5,7 +5,7 @@ plugins {
 }
 
 submodule {
-    setRefmaps("common-events-test")
+    applyMixinExpansions()
     setupJavadoc()
     xplatProjectDependency(":")
 }

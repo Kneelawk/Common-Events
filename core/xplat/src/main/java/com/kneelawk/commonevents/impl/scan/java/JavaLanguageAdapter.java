@@ -29,7 +29,7 @@ import java.util.stream.Stream;
 import org.jetbrains.annotations.NotNull;
 import org.objectweb.asm.Type;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import com.kneelawk.commonevents.api.EventKey;
 import com.kneelawk.commonevents.api.Scan;
@@ -56,7 +56,7 @@ public class JavaLanguageAdapter implements LanguageAdapter {
         String modIds = modFile.getModIdStr();
 
         Map<EventKey, List<ListenerHandle>> scannedListeners = new LinkedHashMap<>();
-        Map<ResourceLocation, List<BusEventHandle>> scannedBusEvents = new LinkedHashMap<>();
+        Map<Identifier, List<BusEventHandle>> scannedBusEvents = new LinkedHashMap<>();
 
         ClassLoader loader = getClass().getClassLoader();
 
@@ -112,8 +112,8 @@ public class JavaLanguageAdapter implements LanguageAdapter {
         scannedListeners.computeIfAbsent(handle.getKey(), k -> new ArrayList<>()).add(handle);
     }
 
-    private static void addHandle(BusEventHandle handle, Map<ResourceLocation, List<BusEventHandle>> scannedBusEvents) {
-        for (ResourceLocation busName : handle.getBusNames()) {
+    private static void addHandle(BusEventHandle handle, Map<Identifier, List<BusEventHandle>> scannedBusEvents) {
+        for (Identifier busName : handle.getBusNames()) {
             scannedBusEvents.computeIfAbsent(busName, k -> new ArrayList<>()).add(handle);
         }
     }

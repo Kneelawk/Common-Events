@@ -5,7 +5,7 @@ plugins {
 }
 
 submodule {
-    setRefmaps("common-events-main-bus")
+    applyMixinExpansions()
     setupJavadoc()
     xplatProjectDependency(":")
 }

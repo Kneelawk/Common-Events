@@ -5,7 +5,7 @@ plugins {
 }
 
 submodule {
-    setRefmaps("common-events-example-kotlin")
+    applyMixinExpansions()
     xplatProjectDependency(":")
     xplatProjectDependency(":kotlin")
 }

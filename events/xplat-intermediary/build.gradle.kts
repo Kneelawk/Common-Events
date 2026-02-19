@@ -22,6 +22,7 @@ plugins {
 
 submodule {
     applyXplatConnection(":events-xplat")
+    setupJavadoc()
 }
 
 kpublish {

@@ -40,7 +40,7 @@ import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 import com.kneelawk.commonevents.api.Event;
 import com.kneelawk.commonevents.api.EventBus;
@@ -62,7 +62,7 @@ public class ScanManager {
     private static boolean initialized = false;
     private static final Lock initLock = new ReentrantLock();
     private static final Map<EventKey, List<ListenerHandle>> scannedListeners = new HashMap<>();
-    private static final Map<ResourceLocation, List<BusEventHandle>> scannedBusEvents = new HashMap<>();
+    private static final Map<Identifier, List<BusEventHandle>> scannedBusEvents = new HashMap<>();
 
     public static final ExecutorService SCAN_EXECUTOR =
         new ThreadPoolExecutor(0, Runtime.getRuntime().availableProcessors(), 2, TimeUnit.SECONDS,
@@ -209,7 +209,7 @@ public class ScanManager {
                 scannedListeners.computeIfAbsent(entry.getKey(), k -> new ArrayList<>()).addAll(handles);
             }
         }
-        for (Map.Entry<ResourceLocation, List<BusEventHandle>> entry : result.events().entrySet()) {
+        for (Map.Entry<Identifier, List<BusEventHandle>> entry : result.events().entrySet()) {
             List<BusEventHandle> handles = entry.getValue();
             if (!handles.isEmpty()) {
                 scannedBusEvents.computeIfAbsent(entry.getKey(), k -> new ArrayList<>()).addAll(handles);

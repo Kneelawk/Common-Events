@@ -18,7 +18,7 @@ package com.kneelawk.commonevents.example.kotlin
 
 import com.kneelawk.commonevents.api.Event
 import com.kneelawk.commonevents.api.EventBus
-import net.minecraft.resources.ResourceLocation
+import net.minecraft.resources.Identifier
 import org.slf4j.LoggerFactory
 
 object CommonEventsExampleKotlin {
@@ -29,7 +29,7 @@ object CommonEventsExampleKotlin {
         LOGGER.info("# Creating EVENT_BUS...")
     }
 
-    val EVENT_BUS = EventBus.builder(ResourceLocation.fromNamespaceAndPath(MOD_ID, "bus")).build()
+    val EVENT_BUS = EventBus.builder(Identifier.fromNamespaceAndPath(MOD_ID, "bus")).build()
 
     init {
         LOGGER.info("# EVENT_BUS created")
