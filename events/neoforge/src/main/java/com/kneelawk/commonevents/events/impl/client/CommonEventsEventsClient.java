@@ -29,7 +29,7 @@ public class CommonEventsEventsClient {
     }
 
     @SubscribeEvent
-    public static void onRenderLevelAfterTranslucent(RenderLevelStageEvent.AfterTranslucentBlocks event) {
+    public static void onRenderLevelAfterTranslucent(RenderLevelStageEvent.AfterParticles event) {
         LevelRenderingEvents.AFTER_TRANSLUCENT.invoker().afterTranslucent(convert(event));
     }
 
