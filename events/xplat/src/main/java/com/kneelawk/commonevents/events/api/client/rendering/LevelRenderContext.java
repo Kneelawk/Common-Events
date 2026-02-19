@@ -1,5 +1,9 @@
 package com.kneelawk.commonevents.events.api.client.rendering;
 
+import net.minecraft.client.renderer.chunk.ChunkSectionsToRender;
+import net.minecraft.client.renderer.chunk.SectionRenderDispatcher;
+import net.minecraft.client.renderer.state.LevelRenderState;
+
 import org.jetbrains.annotations.Nullable;
 
 import org.joml.Matrix4f;
@@ -29,29 +33,14 @@ public interface LevelRenderContext {
     @Nullable PoseStack getPoseStack();
 
     /**
-     * {@return the model view matrix}
+     * {@return the level render state}
      */
-    Matrix4f getModelViewMatrix();
+    LevelRenderState getLevelState();
 
     /**
-     * {@return the projection matrix}
+     * {@return an iterable of the render sections}
      */
-    Matrix4f getProjectionMatrix();
-
-    /**
-     * {@return the delta tracker}
-     */
-    DeltaTracker getDeltaTracker();
-
-    /**
-     * {@return the current camera}
-     */
-    Camera getCamera();
-
-    /**
-     * {@return the current frustum}
-     */
-    Frustum getFrustum();
+    Iterable<SectionRenderDispatcher.RenderSection> getRenderSections();
 
     /**
      * Gets the buffer source used by the level renderer for most non-terrain renders.

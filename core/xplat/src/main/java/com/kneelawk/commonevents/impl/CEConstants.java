@@ -21,14 +21,14 @@ import net.minecraft.resources.Identifier;
 public class CEConstants {
     public static final String MOD_ID = "common_events";
 
-    public static final Identifier DEFAULT_PHASE = rl("default");
+    public static final Identifier DEFAULT_PHASE = id("default");
 
     public static final String DEFAULT_QUALIFIER = "common_events_default";
     
     public static final int SCAN_MULTI_THREAD_THRESHOLD = Integer.getInteger("com.kneelawk.common_events.scan_multi_thread_threshold", 5);
     public static final boolean EXPORT_GENERATED_CLASSES = Boolean.getBoolean("com.kneelawk.common_events.export_generated_classes");
 
-    public static Identifier rl(String path) {
+    public static Identifier id(String path) {
         return Identifier.fromNamespaceAndPath(MOD_ID, path);
     }
 }
