@@ -4,18 +4,26 @@ import net.minecraft.client.Camera;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.renderer.culling.Frustum;
 
-import org.joml.Matrix4fc;
+import net.minecraft.client.renderer.state.LevelRenderState;
 
 public interface LevelExtractionContext {
+    /**
+     * {@return the level render state}
+     */
+    LevelRenderState getLevelState();
+
+    /**
+     * {@return the current camera}
+     */
     Camera getCamera();
 
+    /**
+     * {@return the current frustum}
+     */
     Frustum getFrustum();
 
+    /**
+     * {@return the current delta tracker}
+     */
     DeltaTracker getDeltaTracker();
-
-    Matrix4fc getViewMatrix();
-
-    Matrix4fc getProjectionMatrix();
-
-    Matrix4fc getCullProjectionMatrix();
 }

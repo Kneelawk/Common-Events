@@ -1,5 +1,7 @@
 package com.kneelawk.commonevents.events.impl.client;
 
+import com.kneelawk.commonevents.events.api.client.rendering.LevelExtractionContext;
+
 import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 
 import net.minecraft.client.renderer.chunk.SectionRenderDispatcher;
@@ -17,13 +19,10 @@ import com.kneelawk.commonevents.events.api.client.rendering.LevelRenderContext;
 import com.kneelawk.commonevents.events.api.client.rendering.LevelRenderingEvents;
 import com.kneelawk.commonevents.events.impl.CEEConstants;
 
-import org.joml.Matrix4f;
 import org.joml.Matrix4fc;
 
 @EventBusSubscriber(modid = CEEConstants.MOD_ID, value = Dist.CLIENT)
 public class CommonEventsEventsClient {
-    public static final ThreadLocal<ExtractionMatrices> MATRICES = new ThreadLocal<>();
-
     @SubscribeEvent
     public static void onExtractLevel(ExtractLevelRenderStateEvent event) {
         LevelRenderingEvents.EXTRACTION.invoker().onExtract(convertExtraction(event));
@@ -53,9 +52,9 @@ public class CommonEventsEventsClient {
 
     }
 
-    private static LevelExtractionContextImpl convertExtraction(ExtractLevelRenderStateEvent event) {
-        return new LevelExtractionContextImpl(event.getCamera(), event.getFrustum(), event.getDeltaTracker(),
-            MATRICES.get().view(), MATRICES.get().projection(), MATRICES.get().cullProjection());
+    private static LevelExtractionContext convertExtraction(ExtractLevelRenderStateEvent event) {
+        return new LevelExtractionContextImpl(event.getRenderState(), event.getCamera(),
+            event.getFrustum(), event.getDeltaTracker());
     }
 
     private static LevelRenderContext convertRender(RenderLevelStageEvent event) {
